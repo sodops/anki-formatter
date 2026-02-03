@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Anki Converter</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="background-globes">
+      <div class="globe globe-1"></div>
+      <div class="globe globe-2"></div>
+      <div class="globe globe-3"></div>
+    </div>
+
+    <div class="container">
+      <header>
+        <div class="logo">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="4"
+              y="2"
+              width="16"
+              height="20"
+              rx="2"
+              stroke="white"
+              stroke-width="2"
+            />
+            <path
+              d="M9 7H15"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M9 11H15"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M9 15H13"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <h1>Anki Converter</h1>
+        </div>
+        <p class="subtitle">Transform vocab lists into Flashcards instantly.</p>
+      </header>
+
+      <main>
+        <div class="glass-panel">
+          <div class="upload-tabs">
+            <button type="button" class="tab-btn active" id="tabFile">
+              File Upload
+            </button>
+            <button type="button" class="tab-btn" id="tabUrl">
+              Google Docs URL
+            </button>
+            <button type="button" class="tab-btn" id="tabText">
+              Paste Text
+            </button>
+          </div>
+
+          <form id="uploadForm">
+            <div class="form-group">
+              <label for="deckName">Deck Name</label>
+              <input
+                type="text"
+                id="deckName"
+                name="deck_name"
+                value="My Smart Deck"
+                placeholder="e.g. English Unit 1"
+              />
+            </div>
+
+            <!-- File Upload Mode -->
+            <div id="fileSection">
+              <div class="drop-zone" id="dropZone">
+                <div class="drop-content">
+                  <span class="icon">📂</span>
+                  <p>Drag & Drop your file here</p>
+                  <span class="sub-text">Supports .docx, .txt, .csv</span>
+                  <button type="button" class="browse-btn">Browse Files</button>
+                </div>
+                <input
+                  type="file"
+                  id="fileInput"
+                  name="file"
+                  accept=".docx,.txt,.csv"
+                  hidden
+                />
+              </div>
+            </div>
+
+            <!-- URL Mode -->
+            <div id="urlSection" class="hidden">
+              <div class="form-group">
+                <label for="docUrl">Google Docs Public/Share Link</label>
+                <input
+                  type="text"
+                  name="doc_url"
+                  id="docUrl"
+                  placeholder="https://docs.google.com/document/d/..."
+                />
+                <span class="sub-text" style="display: block; margin-top: 5px"
+                  >Make sure the link is accessible (Public or Shared with
+                  you).</span
+                >
+              </div>
+            </div>
+
+            <!-- Text Paste Mode -->
+            <div id="textSection" class="hidden">
+                <div class="form-group">
+                    <label for="rawText">Paste Vocabulary List</label>
+                    <textarea id="rawText" name="raw_text" rows="10" 
+                    style="width:100%; padding:12px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); color:white; border-radius:8px; resize:vertical; font-family:'JetBrains Mono', monospace;" 
+                    placeholder="apple - fruit
+orange = citrus
+banana -> yellow fruit"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="convertBtn">
+              <span class="btn-text">Start Conversion</span>
+              <div class="loader hidden"></div>
+            </button>
+          </form>
+        </div>
+
+        <div class="glass-panel hidden" id="editorPanel">
+          <h2>Review Cards</h2>
+          <div class="form-group row">
+            <div class="col">
+              <label for="outputFilename">Output Filename</label>
+              <input type="text" id="outputFilename" value="my_deck" />
+            </div>
+          </div>
+
+          <div class="stats-bar">
+            <div class="stat-item">
+              <span class="stat-label">Total Lines</span>
+              <span class="stat-value" id="statTotal">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-label">Valid Cards</span>
+              <span class="stat-value" id="statParsed">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item clickable" id="btnToggleSkipped">
+              <span class="stat-label">Skipped 👁️</span>
+              <span class="stat-value" id="statSkipped">0</span>
+            </div>
+          </div>
+
+          <div id="skippedSection" class="skipped-section hidden">
+            <div class="skipped-header">
+              <h3>
+                Skipped Lines
+                <span class="close-hint">(Click to close)</span>
+              </h3>
+              <button id="btnAddSelected" class="add-selected-btn">
+                ✓ Add Selected
+              </button>
+            </div>
+
+            <div id="skippedList" class="skipped-list">
+              <!-- Items with checkboxes injected by JS -->
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table id="cardsTable">
+              <thead>
+                <tr>
+                  <th>Front (Term)</th>
+                  <th>Back (Definition)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Rows will be injected by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="actions">
+            <button class="add-btn" id="addCardBtn">+ Add Card</button>
+            <button class="submit-btn" id="generateBtn">
+              <span class="btn-text">Generate .apkg</span>
+              <div class="loader hidden" id="genLoader"></div>
+            </button>
+          </div>
+        </div>
+
+        <div id="resultPanel" class="glass-panel hidden">
+          <div class="success-message hidden" id="successView">
+            <span class="success-icon">🎉</span>
+            <h2>Conversion Complete!</h2>
+            <p id="statsText">Successfully created 25 cards.</p>
+            <a href="#" id="downloadLink" class="download-btn"
+              >Download .apkg</a
+            >
+          </div>
+
+          <div class="error-message hidden" id="errorView">
+            <span class="error-icon">⚠️</span>
+            <h2 id="errorTitle">Something went wrong</h2>
+            <p id="errorDescription">Please check your file format.</p>
+            <ul id="failedLinesList"></ul>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>Powered by Smart Anki Engine</p>
+      </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+  </body>
+</html>
