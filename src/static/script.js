@@ -70,8 +70,7 @@ function setupEventListeners() {
         if(e.key === 'F1') {
             e.preventDefault();
             dom.omnibarInput.focus();
-            dom.omnibarInput.value = '>';
-            dom.omnibarInput.dispatchEvent(new Event('input'));
+            openCommandPalette();
         }
     });
 
@@ -242,8 +241,7 @@ function handleOmnibarKey(e) {
     if (e.key === 'F1') {
         e.preventDefault();
         dom.omnibarInput.focus();
-        dom.omnibarInput.value = '>';
-        dom.omnibarInput.dispatchEvent(new Event('input')); // Trigger logic
+        openCommandPalette(); // Use central function
         return;
     }
 
@@ -290,12 +288,36 @@ function handleOmnibarKey(e) {
 /* Command Palette Functions */
 function openCommandPalette() {
     dom.omnibarInput.value = '>';
+    // Modal Mode Logic
+    dom.omnibarContainer.classList.add('modal-active');
+    
+    // Create/Show Overlay
+    let overlay = document.getElementById('omnibarOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'omnibarOverlay';
+        overlay.className = 'omnibar-overlay';
+        overlay.onclick = closeCommandPalette; // Click outside to close
+        document.body.appendChild(overlay);
+    }
+    // Small timeout for transition
+    requestAnimationFrame(() => overlay.classList.add('active'));
+
     handleOmnibarInput({ target: dom.omnibarInput });
 }
 
 function closeCommandPalette() {
     dom.commandDropdown.classList.add('hidden');
     dom.omnibarInput.value = '';
+    
+    // Exit Modal Mode
+    dom.omnibarContainer.classList.remove('modal-active');
+    const overlay = document.getElementById('omnibarOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+        // Wait for transition then remove? Or just leave it hidden
+        setTimeout(() => { if(!overlay.classList.contains('active')) overlay.remove(); }, 200);
+    }
 }
 
 function handleOmnibarInput(e) {

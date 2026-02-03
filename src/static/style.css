@@ -593,3 +593,45 @@ tr.row-error {
     padding: 2px 6px;
     border-radius: 4px;
 }
+
+/* Z-Index Fix for Normal Dropdown */
+.omnibar-container {
+    position: relative;
+    z-index: 50; /* Higher than table header (10) */
+}
+
+/* Modal Overlay (Backdrop) */
+.omnibar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 900;
+    opacity: 0;
+    pointer-events: none; /* Let clicks pass through when hidden */
+    transition: opacity 0.2s;
+}
+
+.omnibar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Modal Mode for Omnibar */
+.omnibar-container.modal-active {
+    position: fixed;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px; /* Wider in modal mode */
+    z-index: 1000;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    border-color: var(--accent);
+}
+
+.omnibar-container.modal-active .command-dropdown {
+    max-height: 400px;
+}
