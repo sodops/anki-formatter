@@ -201,7 +201,7 @@ body {
   flex-direction: column;
   height: 100vh;
   position: relative;
-  backdrop-filter: blur(0px); /* Performance fix for inner content */
+  
 }
 
 /* Top Bar / Omnibar */
