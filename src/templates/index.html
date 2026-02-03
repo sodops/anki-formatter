@@ -142,6 +142,25 @@
                 <label>Filename</label>
                 <input type="text" id="exportFilename" value="my_deck" />
             </div>
+            
+            <div class="form-group">
+                <label>Format</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="exportFormat" value="apkg" checked>
+                        <span>Anki Package (.apkg)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="exportFormat" value="txt">
+                        <span>Text File (.txt)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="exportFormat" value="md">
+                        <span>Markdown (.md)</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="modal-actions">
                 <button class="action-btn secondary" id="btnCancelExport">
                     Cancel

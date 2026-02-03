@@ -276,16 +276,54 @@ function switchDeck(id) {
     renderWorkspace();
 }
 
+/* Deck Management */
+window.deleteDeck = async function(id, event) {
+    if(event) event.stopPropagation();
+    
+    // Prevent deleting the last deck
+    if(STATE.decks.length <= 1) {
+        ui.alert("Cannot delete the only deck.");
+        return;
+    }
+
+    if(await ui.confirm("Permanently delete this deck?")) {
+        const index = STATE.decks.findIndex(d => d.id === id);
+        if(index > -1) {
+            STATE.decks.splice(index, 1);
+            
+            // If deleted active deck, switch to first one available
+            if(STATE.activeDeckId === id) {
+                STATE.activeDeckId = STATE.decks[0].id;
+            }
+            saveState();
+            renderSidebar();
+            renderWorkspace();
+            showToast("Deck Deleted");
+        }
+    }
+};
+
 /* Rendering */
 function renderSidebar() {
     dom.deckList.innerHTML = '';
     STATE.decks.forEach(deck => {
         const li = document.createElement('li');
         li.className = `deck-item ${deck.id === STATE.activeDeckId ? 'active' : ''}`;
-        li.innerHTML = `<ion-icon name="folder-open-outline"></ion-icon> ${escapeHtml(deck.name)}`;
-        li.onclick = () => switchDeck(deck.id);
         
-        // Add delete button logic later if needed
+        // Inner content with delete button
+        li.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px; flex:1">
+                <ion-icon name="folder-open-outline"></ion-icon> 
+                ${escapeHtml(deck.name)}
+            </div>
+            <div class="delete-btn" onclick="deleteDeck('${deck.id}', event)">
+                <ion-icon name="trash-outline"></ion-icon>
+            </div>
+        `;
+        
+        li.onclick = (e) => {
+            if(!e.target.closest('.delete-btn')) switchDeck(deck.id);
+        };
         dom.deckList.appendChild(li);
     });
 }
@@ -613,41 +651,89 @@ async function handleFileUpload(file) {
 /* Export Logic */
 async function executeExport() {
     const deck = getActiveDeck();
-    const filename = dom.exportFilename.value;
+    const filename = dom.exportFilename.value || 'deck_export';
+    const format = document.querySelector('input[name="exportFormat"]:checked').value;
     
     dom.exportLoader.classList.remove('hidden');
     dom.btnConfirmExport.disabled = true;
 
-    // Convert internal format to API format
-    const cards = deck.cards
-        .filter(c => c.term && c.def)
-        .map(c => ({ question: c.term, answer: c.def }));
-
     try {
-        const response = await fetch('/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                cards, 
-                deck_name: deck.name, 
-                filename 
-            })
-        });
-
-        const data = await response.json();
-        if(response.ok) {
-            window.location.href = data.download_url; // Trigger download
-            dom.exportModal.classList.add('hidden');
-            showToast("Export Successful!");
-        } else {
-            ui.alert(data.error);
+        if (format === 'apkg') {
+            await downloadApkg(deck, filename);
+        } else if (format === 'txt') {
+            downloadTxt(deck, filename);
+        } else if (format === 'md') {
+            downloadMd(deck, filename);
         }
+        
+        dom.exportModal.classList.add('hidden');
+        showToast("Export Successful!");
+
     } catch(e) {
-        ui.alert("Export failed");
+        console.error(e);
+        ui.alert(e.message || "Export failed");
     } finally {
         dom.exportLoader.classList.add('hidden');
         dom.btnConfirmExport.disabled = false;
     }
+}
+
+async function downloadApkg(deck, filename) {
+    const cards = deck.cards
+        .filter(c => c.term && c.def)
+        .map(c => ({ question: c.term, answer: c.def }));
+
+    if(cards.length === 0) throw new Error("Deck is empty");
+
+    const response = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            cards, 
+            deck_name: deck.name, 
+            filename 
+        })
+    });
+
+    const data = await response.json();
+    if(response.ok) {
+        window.location.href = data.download_url;
+    } else {
+        throw new Error(data.error);
+    }
+}
+
+function downloadTxt(deck, filename) {
+    let content = "";
+    deck.cards.forEach(card => {
+        if(card.term && card.def) {
+            content += `${card.term} - ${card.def}\n`;
+        }
+    });
+    triggerDownload(content, `${filename}.txt`, 'text/plain');
+}
+
+function downloadMd(deck, filename) {
+    let content = `# ${deck.name}\n\n`;
+    content += `| Term | Definition |\n|---|---|\n`;
+    deck.cards.forEach(card => {
+        if(card.term && card.def) {
+            content += `| ${card.term} | ${card.def} |\n`;
+        }
+    });
+    triggerDownload(content, `${filename}.md`, 'text/markdown');
+}
+
+function triggerDownload(content, filename, type) {
+    const blob = new Blob([content], { type: type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 /* Utilities */

@@ -660,3 +660,58 @@ tr.row-error {
     border-color: var(--accent);
     box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
 }
+
+/* Radio Group for Export */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    background: rgba(0,0,0,0.2);
+}
+
+.radio-option:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.radio-option input[type="radio"] {
+    accent-color: var(--accent);
+}
+
+.radio-option:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+    color: white;
+}
+
+/* Delete Deck Icon */
+.deck-item .delete-btn {
+    opacity: 0;
+    margin-left: auto;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.deck-item:hover .delete-btn {
+    opacity: 1;
+}
+
+.deck-item .delete-btn:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
