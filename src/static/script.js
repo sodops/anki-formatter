@@ -226,11 +226,29 @@ function setupEventListeners() {
             return;
         }
         dom.exportFilename.value = deck.name.replace(/\s+/g, '_').toLowerCase();
+        
+        // Reset to default
+        const defaultRadio = document.querySelector('input[name="exportFormat"][value="apkg"]');
+        if(defaultRadio) {
+            defaultRadio.checked = true;
+            dom.btnConfirmExport.textContent = 'Download .apkg';
+        }
+
         dom.exportModal.classList.remove('hidden');
     });
 
     dom.btnCancelExport.addEventListener('click', () => dom.exportModal.classList.add('hidden'));
     dom.btnConfirmExport.addEventListener('click', executeExport);
+
+    // Export Format Change Listener
+    document.querySelectorAll('input[name="exportFormat"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const format = e.target.value;
+            if(format === 'apkg') dom.btnConfirmExport.textContent = 'Download .apkg';
+            else if(format === 'txt') dom.btnConfirmExport.textContent = 'Download .txt';
+            else if(format === 'md') dom.btnConfirmExport.textContent = 'Download .md';
+        });
+    });
 }
 
 function preventDefaults(e) {
