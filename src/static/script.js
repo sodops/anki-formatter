@@ -24,8 +24,22 @@ const dom = {
     btnCancelExport: document.getElementById('btnCancelExport'),
     btnConfirmExport: document.getElementById('btnConfirmExport'),
     exportLoader: document.getElementById('exportLoader'),
+    btnConfirmExport: document.getElementById('btnConfirmExport'),
+    exportLoader: document.getElementById('exportLoader'),
     toast: document.getElementById('toast'),
+    commandDropdown: document.getElementById('commandDropdown'),
 };
+
+/* Command Registry */
+const COMMANDS = [
+    { id: 'new_deck', label: 'Create New Deck', icon: 'add-circle', desc: 'Start a fresh collection', action: () => dom.btnNewDeck.click() },
+    { id: 'export', label: 'Export to Anki', icon: 'download', desc: 'Download .apkg file', action: () => dom.btnExportAnki.click() },
+    { id: 'clear', label: 'Clear Current Deck', icon: 'trash', desc: 'Remove all cards', action: () => dom.btnClearDeck.click() },
+    { id: 'upload', label: 'Upload File', icon: 'cloud-upload', desc: 'Import from computer', action: () => dom.fileInput.click() },
+    { id: 'help', label: 'Help / About', icon: 'help-circle', desc: 'Show documentation', action: () => window.open('https://github.com/sodops/anki-formatter', '_blank') },
+];
+let activeCommandIndex = 0;
+let filteredCommands = [];
 
 /* Initialization */
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,8 +62,19 @@ function setupEventListeners() {
 
     // Omnibar
     dom.omnibarInput.addEventListener('keydown', handleOmnibarKey);
+    dom.omnibarInput.addEventListener('input', handleOmnibarInput); // Added input listener
     dom.omnibarInput.addEventListener('paste', handleOmnibarPaste);
     
+    // Global Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'F1') {
+            e.preventDefault();
+            dom.omnibarInput.focus();
+            dom.omnibarInput.value = '>';
+            dom.omnibarInput.dispatchEvent(new Event('input'));
+        }
+    });
+
     // Drag & Drop
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dom.omnibarContainer.addEventListener(eventName, preventDefaults, false);
@@ -214,14 +239,107 @@ window.removeCard = function(index) {
 
 /* Omnibar Logic */
 function handleOmnibarKey(e) {
-    if (e.key === 'Enter') {
-        const text = e.target.value;
-        if (!text.trim()) return;
+    if (e.key === 'F1') {
+        e.preventDefault();
+        dom.omnibarInput.focus();
+        dom.omnibarInput.value = '>';
+        dom.omnibarInput.dispatchEvent(new Event('input')); // Trigger logic
+        return;
+    }
 
-        processInputText(text);
-        e.target.value = ''; // Clear input
+    const val = e.target.value;
+    const isCommandMode = val.startsWith('>');
+
+    if (isCommandMode) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeCommandIndex = (activeCommandIndex + 1) % filteredCommands.length;
+            renderCommandDropdown();
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeCommandIndex = (activeCommandIndex - 1 + filteredCommands.length) % filteredCommands.length;
+            renderCommandDropdown();
+            return;
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (filteredCommands[activeCommandIndex]) {
+                const cmd = filteredCommands[activeCommandIndex];
+                cmd.action();
+                closeCommandPalette();
+            }
+            return;
+        }
+        if (e.key === 'Escape') {
+            closeCommandPalette();
+            return;
+        }
+    } else {
+        // Normal Mode
+        if (e.key === 'Enter') {
+            const text = e.target.value;
+            if (!text.trim()) return;
+            processInputText(text);
+            e.target.value = ''; // Clear input
+        }
     }
 }
+
+/* Command Palette Functions */
+function openCommandPalette() {
+    dom.omnibarInput.value = '>';
+    handleOmnibarInput({ target: dom.omnibarInput });
+}
+
+function closeCommandPalette() {
+    dom.commandDropdown.classList.add('hidden');
+    dom.omnibarInput.value = '';
+}
+
+function handleOmnibarInput(e) {
+    const val = e.target.value;
+    if (val.startsWith('>')) {
+        const query = val.slice(1).toLowerCase().trim();
+        filteredCommands = COMMANDS.filter(c => 
+            c.label.toLowerCase().includes(query) || 
+            c.desc.toLowerCase().includes(query)
+        );
+        activeCommandIndex = 0;
+        renderCommandDropdown();
+    } else {
+        dom.commandDropdown.classList.add('hidden');
+    }
+}
+
+function renderCommandDropdown() {
+    if (filteredCommands.length === 0) {
+        dom.commandDropdown.classList.add('hidden');
+        return;
+    }
+    dom.commandDropdown.classList.remove('hidden');
+    dom.commandDropdown.innerHTML = '';
+    
+    filteredCommands.forEach((cmd, index) => {
+        const div = document.createElement('div');
+        div.className = `command-item ${index === activeCommandIndex ? 'active' : ''}`;
+        div.innerHTML = `
+            <ion-icon name="${cmd.icon}"></ion-icon>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-weight:500">${cmd.label}</span>
+                <span style="font-size:11px; opacity:0.7">${cmd.desc}</span>
+            </div>
+            ${cmd.shortcut ? `<span class="command-shortcut">${cmd.shortcut}</span>` : ''}
+        `;
+        div.onclick = () => {
+            cmd.action();
+            closeCommandPalette();
+        };
+        dom.commandDropdown.appendChild(div);
+    });
+}
+
 
 function handleOmnibarPaste(e) {
     e.preventDefault();
