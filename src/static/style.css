@@ -521,3 +521,13 @@ tr.row-error {
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* Omnibar Icon Clickable */
+.omnibar-icon.clickable {
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+}
+.omnibar-icon.clickable:hover {
+    color: var(--accent);
+    transform: scale(1.1);
+}

@@ -58,8 +58,22 @@ function setupEventListeners() {
     
     dom.omnibarContainer.addEventListener('drop', handleDrop, false);
     dom.omnibarContainer.addEventListener('click', (e) => {
-        if(e.target === dom.omnibarContainer || e.target.classList.contains('omnibar-icon')) {
+        // If clicked on icon -> Trigger File Input
+        if(e.target.closest('#omnibarIcon')) {
+            dom.fileInput.click();
+            return;
+        }
+        // Otherwise focus input
+        if(e.target === dom.omnibarContainer) {
             dom.omnibarInput.focus();
+        }
+    });
+
+    // File Input Change
+    dom.fileInput.addEventListener('change', (e) => {
+        if(dom.fileInput.files.length > 0) {
+            handleFileUpload(dom.fileInput.files[0]);
+            dom.fileInput.value = ''; // Reset
         }
     });
 
@@ -226,6 +240,13 @@ async function handleDrop(e) {
 
 function processInputText(text) {
     const deck = getActiveDeck();
+    
+    // Check for Google Docs URL
+    if (text.trim().match(/^https:\/\/docs\.google\.com\/document\/d\//)) {
+        handleGoogleDoc(text.trim());
+        return;
+    }
+
     const lines = text.split('\n');
     let addedCount = 0;
 
@@ -243,6 +264,41 @@ function processInputText(text) {
         renderWorkspace();
         showToast(`Added ${addedCount} cards`);
         dom.omnibarInput.value = '';
+    }
+}
+
+// Google Docs Handler
+async function handleGoogleDoc(url) {
+    const formData = new FormData();
+    formData.append('doc_url', url);
+    
+    showToast("Fetching Google Doc...", "info");
+
+    try {
+        const response = await fetch('/parse', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            const deck = getActiveDeck();
+            if(data.cards) {
+                data.cards.forEach(c => deck.cards.unshift({ term: c.question, def: c.answer }));
+            }
+            if(data.failures) {
+                data.failures.forEach(f => deck.cards.unshift({ term: f, def: "" }));
+            }
+            saveState();
+            renderWorkspace();
+            showToast(`Imported from Doc: ${data.cards.length} cards`);
+            dom.omnibarInput.value = '';
+        } else {
+            alert("Google Doc Error: " + data.error);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Network Error fetching Doc");
     }
 }
 
