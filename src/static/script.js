@@ -107,9 +107,24 @@ if(btnAddSelected) {
 }
 
 // Tab Switching
+const tabReader = document.getElementById('tabReader');
+const readerSection = document.getElementById('readerSection');
+
+// Reading Mode Elements
+const readingNameInput = document.getElementById('readingName');
+const readTermInput = document.getElementById('readTerm');
+const readDefInput = document.getElementById('readDef');
+const btnAddToSession = document.getElementById('btnAddToSession');
+const sessionList = document.getElementById('sessionList');
+const sessionCountSpan = document.getElementById('sessionCount');
+
+let sessionItems = []; // Array of {term, def}
+
+// Tab Switching
 tabFile.addEventListener('click', () => switchTab('file'));
 tabUrl.addEventListener('click', () => switchTab('url'));
 tabText.addEventListener('click', () => switchTab('text'));
+if(tabReader) tabReader.addEventListener('click', () => switchTab('reader'));
 
 function switchTab(mode) {
     currentMode = mode;
@@ -118,22 +133,155 @@ function switchTab(mode) {
     tabFile.classList.remove('active');
     tabUrl.classList.remove('active');
     tabText.classList.remove('active');
+    if(tabReader) tabReader.classList.remove('active');
     
     // Reset sections
     fileSection.classList.add('hidden');
     urlSection.classList.add('hidden');
     textSection.classList.add('hidden');
+    if(readerSection) readerSection.classList.add('hidden');
     
+    // Hide main Convert Button in Reader Mode (replaced by specific actions)
+    convertBtn.classList.remove('hidden');
+
     if (mode === 'file') {
         tabFile.classList.add('active');
         fileSection.classList.remove('hidden');
     } else if (mode === 'url') {
         tabUrl.classList.add('active');
         urlSection.classList.remove('hidden');
-    } else {
+    } else if (mode === 'text') {
         tabText.classList.add('active');
         textSection.classList.remove('hidden');
+    } else if (mode === 'reader') {
+        if(tabReader) tabReader.classList.add('active');
+        if(readerSection) readerSection.classList.remove('hidden');
+        convertBtn.classList.add('hidden'); // Hide default convert button
+        loadSession(); // Load from localStorage
     }
+}
+
+// Reading Mode Logic
+if(btnAddToSession) {
+    btnAddToSession.addEventListener('click', addSessionItem);
+}
+
+// Enter Key Support
+if(readDefInput) {
+    readDefInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') addSessionItem();
+    });
+}
+
+function addSessionItem() {
+    const term = readTermInput.value.trim();
+    const def = readDefInput.value.trim();
+    
+    if(!term) {
+        readTermInput.focus();
+        return;
+    }
+    
+    sessionItems.push({ term, def });
+    saveSession();
+    renderSession();
+    
+    // Clear inputs
+    readTermInput.value = '';
+    readDefInput.value = '';
+    readTermInput.focus();
+}
+
+function removeSessionItem(index) {
+    sessionItems.splice(index, 1);
+    saveSession();
+    renderSession();
+}
+
+function saveSession() {
+    localStorage.setItem('anki_reader_items', JSON.stringify(sessionItems));
+    localStorage.setItem('anki_reader_name', readingNameInput.value);
+}
+
+function loadSession() {
+    const savedItems = localStorage.getItem('anki_reader_items');
+    const savedName = localStorage.getItem('anki_reader_name');
+    
+    if(savedItems) {
+        try {
+            sessionItems = JSON.parse(savedItems);
+        } catch(e) {
+            sessionItems = [];
+        }
+    }
+    if(savedName) {
+        readingNameInput.value = savedName;
+    }
+    renderSession();
+}
+
+function renderSession() {
+    sessionList.innerHTML = '';
+    sessionCountSpan.textContent = sessionItems.length;
+    
+    sessionItems.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <div>
+                <span class="term">${escapeHtml(item.term)}</span>
+                <span class="def">${escapeHtml(item.def)}</span>
+            </div>
+            <button class="remove-item-btn" onclick="removeSessionItem(${index})">×</button>
+        `;
+        sessionList.appendChild(li);
+    });
+    
+    // Add "Export/Finish" button if items exist
+    const existingExportBtn = document.getElementById('btnExportSession');
+    if(existingExportBtn) existingExportBtn.remove();
+    
+    if(sessionItems.length > 0) {
+        const btnFn = document.createElement('button');
+        btnFn.id = 'btnExportSession';
+        btnFn.type = 'button'; // Prevent form submission
+        btnFn.className = 'submit-btn';
+        btnFn.style.marginTop = '20px';
+        btnFn.textContent = 'Finish & Convert to Cards';
+        btnFn.onclick = exportSessionToCards;
+        readerSection.appendChild(btnFn);
+    }
+}
+
+function exportSessionToCards() {
+    // 1. Set Deck Name
+    const rName = readingNameInput.value.trim();
+    if(rName) {
+        document.getElementById('deckName').value = rName;
+    }
+    
+    // Hide error/success panels if open
+    resultPanel.classList.add('hidden');
+    
+    // 2. Clear current table? Or append? Let's append.
+    // However, if we are "starting conversion", usually we want a fresh start or specific flow.
+    // Let's just switch to Editor Panel and populate table.
+    
+    showEditor({ cards: [], failures: [], stats: { total: sessionItems.length } }); // Reset editor with empty
+    
+    // Manually add rows
+    cardsTableBody.innerHTML = '';
+    sessionItems.forEach(item => {
+        addRow(item.term, item.def);
+    });
+    
+    // Update stats logic manually since showEditor resets them
+    document.getElementById('statParsed').textContent = sessionItems.length;
+    document.getElementById('statTotal').textContent = sessionItems.length;
+    
+    // Maybe clear session? 
+    // Let's keep it until user clears it or overwrites it, 
+    // but maybe nice to clear inputs if successful. 
+    // For now, keep it safe in localStorage.
 }
 
 // Helper: Client-side parser for skipped items

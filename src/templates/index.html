@@ -72,6 +72,9 @@
             <button type="button" class="tab-btn" id="tabText">
               Paste Text
             </button>
+            <button type="button" class="tab-btn" id="tabReader">
+              📖 Reading Mode
+            </button>
           </div>
 
           <form id="uploadForm">
@@ -132,6 +135,33 @@
 orange = citrus
 banana -> yellow fruit"></textarea>
                 </div>
+            </div>
+
+            <!-- Reading Mode Collector -->
+            <div id="readerSection" class="hidden">
+                 <div class="form-group">
+                    <label for="readingName">Reading Material Name</label>
+                    <input type="text" id="readingName" placeholder="e.g. Harry Potter Ch. 1" style="margin-bottom:15px;">
+                 </div>
+
+                 <div class="reader-input-area">
+                    <div class="row">
+                        <div class="col" style="flex:1">
+                            <input type="text" id="readTerm" placeholder="Term (e.g. Ubiquitous)" class="transparent-input">
+                        </div>
+                        <div class="col" style="flex:1">
+                             <input type="text" id="readDef" placeholder="Definition (e.g. Present everywhere)" class="transparent-input">
+                        </div>
+                        <button type="button" id="btnAddToSession" class="icon-btn-large">➡️</button>
+                    </div>
+                 </div>
+                 
+                 <div class="session-list-container">
+                     <h4>Current Session (<span id="sessionCount">0</span>)</h4>
+                     <ul id="sessionList" class="styled-list">
+                         <!-- Items go here -->
+                     </ul>
+                 </div>
             </div>
 
             <button type="submit" class="submit-btn" id="convertBtn">

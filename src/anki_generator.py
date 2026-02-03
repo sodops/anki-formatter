@@ -7,12 +7,13 @@ class AnkiGenerator:
         # Ensure deck_id is a unique random integer (Anki uses positive integers)
         self.deck_id = deck_id if deck_id else random.randrange(1 << 30, 1 << 31)
         
-        # Use a random Model ID to avoid conflicts with existing models in Anki
-        self.model_id = random.randrange(1 << 30, 1 << 31)
+        # Use a FIXED Model ID so that re-importing updates existing cards instead of creating conflicts
+        # Generated random ID: 1597534682
+        self.model_id = 1597534682
         
         self.model = genanki.Model(
             self.model_id,
-            f'Smart Model {self.model_id}',
+            'Smart Anki Model v1', # Fixed name
             fields=[
                 {'name': 'Question'},
                 {'name': 'Answer'},
