@@ -26,8 +26,115 @@ const dom = {
     exportLoader: document.getElementById('exportLoader'),
     btnConfirmExport: document.getElementById('btnConfirmExport'),
     exportLoader: document.getElementById('exportLoader'),
+    exportLoader: document.getElementById('exportLoader'),
     toast: document.getElementById('toast'),
     commandDropdown: document.getElementById('commandDropdown'),
+    // Modal Elements
+    customModal: document.getElementById('customModal'),
+    customModalTitle: document.getElementById('customModalTitle'),
+    customModalContent: document.getElementById('customModalContent'),
+    customModalInputContainer: document.getElementById('customModalInputContainer'),
+    customModalInput: document.getElementById('customModalInput'),
+    btnModalCancel: document.getElementById('btnModalCancel'),
+    btnModalConfirm: document.getElementById('btnModalConfirm'),
+};
+
+/* UI Helpers */
+const ui = {
+    prompt: (title, defaultValue = '') => {
+        return new Promise((resolve) => {
+            dom.customModalTitle.textContent = title;
+            dom.customModalContent.textContent = ''; // Clear text
+            dom.customModalInputContainer.classList.remove('hidden');
+            dom.customModalInput.value = defaultValue;
+            
+            dom.btnModalCancel.style.display = 'block';
+            dom.btnModalConfirm.textContent = 'OK';
+            
+            const close = (val) => {
+                dom.customModal.classList.add('hidden');
+                dom.customModalInput.value = ''; // Reset
+                cleanUp();
+                resolve(val);
+            };
+
+            const confirmHandler = () => close(dom.customModalInput.value);
+            const cancelHandler = () => close(null);
+            const keyHandler = (e) => {
+                if (e.key === 'Enter') confirmHandler();
+                if (e.key === 'Escape') cancelHandler();
+            };
+
+            const cleanUp = () => {
+                dom.btnModalConfirm.removeEventListener('click', confirmHandler);
+                dom.btnModalCancel.removeEventListener('click', cancelHandler);
+                dom.customModalInput.removeEventListener('keydown', keyHandler);
+            };
+
+            dom.btnModalConfirm.addEventListener('click', confirmHandler);
+            dom.btnModalCancel.addEventListener('click', cancelHandler);
+            dom.customModalInput.addEventListener('keydown', keyHandler);
+
+            dom.customModal.classList.remove('hidden');
+            dom.customModalInput.focus();
+        });
+    },
+
+    confirm: (message) => {
+        return new Promise((resolve) => {
+            dom.customModalTitle.textContent = 'Confirm';
+            dom.customModalContent.textContent = message;
+            dom.customModalInputContainer.classList.add('hidden');
+            
+            dom.btnModalCancel.style.display = 'block';
+            dom.btnModalConfirm.textContent = 'Yes';
+            
+            const close = (val) => {
+                dom.customModal.classList.add('hidden');
+                cleanUp();
+                resolve(val);
+            };
+
+            const confirmHandler = () => close(true);
+            const cancelHandler = () => close(false);
+
+            const cleanUp = () => {
+                dom.btnModalConfirm.removeEventListener('click', confirmHandler);
+                dom.btnModalCancel.removeEventListener('click', cancelHandler);
+            };
+
+            dom.btnModalConfirm.addEventListener('click', confirmHandler);
+            dom.btnModalCancel.addEventListener('click', cancelHandler);
+
+            dom.customModal.classList.remove('hidden');
+        });
+    },
+    
+    alert: (message) => {
+         // Re-use Toast or simple modal? Let's use Toast for non-critical, but Modal for critical errors. 
+         // For now, let's just map "alert" to our Toast if it's simple, or modal if complex.
+         // Actually, user wants to replace "annoying alerts", so a simple modal is safer for errors.
+        return new Promise((resolve) => {
+            dom.customModalTitle.textContent = 'Notice';
+            dom.customModalContent.textContent = message;
+            dom.customModalInputContainer.classList.add('hidden');
+            
+            dom.btnModalCancel.style.display = 'none'; // No cancel
+            dom.btnModalConfirm.textContent = 'OK';
+            
+            const close = () => {
+                dom.customModal.classList.add('hidden');
+                cleanUp();
+                resolve();
+            };
+
+            const confirmHandler = () => close();
+            const cleanUp = () => dom.btnModalConfirm.removeEventListener('click', confirmHandler);
+
+            dom.btnModalConfirm.addEventListener('click', confirmHandler);
+            dom.customModal.classList.remove('hidden');
+        });
+    }
 };
 
 /* Command Registry */
@@ -55,8 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
 /* Event Listeners */
 function setupEventListeners() {
     // Sidebar
-    dom.btnNewDeck.addEventListener('click', () => {
-        const name = prompt("Deck Name:", "New Deck");
+    dom.btnNewDeck.addEventListener('click', async () => {
+        const name = await ui.prompt("Deck Name:", "New Deck");
         if (name) createDeck(name);
     });
 
@@ -102,8 +209,8 @@ function setupEventListeners() {
     });
 
     // Actions
-    dom.btnClearDeck.addEventListener('click', () => {
-        if(confirm("Are you sure you want to clear this deck?")) {
+    dom.btnClearDeck.addEventListener('click', async () => {
+        if(await ui.confirm("Are you sure you want to clear this deck?")) {
             const deck = getActiveDeck();
             deck.cards = [];
             saveState();
@@ -115,7 +222,7 @@ function setupEventListeners() {
     dom.btnExportAnki.addEventListener('click', () => {
         const deck = getActiveDeck();
         if(deck.cards.length === 0) {
-            alert("Deck is empty!");
+            ui.alert("Deck is empty!"); // Custom Alert
             return;
         }
         dom.exportFilename.value = deck.name.replace(/\s+/g, '_').toLowerCase();
@@ -434,11 +541,11 @@ async function handleGoogleDoc(url) {
             showToast(`Imported from Doc: ${data.cards.length} cards`);
             dom.omnibarInput.value = '';
         } else {
-            alert("Google Doc Error: " + data.error);
+            ui.alert("Google Doc Error: " + data.error);
         }
     } catch (e) {
         console.error(e);
-        alert("Network Error fetching Doc");
+        ui.alert("Network Error fetching Doc");
     }
 }
 
@@ -494,12 +601,12 @@ async function handleFileUpload(file) {
             renderWorkspace();
             showToast(`Imported ${data.cards.length} cards`);
         } else {
-            alert("Error parsing file: " + data.error);
+            ui.alert("Error parsing file: " + data.error);
         }
 
     } catch(e) {
         console.error(e);
-        alert("Upload failed");
+        ui.alert("Upload failed");
     }
 }
 
@@ -533,10 +640,10 @@ async function executeExport() {
             dom.exportModal.classList.add('hidden');
             showToast("Export Successful!");
         } else {
-            alert(data.error);
+            ui.alert(data.error);
         }
     } catch(e) {
-        alert("Export failed");
+        ui.alert("Export failed");
     } finally {
         dom.exportLoader.classList.add('hidden');
         dom.btnConfirmExport.disabled = false;

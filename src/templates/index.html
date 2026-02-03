@@ -136,21 +136,36 @@
 
     <!-- EXPORT MODAL (Hidden by default) -->
     <div id="exportModal" class="modal-overlay hidden">
+        <div class="modal-glass">
+            <h2>Export Deck</h2>
+            <div class="form-group">
+                <label>Filename</label>
+                <input type="text" id="exportFilename" value="my_deck" />
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn secondary" id="btnCancelExport">
+                    Cancel
+                </button>
+                <button class="action-btn primary" id="btnConfirmExport">
+                    Download .apkg
+                </button>
+            </div>
+            <div id="exportLoader" class="loader-line hidden"></div>
+        </div>
+    </div>
+
+    <!-- GENERIC CUSTOM MODAL -->
+    <div id="customModal" class="modal-overlay hidden">
       <div class="modal-glass">
-        <h2>Export Deck</h2>
-        <div class="form-group">
-          <label>Filename</label>
-          <input type="text" id="exportFilename" value="my_deck" />
+        <h2 id="customModalTitle">Title</h2>
+        <div id="customModalContent" class="modal-content"></div>
+        <div class="form-group hidden" id="customModalInputContainer">
+            <input type="text" id="customModalInput" class="modal-input" autocomplete="off">
         </div>
         <div class="modal-actions">
-          <button class="action-btn secondary" id="btnCancelExport">
-            Cancel
-          </button>
-          <button class="action-btn primary" id="btnConfirmExport">
-            Download .apkg
-          </button>
+          <button class="action-btn secondary" id="btnModalCancel">Cancel</button>
+          <button class="action-btn primary" id="btnModalConfirm">Confirm</button>
         </div>
-        <div id="exportLoader" class="loader-line hidden"></div>
       </div>
     </div>
 
