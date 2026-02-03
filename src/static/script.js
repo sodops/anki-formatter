@@ -53,6 +53,15 @@ if(skippedSection) {
     });
 }
 
+// Helper to clean error tags and bullets
+function cleanLine(rawLine) {
+    // 1. Remove [Error Tag] if present at the start
+    let cleaned = rawLine.replace(/^\[.*?\]\s*/, '');
+    // 2. Remove common bullets, numbering, arrows
+    cleaned = cleaned.replace(/^[\s]*((?:\d+\.)|[•\-\–\—\>\→\⇒\●\*]+)[\s]*/, '');
+    return cleaned.trim();
+}
+
 // Add Selected
 if(btnAddSelected) {
     btnAddSelected.addEventListener('click', () => {
@@ -63,7 +72,6 @@ if(btnAddSelected) {
             const rawLine = cb.dataset.rawLine;
             if(rawLine) {
                 selectedLines.push(rawLine);
-                // Remove from UI
                 cb.closest('.skipped-item').remove();
             }
         });
@@ -73,33 +81,28 @@ if(btnAddSelected) {
             return;
         }
         
-        // Parse selected lines using same logic (simple client-side fallback or just add raw)
-        // Since these failed server parser, adding them as raw might require manual edit.
-        // We will try separate logic or just add them to the table for user to fix.
-        
         selectedLines.forEach(line => {
+             const cleaned = cleanLine(line);
              // Try simple split first
-             const parts = parseLineManually(line);
+             const parts = parseLineManually(cleaned);
              if(parts) {
                  addRow(parts.term, parts.definition);
              } else {
-                 // Even if fails, add raw line to Front so user can edit
-                 addRow(line, "");
+                 // Even if fails, add CLEANED line to Front so user can edit
+                 addRow(cleaned, "");
              }
         });
         
         // Update stats
-        const parsedSpan = document.getElementById('statParsed');
-        const skippedSpan = document.getElementById('statSkipped');
+        updateStats(selectedLines.length, -selectedLines.length);
         
-        let currentParsed = parseInt(parsedSpan.textContent) || 0;
-        let currentSkipped = parseInt(skippedSpan.textContent) || 0;
-        
-        parsedSpan.textContent = currentParsed + selectedLines.length;
-        skippedSpan.textContent = Math.max(0, currentSkipped - selectedLines.length);
-        
-        // Update currentFailures array
+        // Remove from currentFailures matches
         currentFailures = currentFailures.filter(f => !selectedLines.includes(f));
+        
+        // If skipped list is empty now, show empty message
+        if(skippedList.children.length === 0) {
+             renderSkippedList([]);
+        }
     });
 }
 
@@ -248,10 +251,17 @@ function showEditor(data) {
     
     currentFailures = data.failures || [];
     
-    // Render Skipped
+    renderSkippedList(currentFailures);
+    
+    // Populate Table
+    cardsTableBody.innerHTML = '';
+    data.cards.forEach(card => addRow(card.question, card.answer));
+}
+
+function renderSkippedList(failures) {
     skippedList.innerHTML = '';
-    if (data.failures && data.failures.length > 0) {
-        data.failures.forEach(line => {
+    if (failures && failures.length > 0) {
+        failures.forEach(line => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'skipped-item';
             
@@ -262,7 +272,6 @@ function showEditor(data) {
             const contentDiv = document.createElement('div');
             contentDiv.className = 'skipped-item-content';
             
-            // Try to extract tag [NO SEPARATOR]
             if (line.startsWith('[')) {
                 const parts = line.split(']');
                 if (parts.length > 1) {
@@ -285,13 +294,43 @@ function showEditor(data) {
         div.className = 'skipped-item';
         div.style.textAlign = 'center';
         div.style.color = '#94a3b8';
-        div.textContent = "✅ No lines skipped. Perfect parse!";
+        div.textContent = "✅ No lines skipped.";
         skippedList.appendChild(div);
     }
+}
+
+function updateStats(parsedChange, skippedChange) {
+    const parsedSpan = document.getElementById('statParsed');
+    const skippedSpan = document.getElementById('statSkipped');
     
-    // Populate Table
-    cardsTableBody.innerHTML = '';
-    data.cards.forEach(card => addRow(card.question, card.answer));
+    let currentParsed = parseInt(parsedSpan.textContent) || 0;
+    let currentSkipped = parseInt(skippedSpan.textContent) || 0;
+    
+    parsedSpan.textContent = Math.max(0, currentParsed + parsedChange);
+    skippedSpan.textContent = Math.max(0, currentSkipped + skippedChange);
+}
+
+function moveToSkipped(btn) {
+    const row = btn.closest('tr');
+    const term = row.querySelector('.input-term').value.trim();
+    const def = row.querySelector('.input-def').value.trim();
+    
+    let lineToRestore = term;
+    if(def) {
+        lineToRestore += " - " + def;
+    }
+    
+    // Add to failures
+    currentFailures.unshift(lineToRestore); // Add to top
+    
+    // Update Stats
+    updateStats(-1, 1);
+    
+    // Re-render Skipped List
+    renderSkippedList(currentFailures);
+    
+    // Remove Row
+    row.remove();
 }
 
 function addRow(term = '', definition = '') {
@@ -299,7 +338,7 @@ function addRow(term = '', definition = '') {
     row.innerHTML = `
         <td><input type="text" class="input-term" value="${escapeHtml(term)}"></td>
         <td><input type="text" class="input-def" value="${escapeHtml(definition)}"></td>
-        <td><button class="delete-btn" onclick="this.closest('tr').remove()">×</button></td>
+        <td><button class="delete-btn" onclick="moveToSkipped(this)">×</button></td>
     `;
     cardsTableBody.appendChild(row);
 }
