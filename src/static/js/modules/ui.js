@@ -90,12 +90,26 @@ export function confirm(message) {
         const cleanUp = () => {
             dom.btnModalConfirm.removeEventListener('click', confirmHandler);
             dom.btnModalCancel.removeEventListener('click', cancelHandler);
+            window.removeEventListener('keydown', keyHandler);
+        };
+
+        const keyHandler = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmHandler();
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelHandler();
+            }
         };
 
         dom.btnModalConfirm.addEventListener('click', confirmHandler);
         dom.btnModalCancel.addEventListener('click', cancelHandler);
+        window.addEventListener('keydown', keyHandler);
 
         dom.customModal.classList.remove('hidden');
+        dom.btnModalConfirm.focus(); // Focus confirm button
     });
 }
 
@@ -121,10 +135,23 @@ export function alert(message) {
         };
 
         const confirmHandler = () => close();
-        const cleanUp = () => dom.btnModalConfirm.removeEventListener('click', confirmHandler);
+        const cleanUp = () => {
+            dom.btnModalConfirm.removeEventListener('click', confirmHandler);
+            window.removeEventListener('keydown', keyHandler);
+        };
+
+        const keyHandler = (e) => {
+            if (e.key === 'Enter' || e.key === 'Escape') {
+                e.preventDefault();
+                confirmHandler();
+            }
+        };
 
         dom.btnModalConfirm.addEventListener('click', confirmHandler);
+        window.addEventListener('keydown', keyHandler);
+
         dom.customModal.classList.remove('hidden');
+        dom.btnModalConfirm.focus();
     });
 }
 

@@ -171,13 +171,50 @@ anki-formatter/
 - [x] Drag & Drop Card Reordering
 - [x] Export Preview
 
-**Phase 3 (Upcoming):**
+### 📚 **Study Mode**
 
-- [ ] Markdown Support in Cards
-- [ ] Enhanced Import Preview
-- [ ] Built-in Study Mode
-- [ ] Bulk Card Selection & Operations
-- [ ] Statistics Dashboard
+- Built-in flashcard study interface
+- Smooth card transitions with animations
+- Spacebar to flip, Arrow keys to navigate
+- Progress tracking within session
+
+### 📊 **Statistics Dashboard**
+
+- Visual breakdown of your deck
+- Card counts, tag distribution, and study progress
+- Excludes trash from statistics
+
+### ⚡ **Smart Operations**
+
+- **Bulk Actions**: Select multiple cards to delete or tag at once
+- **Smart Paste**: Paste chains like `term1=def1 -> term2=def2` to add multiple cards instantly
+- **Flexible Import**: Handles various separators (`=`, `-`, `:`, `->`) even without spaces
+
+### 🌐 **Google Docs Import**
+
+- Paste a public Google Doc URL into the omnibar to import cards directly
+- Automatically parses `Term - Definition` format
+
+## 🎯 Roadmap
+
+**Phase 1 (Completed):**
+
+- [x] Tags System
+- [x] Deck Color Picker
+
+**Phase 2 (Completed):**
+
+- [x] Drag & Drop Card Reordering
+- [x] Export Preview
+
+**Phase 3 (Completed):**
+
+- [x] Markdown Support in Cards
+- [x] Enhanced Import Preview
+- [x] Built-in Study Mode
+- [x] Bulk Card Selection & Operations
+- [x] Statistics Dashboard
+- [x] Global Shortcuts (`Ctrl+F`, `Esc` handling)
 
 ## 🤝 Contributing
 

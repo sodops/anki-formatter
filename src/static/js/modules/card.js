@@ -9,14 +9,31 @@ import { ui, escapeHtml, showToast } from './ui.js';
 import { renderMarkdown } from './markdown.js';
 import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from './drag-drop.js';
 
+// Bulk Selection State
+let selectedIndices = new Set();
+
 /**
  * Render the workspace (card table)
  */
 export function renderWorkspace() {
     const deck = getActiveDeck();
+    
+    // Update Select All Checkbox state
+    if (dom.selectAllCheckbox) {
+        dom.selectAllCheckbox.checked = false;
+        dom.selectAllCheckbox.onclick = toggleSelectAll;
+    }
+    
+    updateBulkActionBar(); // Ensure bar is updated (likely hidden if render cleared selection?)
+    // Actually, if we re-render, we should probably keep selection if indices are valid?
+    // But indices shift if we delete/move.
+    // For simplicity, let's clear selection on full re-render unless we are careful.
+    // To be safe: clear selection on re-render to avoid ghost selections.
+    selectedIndices.clear();
+    updateBulkActionBar();
+
     if (!deck) {
-        // Hide workspace if no deck active
-        // But usually we just show empty state or placeholder
+        // ... (existing empty deck logic)
         dom.currentDeckTitle.textContent = "Select a Deck";
         dom.tableBody.innerHTML = '';
         dom.countTotal.textContent = '0';
@@ -65,33 +82,110 @@ export function renderWorkspace() {
             // Ensure tags array exists
             if (!card.tags) card.tags = [];
             
-            // Create tag badges HTML
-            // Note: onclick handlers need to be attached differently or exposed globally if we use onclick string
-            // We'll use event delegation for tags in setupEventListeners normally, but here we can't easily.
-            // Best approach: Create elements safely.
+            // Drag Handle (First Cell) -> Now Checkbox + Drag
+            const dragTd = document.createElement('td');
+            dragTd.className = 'drag-handle';
             
-            // Make row draggable
+            // Checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'row-checkbox';
+            checkbox.style.marginRight = '8px';
+            checkbox.dataset.index = originalIndex;
+            checkbox.onclick = (e) => {
+                e.stopPropagation();
+                toggleRowSelection(originalIndex);
+            };
+            
+            // Drag Icon
+            const dragIcon = document.createElement('span');
+            dragIcon.innerHTML = '<ion-icon name="reorder-two-outline"></ion-icon>';
+            dragIcon.style.cursor = 'grab';
+            
+            dragTd.appendChild(checkbox);
+            dragTd.appendChild(dragIcon);
+
+            // Make row draggable (only if handle clicked? or whole row?)
             tr.setAttribute('draggable', 'true');
             tr.dataset.cardIndex = originalIndex;
             
             // Term Cell
             const termTd = document.createElement('td');
+            termTd.className = 'markdown-cell';
+            
+            const termView = document.createElement('div');
+            termView.className = 'cell-view';
+            termView.innerHTML = renderMarkdown(card.term); // Render Markdown
+            
             const termInput = document.createElement('input');
             termInput.type = 'text';
-            termInput.className = 'editable-cell';
+            termInput.className = 'editable-cell hidden';
             termInput.style.width = '100%';
             termInput.value = card.term;
-            termInput.onchange = (e) => updateCard(originalIndex, 'term', e.target.value);
+            
+            // Toggle Logic
+            termView.onclick = () => {
+                termView.classList.add('hidden');
+                termInput.classList.remove('hidden');
+                termInput.focus();
+            };
+            
+            const saveTerm = () => {
+                const val = termInput.value;
+                updateCard(originalIndex, 'term', val);
+                termView.innerHTML = renderMarkdown(val);
+                termInput.classList.add('hidden');
+                termView.classList.remove('hidden');
+            };
+
+            termInput.onblur = saveTerm;
+            termInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    termInput.blur();
+                }
+            };
+
+            termTd.appendChild(termView);
             termTd.appendChild(termInput);
+
 
             // Def Cell
             const defTd = document.createElement('td');
+            defTd.className = 'markdown-cell';
+            
+            const defView = document.createElement('div');
+            defView.className = 'cell-view';
+            defView.innerHTML = renderMarkdown(card.def);
+            
             const defInput = document.createElement('input');
             defInput.type = 'text';
-            defInput.className = 'editable-cell';
+            defInput.className = 'editable-cell hidden';
             defInput.style.width = '100%';
             defInput.value = card.def;
-            defInput.onchange = (e) => updateCard(originalIndex, 'def', e.target.value);
+            
+            // Toggle Logic
+            defView.onclick = () => {
+                defView.classList.add('hidden');
+                defInput.classList.remove('hidden');
+                defInput.focus();
+            };
+
+            const saveDef = () => {
+                const val = defInput.value;
+                updateCard(originalIndex, 'def', val);
+                defView.innerHTML = renderMarkdown(val);
+                defInput.classList.add('hidden');
+                defView.classList.remove('hidden');
+            };
+
+            defInput.onblur = saveDef;
+            defInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    defInput.blur();
+                }
+            };
+
+            defTd.appendChild(defView);
             defTd.appendChild(defInput);
 
             // Tags Cell
@@ -126,11 +220,6 @@ export function renderWorkspace() {
             deleteBtn.onclick = () => removeCard(originalIndex);
             actionTd.appendChild(deleteBtn);
 
-            // Drag Handle
-            const dragTd = document.createElement('td');
-            dragTd.className = 'drag-handle';
-            dragTd.innerHTML = '<ion-icon name="reorder-two-outline"></ion-icon>';
-
             // Assemble Row
             tr.appendChild(dragTd);
             tr.appendChild(termTd);
@@ -147,6 +236,109 @@ export function renderWorkspace() {
             dom.tableBody.appendChild(tr);
         });
     }
+}
+
+// --- Selection Logic ---
+
+function toggleRowSelection(index) {
+    if (selectedIndices.has(index)) {
+        selectedIndices.delete(index);
+    } else {
+        selectedIndices.add(index);
+    }
+    updateBulkActionBar();
+}
+
+function toggleSelectAll() {
+    const deck = getActiveDeck();
+    if (!deck) return;
+    
+    // If all currently visible are selected, deselect all. Otherwise select all.
+    // Simplifying: Just Select All or Deselect All based on checkbox state
+    
+    // We only select FILTERED cards usually? Or ALL deck cards?
+    // User expects visible cards to be selected.
+    const allCards = deck.cards;
+    const filteredCards = getFilteredCards(allCards); 
+    
+    const visibleIndices = filteredCards.map(c => allCards.indexOf(c));
+    
+    if (dom.selectAllCheckbox.checked) {
+        visibleIndices.forEach(i => selectedIndices.add(i));
+    } else {
+        visibleIndices.forEach(i => selectedIndices.delete(i));
+    }
+    
+    // Update checkboxes in DOM without full re-render
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => {
+        const idx = parseInt(cb.dataset.index);
+        cb.checked = selectedIndices.has(idx);
+    });
+    
+    updateBulkActionBar();
+}
+
+function updateBulkActionBar() {
+    const count = selectedIndices.size;
+    dom.bulkCount.textContent = count;
+    
+    if (count > 0) {
+        dom.bulkActionBar.classList.remove('hidden');
+    } else {
+        dom.bulkActionBar.classList.add('hidden');
+    }
+}
+
+export function bulkDelete() {
+    const deck = getActiveDeck();
+    if (selectedIndices.size === 0) return;
+    
+    ui.confirm(`Delete ${selectedIndices.size} cards?`).then(confirmed => {
+        if(confirmed) {
+            // Sort indices descending to splice correctly
+            const indices = Array.from(selectedIndices).sort((a,b) => b - a);
+            
+            indices.forEach(idx => {
+               deck.cards.splice(idx, 1); 
+            });
+            
+            selectedIndices.clear();
+            saveState();
+            renderWorkspace();
+            showToast(`${indices.length} cards deleted`);
+        }
+    });
+}
+
+export function bulkTag() {
+    if (selectedIndices.size === 0) return;
+    
+    ui.prompt("Enter tag name:", "").then(tag => {
+        if(tag) {
+             const deck = getActiveDeck();
+             selectedIndices.forEach(idx => {
+                 const card = deck.cards[idx];
+                 if (!card.tags) card.tags = [];
+                 if (!card.tags.includes(tag)) card.tags.push(tag);
+             });
+             
+             saveState();
+             renderWorkspace();
+             showToast(`Tag added to ${selectedIndices.size} cards`);
+             // Keep selection? prefer clear
+             selectedIndices.clear();
+             updateBulkActionBar();
+        }
+    });
+}
+
+export function cancelBulkSelection() {
+    selectedIndices.clear();
+    // Uncheck all in DOM
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    if(dom.selectAllCheckbox) dom.selectAllCheckbox.checked = false;
+    updateBulkActionBar();
 }
 
 /**
@@ -301,18 +493,100 @@ export function removeTag(index, tag) {
  */
 export function parseLine(line) {
     // Simple client-side parser
+    // remove leading numbering logic...
     let cleaned = line.replace(/^[\s]*((?:\d+\.)|[•\-\–\—\>\→\⇒\●\*]+)[\s]*/, '').trim();
     if(!cleaned) return null;
 
-    const separators = [' == ', '==', ' -> ', '->', ' => ', '=>', ' : ', ' = ', '\t', ' - '];
+    // Ordered separators. 
+    // We want to match " == " before "=", " -> " before "-", etc.
+    // Instead of simple string split, let's use a regex that captures the first strong separator.
     
-    for (const sep of separators) {
-        if (cleaned.includes(sep)) {
-            const parts = cleaned.split(sep);
-            return { term: parts[0].trim(), def: parts.slice(1).join(sep).trim(), tags: [] };
+    // Regex explanation:
+    // 1. (===?|!==) -> strict equality or not equal (unlikely in cards but possible)
+    // 2. (->|=>|→|⇒) -> Arrows
+    // 3. (=) -> Single equals (allow tight)
+    // 4. (:) -> Colon (allow tight)
+    // 5. (\s-\s) -> Dash (MUST have spaces to avoid hyphenated-words)
+    // 6. (\t) -> Tab
+    
+    // We construct a regex to find the split point.
+    // Note: We need to capture the split to know we found one, but really we just want the index.
+    
+    const separatorRegex = /((?:[\t]|={1,3}|->|=>|→|⇒|:)|(?:\s+(?:-|–|—)\s+))/;
+    
+    const match = cleaned.match(separatorRegex);
+    
+    if (match) {
+        const sep = match[0];
+        const idx = match.index;
+        
+        let term = cleaned.substring(0, idx).trim();
+        let def = cleaned.substring(idx + sep.length).trim();
+        
+        // Edge case: if term is empty, maybe it wasn't a separator? (e.g. "=def")
+        if (!term && def) {
+             // Treat as failed? Or term is empty?
         }
+        
+        return { term, def, tags: [] };
     }
     
     // No separator found -> Add as Incomplete
     return { term: cleaned, def: "", tags: [] }; 
+}
+
+/**
+ * Try to parse a string that might contain multiple cards separated by arrows
+ * Supports: ->, =>, →, ⇒ (with or without spaces)
+ * @param {string} text 
+ * @returns {Array|null} Array of card objects or null if not bulk
+ */
+export function parseBulkLine(text) {
+    // Regex for arrow separators: ->, =>, →, ⇒ surrounded by optional whitespace
+    const arrowRegex = /[\s\t]*(?:->|=>|→|⇒)[\s\t]*/;
+    
+    // Check if we have at least one arrow
+    if (!arrowRegex.test(text)) return null;
+    
+    const chunks = text.split(arrowRegex).filter(c => c.trim().length > 0);
+    
+    // If only 2 chunks, it might be just "Term -> Def" (single card).
+    // If 3+ chunks, it's definitely bulk (Term=Def -> Term=Def -> ...)
+    // UNLESS the user typed "Term -> Def -> Context" (3 parts for 1 card?).
+    // But our system only supports Term/Def.
+    
+    // So logic:
+    // If chunks.length >= 3, assume bulk.
+    // If chunks.length == 2, check for inner separators (=, -, :) in BOTH chunks.
+    
+    if (chunks.length < 2) return null;
+    
+    if (chunks.length >= 3) {
+        // High confidence it's a chain.
+        // Try parsing each chunk.
+        const cards = chunks.map(chunk => parseLine(chunk));
+        // Verify valid cards (must have term AND def)
+        // If many fail, maybe it looks like bulk but isn't?
+        // E.g. "A -> B -> C" where A, B, C are simple words.
+        // parseLine("A") returns {term: "A", def: ""}.
+        
+        // If more than half have definitions, accept it.
+        const validCount = cards.filter(c => c.def).length;
+        if (validCount >= cards.length / 2) {
+            return cards;
+        }
+    }
+    
+    // Length is 2 (or failed above heuristic)
+    // Check if parts look like cards: "Term = Def" -> "Term = Def"
+    const hasInner = chunks.every(chunk => {
+        const c = parseLine(chunk);
+        return c && c.def && c.def.length > 0;
+    });
+    
+    if (hasInner) {
+         return chunks.map(chunk => parseLine(chunk));
+    }
+    
+    return null;
 }

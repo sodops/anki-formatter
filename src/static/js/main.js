@@ -7,12 +7,14 @@ import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './modu
 import { dom, verifyDomElements } from './modules/dom.js';
 import { ui } from './modules/ui.js'; // Default export object
 import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './modules/deck.js';
-import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine } from './modules/card.js';
+import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection } from './modules/card.js';
 import { setupDragDrop, handleDrop } from './modules/drag-drop.js';
-import { setupMarked } from './modules/markdown.js';
+import { setupMarked, insertMarkdown } from './modules/markdown.js';
 import { executeExport, showExportPreview, closeExportPreview } from './modules/export.js';
-import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview } from './modules/import.js';
+import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview, handleGoogleDocImport } from './modules/import.js';
 import { undo, redo } from './modules/history.js';
+import { startStudySession } from './modules/study.js';
+import { openStats, closeStats } from './modules/stats.js';
 
 // --- Command Registry ---
 const COMMANDS = [
@@ -98,6 +100,13 @@ function setupEventListeners() {
     // New Deck Button
     if(dom.btnNewDeck) dom.btnNewDeck.addEventListener('click', window.createDeck);
     
+    // Study Button
+    if(dom.btnStudyDeck) dom.btnStudyDeck.addEventListener('click', startStudySession);
+
+    // Stats Button
+    if(dom.btnOpenStats) dom.btnOpenStats.addEventListener('click', openStats);
+    if(dom.btnCloseStats) dom.btnCloseStats.addEventListener('click', closeStats);
+    
     // Trash Button (this might be dynamic, check dom.js) - dom.btnTrash might be null if not in HTML
     // It's created in deck.js renderSidebar.
     
@@ -143,14 +152,33 @@ function setupEventListeners() {
                 const line = dom.omnibarInput.value.trim();
                 const deck = getActiveDeck();
                 if (line && deck) {
-                    const parsed = parseLine(line);
-                    if (parsed) {
-                        addCard(parsed.term, parsed.def);
+                    // Check for URL
+                    if (line.startsWith('http') && line.includes('docs.google.com')) {
+                        handleGoogleDocImport(line);
                         dom.omnibarInput.value = '';
-                        ui.showToast("Card added");
+                        return;
+                    }
+
+                    const parsedBulk = parseBulkLine(line);
+                    
+                    if (parsedBulk && parsedBulk.length > 1) {
+                         // Bulk added
+                         let added = 0;
+                         parsedBulk.forEach(p => {
+                             if(p.term && p.def) {
+                                 addCard(p.term, p.def);
+                                 added++;
+                             }
+                         });
+                         dom.omnibarInput.value = '';
+                         ui.showToast(`${added} cards added`);
                     } else {
-                        // Maybe just add as term if simple text? logic in parseLine handles it (returns term, empty def)
-                        // addCard(line, "");
+                        const parsed = parseLine(line);
+                        if (parsed) {
+                            addCard(parsed.term, parsed.def);
+                            dom.omnibarInput.value = '';
+                            ui.showToast("Card added");
+                        }
                     }
                 }
             }
@@ -221,6 +249,73 @@ function setupEventListeners() {
             e.preventDefault();
             redo();
         }
+
+        // Ctrl+F for Search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            if(dom.searchInput) {
+                dom.searchInput.focus();
+                // Optional: Scroll to search bar if off screen
+                dom.searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Global Escape Handler for Feature Modals
+        if (e.key === 'Escape') {
+            // 1. High Priority: UI confirmation modals (handled by their own listeners, mostly)
+            if (dom.customModal && !dom.customModal.classList.contains('hidden')) {
+                return; 
+            }
+
+            // 2. Feature Modals
+            const modals = [
+                document.getElementById('statsModal'),
+                document.getElementById('shortcutsModal'),
+                dom.exportModal,
+                dom.exportPreviewModal, // or 'exportPreviewModal'
+                dom.importPreviewModal || document.getElementById('previewModal'), 
+                dom.studyModal,
+                document.getElementById('colorPickerModal')
+            ];
+
+            let handled = false;
+            modals.forEach(m => {
+                if (m && !m.classList.contains('hidden')) {
+                    m.classList.add('hidden');
+                    handled = true;
+                }
+            });
+
+            if (handled) {
+                e.preventDefault();
+                return;
+            }
+
+            // 3. Command Palette
+            if (dom.commandDropdown && !dom.commandDropdown.classList.contains('hidden')) {
+                closeCommandPalette();
+                if(dom.omnibarInput) dom.omnibarInput.value = '';
+                e.preventDefault();
+                return;
+            }
+            
+            // 4. Bulk Selection
+            if (dom.bulkActionBar && !dom.bulkActionBar.classList.contains('hidden')) {
+                cancelBulkSelection();
+                e.preventDefault();
+            }
+        }
+    });
+
+    // Markdown Toolbar
+    document.querySelectorAll('.md-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent focus loss
+            const marker = btn.dataset.md;
+            if (dom.omnibarInput && marker) {
+                insertMarkdown(dom.omnibarInput, marker);
+            }
+        });
     });
 
     // Close Modals on click outside
@@ -232,15 +327,19 @@ function setupEventListeners() {
         }
     });
 
+    // Bulk Operations
+    if(dom.btnBulkDelete) dom.btnBulkDelete.onclick = bulkDelete;
+    if(dom.btnBulkTag) dom.btnBulkTag.onclick = bulkTag;
+    if(dom.btnBulkCancel) dom.btnBulkCancel.onclick = cancelBulkSelection;
+
     // Shortcuts Modal Close
     if(dom.btnCloseShortcuts) dom.btnCloseShortcuts.addEventListener('click', () => {
         const modal = document.getElementById('shortcutsModal');
         if(modal) modal.classList.add('hidden');
     });
     
-    // Color Picker Close (if exists independently)
-    const btnCancelColor = document.getElementById('btnCancelColor');
-    if(btnCancelColor) btnCancelColor.addEventListener('click', () => {
+    // Color Picker Close
+    if(dom.btnCancelColor) dom.btnCancelColor.addEventListener('click', () => {
         const modal = document.getElementById('colorPickerModal');
         if(modal) modal.classList.add('hidden');
     });

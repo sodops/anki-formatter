@@ -39,6 +39,10 @@
           <button class="new-deck-btn" id="btnNewDeck">
             <ion-icon name="add-circle"></ion-icon> New Deck
           </button>
+          
+          <button class="menu-btn" id="btnOpenStats" style="margin-top: 12px; width: 100%; text-align: left; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <ion-icon name="pie-chart-outline"></ion-icon> Statistics
+          </button>
         </div>
 
         <div class="sidebar-footer">
@@ -63,6 +67,11 @@
               autocomplete="off"
             />
             <div class="omnibar-actions">
+              <div class="md-toolbar">
+                  <button class="md-btn" title="Bold (Ctrl+B)" data-md="**"><b>B</b></button>
+                  <button class="md-btn" title="Italic (Ctrl+I)" data-md="*"><i>I</i></button>
+                  <button class="md-btn" title="Code (Ctrl+`)" data-md="\`">&lt;/&gt;</button>
+              </div>
               <span class="key-hint">ENTER</span>
             </div>
             <!-- Hidden File Input for Drag & Drop / Click -->
@@ -96,6 +105,11 @@
               </button>
             </div>
             
+            <div class="deck-actions-header">
+                <button class="action-btn primary" id="btnStudyDeck">
+                    <ion-icon name="play-circle-outline"></ion-icon> Study
+                </button>
+            </div>
             <div class="deck-stats">
               <span class="stat-badge"
                 ><span id="countTotal">0</span> Items</span
@@ -110,7 +124,9 @@
             <table class="live-table" id="cardTable">
               <thead>
                 <tr>
-                  <th style="width: 40px"></th>
+                  <th style="width: 40px">
+                      <input type="checkbox" id="selectAllCheckbox">
+                  </th>
                   <th>Term</th>
                   <th>Definition</th>
                   <th>Tags</th>
@@ -141,6 +157,24 @@
           <button class="action-btn primary" id="btnExportAnki">
             <ion-icon name="download-outline"></ion-icon> Export to Anki
           </button>
+        </div>
+
+        <!-- BULK ACTION BAR (Floating) -->
+        <div id="bulkActionBar" class="bulk-bar hidden">
+            <div class="bulk-info">
+                <span id="bulkCount">0</span> selected
+            </div>
+            <div class="bulk-actions">
+                <button class="action-btn secondary small" id="btnBulkTag">
+                    <ion-icon name="pricetag-outline"></ion-icon> Tag
+                </button>
+                <button class="action-btn danger small" id="btnBulkDelete">
+                    <ion-icon name="trash-outline"></ion-icon> Delete
+                </button>
+                <button class="icon-btn" id="btnBulkCancel">
+                    <ion-icon name="close"></ion-icon>
+                </button>
+            </div>
         </div>
       </div>
     </div>
@@ -351,6 +385,84 @@
           <button class="action-btn primary" id="btnConfirmImport">Import Cards</button>
         </div>
       </div>
+    </div>
+
+    <!-- STUDY MODE MODAL -->
+    <div id="studyModal" class="modal-overlay hidden">
+        <div class="study-container">
+            <div class="study-header">
+                <div class="study-progress">
+                    <span id="studyindex">1</span> / <span id="studyTotal">10</span>
+                </div>
+                <button class="icon-btn" id="btnCloseStudy">
+                    <ion-icon name="close"></ion-icon>
+                </button>
+            </div>
+            
+            <div class="flashcard-area" id="flashcard">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div class="card-label">TERM</div>
+                        <div class="card-content" id="studyFront">Apple</div>
+                        <div class="hint-text">Click to Flip</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="card-label">DEFINITION</div>
+                        <div class="card-content" id="studyBack">Olma</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="study-controls">
+                <button class="action-btn secondary" id="btnStudyPrev">
+                    <ion-icon name="arrow-back"></ion-icon> Prev
+                </button>
+                <div class="spacer"></div>
+                 <button class="action-btn primary large" id="btnStudyFlip">
+                    Show Answer (Space)
+                </button>
+                <div class="spacer"></div>
+                <button class="action-btn secondary" id="btnStudyNext">
+                    Next <ion-icon name="arrow-forward"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS MODAL -->
+    <div id="statsModal" class="modal-overlay hidden">
+        <div class="modal-glass" style="max-width: 600px;">
+            <h2>📊 Statistics</h2>
+            
+            <div class="stats-overview">
+                <div class="stat-box">
+                    <div class="stat-value" id="statTotalCards">0</div>
+                    <div class="stat-label">Total Cards</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statTotalDecks">0</div>
+                    <div class="stat-label">Total Decks</div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Deck Distribution</h3>
+                <div id="statDeckChart" class="chart-container">
+                    <!-- Bars injected here -->
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Top Tags</h3>
+                <div id="statTagCloud" class="tag-cloud">
+                    <!-- Tags injected here -->
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn primary" id="btnCloseStats">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Markdown Parser -->

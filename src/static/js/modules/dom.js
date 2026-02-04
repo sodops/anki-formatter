@@ -73,7 +73,41 @@ export const dom = {
     btnConfirmImport: document.getElementById('btnConfirmImport'),
 
     // Toast
-    toast: document.getElementById('toast')
+    toast: document.getElementById('toast'),
+
+    // Study Mode
+    btnStudyDeck: document.getElementById('btnStudyDeck'),
+    studyModal: document.getElementById('studyModal'),
+    btnCloseStudy: document.getElementById('btnCloseStudy'),
+    flashcard: document.getElementById('flashcard'),
+    studyFront: document.getElementById('studyFront'),
+    studyBack: document.getElementById('studyBack'),
+    studyIndex: document.getElementById('studyindex'),
+    studyTotal: document.getElementById('studyTotal'),
+    btnStudyPrev: document.getElementById('btnStudyPrev'),
+    btnStudyFlip: document.getElementById('btnStudyFlip'),
+    btnStudyNext: document.getElementById('btnStudyNext'),
+    
+    // Bulk Operations
+    selectAllCheckbox: document.getElementById('selectAllCheckbox'),
+    bulkActionBar: document.getElementById('bulkActionBar'),
+    bulkCount: document.getElementById('bulkCount'),
+    btnBulkTag: document.getElementById('btnBulkTag'),
+    btnBulkDelete: document.getElementById('btnBulkDelete'),
+    btnBulkCancel: document.getElementById('btnBulkCancel'),
+    
+    // Stats
+    btnOpenStats: document.getElementById('btnOpenStats'),
+    statsModal: document.getElementById('statsModal'),
+    btnCloseStats: document.getElementById('btnCloseStats'),
+    statDeckChart: document.getElementById('statDeckChart'),
+    statTagCloud: document.getElementById('statTagCloud'),
+    
+    // Shortcuts
+    btnCloseShortcuts: document.getElementById('btnCloseShortcuts'),
+    
+    // Color Picker
+    btnCancelColor: document.getElementById('btnCancelColor')
 };
 
 // Verify all required elements exist

@@ -271,14 +271,39 @@ export function renderSidebar() {
     if(!footer) {
         footer = document.createElement('div');
         footer.id = 'sidebarFooter';
-        dom.deckList.parentElement.appendChild(footer);
+        dom.deckList.parentElement.appendChild(footer); // Appends to sidebar-content
+        // Actually usually sidebar-footer is separate in HTML?
+        // Let's check dom.js or index.html structure. 
+        // index.html has <div class="sidebar-footer"> with buttons.
+        // It seems `renderSidebar` overwrites usage of sidebar?
+        // Wait, line 270 gets element by ID 'sidebarFooter'.
     }
     
-    footer.innerHTML = `
-        <button class="sidebar-trash-btn ${STATE.showingTrash ? 'active' : ''}">
+    // Check if sidebarFooter exists in DOM (it should be in index.html)
+    // If we rely on index.html having it, we should use that.
+    
+    const trashBtnHtml = `
+        <button class="sidebar-trash-btn ${STATE.showingTrash ? 'active' : ''}" id="btnToggleTrash">
             <ion-icon name="${STATE.showingTrash ? 'arrow-back-outline' : 'trash-bin-outline'}"></ion-icon>
             ${STATE.showingTrash ? 'Back to Decks' : 'Trash'}
         </button>
     `;
-    footer.querySelector('button').onclick = toggleTrash;
+    
+    let emptyTrashHtml = '';
+    if (STATE.showingTrash) {
+        emptyTrashHtml = `
+            <button class="empty-trash-btn" id="btnEmptyTrash" style="margin-top: 8px; width: 100%; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <ion-icon name="ban-outline"></ion-icon> Empty Trash
+            </button>
+        `;
+    }
+
+    footer.innerHTML = trashBtnHtml + emptyTrashHtml;
+    
+    // Attach listeners
+    const btnToggle = footer.querySelector('#btnToggleTrash');
+    if(btnToggle) btnToggle.onclick = toggleTrash;
+    
+    const btnEmpty = footer.querySelector('#btnEmptyTrash');
+    if(btnEmpty) btnEmpty.onclick = emptyTrash;
 }

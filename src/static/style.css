@@ -1478,10 +1478,14 @@ tr[draggable="true"]:active {
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   padding: 24px;
-  max-width: 600px;
+  width: 100%;
+  max-width: 800px;
+  min-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -1561,4 +1565,442 @@ tr[draggable="true"]:active {
 
 .preview-warning ion-icon {
   font-size: 16px;
+}
+
+/* Markdown Cell Styling */
+.markdown-cell {
+    position: relative;
+    cursor: text;
+}
+
+.cell-view {
+    min-height: 24px;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.cell-view:hover {
+    background: var(--bg-hover);
+}
+
+.cell-view p {
+    margin: 0;
+}
+
+.cell-view strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.cell-view em {
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+.cell-view code {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.cell-view pre {
+    background: var(--bg-elevated);
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 4px 0;
+}
+
+/* Markdown Toolbar */
+.md-toolbar {
+    display: flex;
+    gap: 4px;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid var(--border-subtle);
+}
+
+.md-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: monospace;
+    transition: all var(--transition-fast);
+}
+
+.md-btn:hover {
+    background: var(--bg-hover);
+    color: var(--accent);
+}
+
+.md-btn i {
+    font-style: italic;
+    font-family: serif;
+}
+
+.md-btn b {
+    font-weight: 800;
+}
+
+/* Duplicate Warning */
+.preview-card.duplicate {
+    border-left: 3px solid var(--warning);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.duplicate-warning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--warning);
+    font-size: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* --- Study Mode --- */
+.study-container {
+    background: var(--bg-surface);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.study-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.flashcard-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px; /* For 3D Flip */
+    cursor: pointer;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 400px;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    background: var(--bg-elevated);
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-subtle);
+}
+
+.flashcard-area.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px;
+    border-radius: 24px;
+}
+
+.flashcard-back {
+    transform: rotateY(180deg);
+    background: var(--bg-elevated); /* Same bg, just rotated */
+}
+
+.card-label {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+}
+
+.card-content {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* Markdown in Flashcard */
+.card-content p { margin: 0; }
+.card-content strong { color: var(--accent); }
+.card-content code { 
+    background: rgba(99, 102, 241, 0.1); 
+    color: var(--accent);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.hint-text {
+    margin-top: 32px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+    opacity: 0.7;
+}
+
+.study-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.study-controls .spacer {
+    flex: 1;
+}
+
+.action-btn.large {
+    padding: 12px 32px;
+    font-size: 16px;
+}
+
+/* Bulk Action Bar */
+.bulk-bar {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 100px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bulk-bar.hidden {
+    transform: translate(-50%, 20px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.bulk-info {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-btn.small {
+    padding: 6px 12px;
+    font-size: 13px;
+    height: 32px;
+}
+
+.action-btn.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* --- Statistics Modal --- */
+.stats-overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-box {
+    background: var(--bg-surface-2);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--border-subtle);
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-section {
+    margin-bottom: 24px;
+}
+
+.stats-section h3 {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chart-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.chart-label {
+    width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+}
+
+.chart-bar-container {
+    flex: 1;
+    background: var(--bg-surface-2);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.chart-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.chart-value {
+    width: 60px;
+    text-align: right;
+    color: var(--text-tertiary);
+}
+
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stat-tag {
+    background: var(--bg-surface-2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-tag .count {
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.empty-chart {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-style: italic;
+    padding: 12px;
+}
+
+/* ===========================
+   STUDY MODE ANIMATIONS 
+   =========================== */
+
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-50px); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(50px); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.anim-slide-out-left {
+  animation: slideOutLeft 0.2s ease-in forwards;
+}
+
+.anim-slide-in-right {
+  animation: slideInRight 0.2s ease-out forwards;
+}
+
+.anim-slide-out-right {
+  animation: slideOutRight 0.2s ease-in forwards;
+}
+
+.anim-slide-in-left {
+  animation: slideInLeft 0.2s ease-out forwards;
 }
