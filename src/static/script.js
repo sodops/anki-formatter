@@ -145,7 +145,7 @@ const COMMANDS = [
     { id: 'export', label: 'Export to Anki', desc: 'Download as .anki file', icon: 'download-outline', shortcut: '', action: () => document.getElementById('btnExportAnki').click() },
     { id: 'clear', label: 'Clear Current Deck', desc: 'Delete all cards', icon: 'trash-bin-outline', shortcut: '', action: () => document.getElementById('btnClearDeck').click() },
     { id: 'upload', label: 'Upload File', desc: 'Import from TXT/CSV/DOCX', icon: 'cloud-upload-outline', shortcut: '', action: () => document.getElementById('fileInput').click() },
-    { id: 'shortcuts', label: 'Keyboard Shortcuts', desc: 'View all keyboard shortcuts', icon: 'help-circle-outline', shortcut: 'Ctrl+?', action: () => openShortcutsModal() },
+    { id: 'shortcuts', label: 'Keyboard Shortcuts', desc: 'View all keyboard shortcuts', icon: 'help-circle-outline', shortcut: 'Ctrl+/', action: () => openShortcutsModal() },
     { id: 'help', label: 'Help / About', icon: 'help-circle', desc: 'Show documentation', action: () => window.open('https://github.com/sodops/anki-formatter', '_blank') },
 ];
 let activeCommandIndex = 0;
@@ -209,8 +209,8 @@ function setupEventListeners() {
             return;
         }
         
-        // Ctrl+? - Keyboard Shortcuts
-        if ((e.ctrlKey || e.metaKey) && e.key === '?') {
+        // Ctrl+/ - Keyboard Shortcuts
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
             e.preventDefault();
             openShortcutsModal();
             return;
