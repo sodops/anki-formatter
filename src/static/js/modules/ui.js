@@ -27,6 +27,7 @@ export function showToast(msg, type = 'success') {
 export function prompt(title, defaultValue = '') {
     return new Promise((resolve) => {
         dom.customModalTitle.textContent = title;
+        dom.customModalContent.style.display = 'none'; // Hide content box strictly
         dom.customModalContent.textContent = '';
         dom.customModalInputContainer.classList.remove('hidden');
         dom.customModalInput.value = defaultValue;
@@ -106,6 +107,7 @@ export function confirm(message) {
 export function alert(message) {
     return new Promise((resolve) => {
         dom.customModalTitle.textContent = 'Notice';
+        dom.customModalContent.style.display = 'block'; // Show content
         dom.customModalContent.textContent = message;
         dom.customModalInputContainer.classList.add('hidden');
         
@@ -150,6 +152,7 @@ export function colorPicker(currentColor, gradient) {
         `;
         
         dom.customModalTitle.textContent = 'Deck Color';
+        dom.customModalContent.style.display = 'block'; // Show content
         dom.customModalContent.innerHTML = '';
         dom.customModalContent.appendChild(content);
         dom.customModalInputContainer.classList.add('hidden');
