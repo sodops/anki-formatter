@@ -198,3 +198,15 @@ export function escapeHtml(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+/**
+ * UI Object for grouping utilities
+ */
+export const ui = {
+    showToast,
+    prompt,
+    confirm,
+    alert,
+    colorPicker,
+    escapeHtml
+};

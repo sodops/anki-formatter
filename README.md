@@ -147,7 +147,10 @@ anki-formatter/
 ├── src/
 │   ├── app.py              # Flask backend
 │   ├── static/
-│   │   ├── script.js       # Main JavaScript logic
+│   ├── static/
+│   │   ├── js/
+│   │   │   ├── modules/    # ES6 Modules (state, deck, card, etc.)
+│   │   │   └── main.js     # Entry point
 │   │   └── style.css       # Styling
 │   └── templates/
 │       └── index.html      # Main HTML template

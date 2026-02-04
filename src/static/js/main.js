@@ -5,48 +5,21 @@
 
 import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './modules/state.js';
 import { dom, verifyDomElements } from './modules/dom.js';
-import { ui, showToast, confirm, alert } from './modules/ui.js';
+import { ui } from './modules/ui.js'; // Default export object
 import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './modules/deck.js';
-import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag } from './modules/card.js';
-import { setupDragDrop } from './modules/drag-drop.js';
+import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine } from './modules/card.js';
+import { setupDragDrop, handleDrop } from './modules/drag-drop.js';
 import { setupMarked } from './modules/markdown.js';
 import { executeExport, showExportPreview, closeExportPreview } from './modules/export.js';
 import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview } from './modules/import.js';
-
-// --- Global Scoping for HTML onclicks ---
-// Ideally we should remove these and use event delegation, but for refactoring safety we expose them.
-window.createDeck = () => {
-    ui.prompt("Enter deck name:", "New Deck").then(name => {
-        if(name) createDeck(name);
-    });
-};
-window.switchDeck = switchDeck;
-window.renameDeck = renameDeck;
-window.deleteDeck = deleteDeck;
-window.restoreDeck = restoreDeck;
-window.toggleTrash = toggleTrash;
-window.removeCard = removeCard;
-window.updateCard = updateCard;
-window.handleTagInput = handleTagInput;
-window.removeTag = removeTag;
-window.handleFileUpload = (e) => handleFileUpload(e.target.files[0]);
-window.executeExport = executeExport;
-window.showExportPreview = showExportPreview;
-window.closeExportPreview = closeExportPreview;
-window.showImportPreview = showImportPreview; // Call internally mostly
-window.updateImportPreview = updateImportPreview;
-window.confirmImport = confirmImport;
-window.closeImportPreview = closeImportPreview;
-
-window.undo = undo;
-window.redo = redo;
+import { undo, redo } from './modules/history.js';
 
 // --- Command Registry ---
 const COMMANDS = [
     { id: 'new_deck', label: 'Create New Deck',  desc: 'Add a new flashcard deck', icon: 'folder-outline', shortcut: '',  action: () => window.createDeck() },
-    { id: 'export', label: 'Export to Anki', desc: 'Download as .anki file', icon: 'download-outline', shortcut: '', action: () => document.getElementById('btnExportDeck').click() }, // Fixed ID
+    { id: 'export', label: 'Export to Anki', desc: 'Download as .anki file', icon: 'download-outline', shortcut: '', action: () => { if(dom.btnExportDeck) dom.btnExportDeck.click() } },
     { id: 'clear', label: 'Clear Current Deck', desc: 'Delete all cards', icon: 'trash-bin-outline', shortcut: '', action: () => clearDeck() },
-    { id: 'upload', label: 'Upload File', desc: 'Import from TXT/CSV/DOCX', icon: 'cloud-upload-outline', shortcut: '', action: () => document.getElementById('fileInput').click() },
+    { id: 'upload', label: 'Upload File', desc: 'Import from TXT/CSV/DOCX', icon: 'cloud-upload-outline', shortcut: '', action: () => { if(dom.fileInput) dom.fileInput.click() } },
     { id: 'shortcuts', label: 'Keyboard Shortcuts', desc: 'View all keyboard shortcuts', icon: 'help-circle-outline', shortcut: 'Ctrl+/', action: () => openShortcutsModal() },
     { id: 'help', label: 'Help / About', icon: 'help-circle', desc: 'Show documentation', action: () => window.open('https://github.com/sodops/anki-formatter', '_blank') },
 ];
@@ -64,10 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadState();
     
     // Default Deck if none
-    if (STATE.decks.length === 0) {
+    if (!STATE.decks || STATE.decks.length === 0) {
         createDeck("My First Deck");
     }
     
+    // Setup Global Scoping for HTML onclicks inside init to ensure deps are ready
+    setupGlobalExports();
+
     setupEventListeners();
     setupDragDrop();
     
@@ -77,19 +53,59 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("AnkiFlow Ready");
 });
 
+function setupGlobalExports() {
+    window.createDeck = () => {
+        ui.prompt("Enter deck name:", "New Deck").then(name => {
+            if(name) createDeck(name);
+        });
+    };
+    window.switchDeck = switchDeck;
+    window.renameDeck = renameDeck;
+    window.deleteDeck = deleteDeck;
+    window.restoreDeck = restoreDeck;
+    window.toggleTrash = toggleTrash;
+    window.removeCard = removeCard;
+    window.updateCard = updateCard;
+    window.handleTagInput = handleTagInput;
+    window.removeTag = removeTag;
+    window.handleFileUpload = (e) => handleFileUpload(e.target.files[0]);
+    window.executeExport = executeExport;
+    window.showExportPreview = showExportPreview;
+    window.closeExportPreview = closeExportPreview;
+    window.showImportPreview = showImportPreview; 
+    window.updateImportPreview = updateImportPreview;
+    window.confirmImport = confirmImport;
+    window.closeImportPreview = closeImportPreview;
+
+    window.undo = undo;
+    window.redo = redo;
+    
+    // Helper to open color picker from HTML onclick
+    window.openColorPicker = (color, gradient) => {
+         // This assumes the calling element handling.
+         // Since deck.js creates the button with onclick, we need to support it.
+         ui.colorPicker(color, gradient).then(res => {
+             // We need to apply it. But we don't know the deck ID here easily without context.
+             // deck.js handles the promise if it called ui.colorPicker directly.
+             // If HTML onclick calls window.openColorPicker, it expects us to handle it.
+             // BUT in deck.js I wrote: colorBtn.onclick = (e) => { ui.colorPicker(...) }
+             // So I don't need window.openColorPicker!
+         });
+    };
+}
+
 function setupEventListeners() {
     // New Deck Button
     if(dom.btnNewDeck) dom.btnNewDeck.addEventListener('click', window.createDeck);
     
-    // Trash Button
-    if(dom.btnTrash) dom.btnTrash.addEventListener('click', emptyTrash);
+    // Trash Button (this might be dynamic, check dom.js) - dom.btnTrash might be null if not in HTML
+    // It's created in deck.js renderSidebar.
     
     // Clear Deck Button
     if(dom.btnClearDeck) dom.btnClearDeck.addEventListener('click', clearDeck);
     
     // Export Button (Open Modal)
     if(dom.btnExportDeck) dom.btnExportDeck.addEventListener('click', () => {
-        // Show modal
         if(dom.exportModal) dom.exportModal.classList.remove('hidden');
     });
     
@@ -113,10 +129,8 @@ function setupEventListeners() {
     });
 
     // Import Preview Buttons
-    const btnConfirmImport = document.getElementById('btnConfirmImport');
-    const btnCancelImport = document.getElementById('btnCancelImport');
-    if(btnConfirmImport) btnConfirmImport.addEventListener('click', confirmImport);
-    if(btnCancelImport) btnCancelImport.addEventListener('click', closeImportPreview);
+    if(dom.btnConfirmImport) dom.btnConfirmImport.addEventListener('click', confirmImport);
+    if(dom.btnCancelImport) dom.btnCancelImport.addEventListener('click', closeImportPreview);
     
     // File Input
     if(dom.fileInput) dom.fileInput.addEventListener('change', window.handleFileUpload);
@@ -129,17 +143,15 @@ function setupEventListeners() {
                 const line = dom.omnibarInput.value.trim();
                 const deck = getActiveDeck();
                 if (line && deck) {
-                    // Import helper function to parse would be nice, but card.js logic handles line parsing?
-                    // Re-implement or import parser?
-                    // We need parseLine from card.js
-                    import('./modules/card.js').then(m => {
-                        const parsed = m.parseLine(line);
-                        if (parsed) {
-                            addCard(parsed.term, parsed.def);
-                            dom.omnibarInput.value = '';
-                            showToast("Card added");
-                        }
-                    });
+                    const parsed = parseLine(line);
+                    if (parsed) {
+                        addCard(parsed.term, parsed.def);
+                        dom.omnibarInput.value = '';
+                        ui.showToast("Card added");
+                    } else {
+                        // Maybe just add as term if simple text? logic in parseLine handles it (returns term, empty def)
+                        // addCard(line, "");
+                    }
                 }
             }
             handleOmnibarKey(e);
@@ -197,17 +209,13 @@ function setupEventListeners() {
         // F1 for Command Palette
         if (e.key === 'F1') {
             e.preventDefault();
-            if(dom.omnibarInput) {
-                dom.omnibarInput.focus();
-                dom.omnibarInput.value = '>';
-                dom.omnibarInput.dispatchEvent(new Event('input'));
-            }
+            openCommandPalette();
         }
         
         // Undo/Redo (Ctrl+Z, Ctrl+Y)
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
             e.preventDefault();
-            undo();
+            undo(); // Call local function
         }
         if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
             e.preventDefault();
@@ -217,17 +225,37 @@ function setupEventListeners() {
 
     // Close Modals on click outside
     window.addEventListener('click', (e) => {
-        const cmdDropdown = document.getElementById('commandDropdown');
-        if (cmdDropdown && !e.target.closest('#omnibarContainer')) {
-            closeCommandPalette();
+        if (dom.commandDropdown && !dom.commandDropdown.classList.contains('hidden')) {
+             if (!e.target.closest('#omnibarContainer')) {
+                 closeCommandPalette();
+             }
         }
+    });
+
+    // Shortcuts Modal Close
+    if(dom.btnCloseShortcuts) dom.btnCloseShortcuts.addEventListener('click', () => {
+        const modal = document.getElementById('shortcutsModal');
+        if(modal) modal.classList.add('hidden');
+    });
+    
+    // Color Picker Close (if exists independently)
+    const btnCancelColor = document.getElementById('btnCancelColor');
+    if(btnCancelColor) btnCancelColor.addEventListener('click', () => {
+        const modal = document.getElementById('colorPickerModal');
+        if(modal) modal.classList.add('hidden');
+    });
+
+    // Export Preview Close
+    if(dom.btnClosePreview) dom.btnClosePreview.addEventListener('click', closeExportPreview);
+    if(dom.btnConfirmFromPreview) dom.btnConfirmFromPreview.addEventListener('click', () => {
+        closeExportPreview();
+        executeExport();
     });
 }
 
 // --- Command Palette Logic ---
 
 function handleOmnibarKey(e) {
-    // Logic moved to event listener, but keep this if complex navigation needed
     const val = e.target.value;
     const isCommandMode = val.startsWith('>');
 
@@ -271,22 +299,20 @@ function openCommandPalette() {
 }
 
 function closeCommandPalette() {
-    const dropdown = document.getElementById('commandDropdown');
-    if(dropdown) dropdown.classList.add('hidden');
+    if(dom.commandDropdown) dom.commandDropdown.classList.add('hidden');
     filteredCommands = [];
 }
 
 function renderCommandDropdown() {
-    const dropdown = document.getElementById('commandDropdown');
-    if(!dropdown) return;
+    if(!dom.commandDropdown) return;
 
     if (filteredCommands.length === 0) {
-        dropdown.classList.add('hidden');
+        dom.commandDropdown.classList.add('hidden');
         return;
     }
 
-    dropdown.innerHTML = filteredCommands.map((cmd, i) => `
-        <div class="command-item ${i === activeCommandIndex ? 'active' : ''}" onclick="executeCommand(${i})">
+    dom.commandDropdown.innerHTML = filteredCommands.map((cmd, i) => `
+        <div class="command-item ${i === activeCommandIndex ? 'active' : ''}" onclick="window.executeCommand(${i})">
             <div style="display:flex; align-items:center; gap:12px;">
                 <ion-icon name="${cmd.icon}"></ion-icon>
                 <div>
@@ -298,7 +324,7 @@ function renderCommandDropdown() {
         </div>
     `).join('');
     
-    // Add click handler proxy
+    // Add global click handler
     window.executeCommand = (index) => {
         if(filteredCommands[index]) {
             filteredCommands[index].action();
@@ -307,7 +333,7 @@ function renderCommandDropdown() {
         }
     };
 
-    dropdown.classList.remove('hidden');
+    dom.commandDropdown.classList.remove('hidden');
 }
 
 // --- Utils ---
@@ -316,7 +342,6 @@ function openShortcutsModal() {
     const modal = document.getElementById('shortcutsModal');
     if(modal) {
         modal.classList.remove('hidden');
-        // Add close listener
         modal.onclick = (e) => {
             if(e.target === modal) modal.classList.add('hidden');
         };
@@ -324,35 +349,11 @@ function openShortcutsModal() {
 }
 
 // --- Undo / Redo ---
-// Using imports would be cleaner, but logic is tightly coupled with state
-// We'll implement basic version using STATE.history
 
-function undo() {
-    // Current history logic needs access to modifying cards
-    // Since 'card.js' has CRUD, but 'state.js' has history data
-    // Best to implement full Undo in main controller or specific module.
-    // Simplifying: re-implement basic logic accessing STATE directly (as imported)
-    // and calling renderWorkspace.
-    
-    if (STATE.historyIndex < 0 || !STATE.history || STATE.history.length === 0) {
-        showToast('Nothing to undo', 'info');
-        return;
-    }
 
-    // Logic for Undo... (This is getting complex for one file)
-    // Professional refactor would separate this.
-    // For now, let's omit detailed Undo implementation to fit in file creation limit
-    // and ensuring major features work. 
-    // Wait, user expects features to work.
-    
-    // Quick implementation:
-    const operation = STATE.history[STATE.history.length - 1]; // Simplified LIFO for now (missing index tracking in current state.js?)
-    // script.js had historyIndex.
-    
-    // Let's defer full Undo/Redo refactoring to next step or keep it simple.
-    showToast("Undo not fully migrated yet", "warning"); 
+
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
 }
 
-function redo() {
-    showToast("Redo not fully migrated yet", "warning");
-}
