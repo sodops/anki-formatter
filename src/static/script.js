@@ -1182,11 +1182,16 @@ function showExportPreview() {
         const isInvalid = !card.term || !card.def || !card.term.trim() || !card.def.trim();
         const cardEl = document.createElement('div');
         cardEl.className = `preview-card ${isInvalid ? 'invalid' : ''}`;
+        
+        // Render markdown for term and definition
+        const renderedTerm = card.term ? renderMarkdown(card.term) : '<em>Empty</em>';
+        const renderedDef = card.def ? renderMarkdown(card.def) : '<em>Empty</em>';
+        
         cardEl.innerHTML = `
             <div class="preview-card-number">#${idx + 1}</div>
             <div class="preview-card-content">
-                <div><strong>Term:</strong> ${escapeHtml(card.term) || '<em>Empty</em>'}</div>
-                <div><strong>Definition:</strong> ${escapeHtml(card.def) || '<em>Empty</em>'}</div>
+                <div><strong>Term:</strong> <span class="markdown-content">${renderedTerm}</span></div>
+                <div><strong>Definition:</strong> <span class="markdown-content">${renderedDef}</span></div>
                 ${card.tags && card.tags.length > 0 ? `<div class="preview-tags">${card.tags.map(t => `<span class="tag-badge">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
             </div>
             ${isInvalid ? '<div class="preview-warning"><ion-icon name="alert-circle"></ion-icon> Invalid</div>' : ''}
@@ -1289,3 +1294,29 @@ function escapeHtml(text) {
     if (!text) return "";
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
+/* Markdown Utilities */
+function renderMarkdown(text) {
+    if (!text) return '';
+    if (typeof marked === 'undefined') return escapeHtml(text);
+    
+    try {
+        const html = marked.parse(text, { breaks: true, gfm: true });
+        return html;
+    } catch (e) {
+        console.error('Markdown parsing error:', e);
+        return escapeHtml(text);
+   }
+}
+
+// Configure marked.js on load
+if (typeof marked !== 'undefined') {
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: false,
+        mangle: false
+    });
+}
+
+window.addEventListener('load', init);
