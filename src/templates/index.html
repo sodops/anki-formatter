@@ -178,12 +178,53 @@
                 <button class="action-btn secondary" id="btnCancelExport">
                     Cancel
                 </button>
+                <button class="action-btn secondary" id="btnPreviewExport">
+                    Preview
+                </button>
                 <button class="action-btn primary" id="btnConfirmExport">
                     Download .apkg
                 </button>
             </div>
             <div id="exportLoader" class="loader-line hidden"></div>
         </div>
+    </div>
+
+    <!-- EXPORT PREVIEW MODAL -->
+    <div id="exportPreviewModal" class="modal-overlay hidden">
+      <div class="modal-glass" style="max-width: 700px;">
+        <h2>Export Preview</h2>
+        <div class="preview-stats">
+          <div class="stat-item">
+            <ion-icon name="library-outline"></ion-icon>
+            <div>
+              <strong id="previewTotalCards">0</strong>
+              <span>Total Cards</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <div>
+              <strong id="previewValidCards">0</strong>
+              <span>Valid Cards</span>
+            </div>
+          </div>
+          <div class="stat-item warning">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <div>
+              <strong id="previewIssues">0</strong>
+              <span>Issues</span>
+            </div>
+          </div>
+        </div>
+        
+        <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 16px;">Sample Cards (First 5)</h3>
+        <div class="preview-cards" id="previewCardsList"></div>
+        
+        <div class="modal-actions">
+          <button class="action-btn secondary" id="btnClosePreview">Close</button>
+          <button class="action-btn primary" id="btnConfirmFromPreview">Looks Good - Export</button>
+        </div>
+      </div>
     </div>
 
     <!-- KEYBOARD SHORTCUTS MODAL -->

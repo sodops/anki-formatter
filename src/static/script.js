@@ -178,6 +178,14 @@ function setupEventListeners() {
     document.querySelectorAll('.color-option').forEach(btn => {
         btn.addEventListener('click', () => applyDeckColor(btn.dataset.color));
     });
+    
+    // Export Preview
+    document.getElementById('btnPreviewExport')?.addEventListener('click', showExportPreview);
+    document.getElementById('btnClosePreview')?.addEventListener('click', closeExportPreview);
+    document.getElementById('btnConfirmFromPreview')?.addEventListener('click', () => {
+        closeExportPreview();
+        executeExport();
+    });
 
     // Omnibar
     dom.omnibarInput.addEventListener('keydown', handleOmnibarKey);
@@ -1135,6 +1143,56 @@ function applyDeckColor(color) {
         }
     }
     closeColorPicker();
+}
+
+/* Export Preview */
+function showExportPreview() {
+    const deck = getActiveDeck();
+    if (!deck) return;
+    
+    const allCards = deck.cards;
+    const validCards = allCards.filter(c => c.term && c.def && c.term.trim() && c.def.trim());
+    const issues = allCards.length - validCards.length;
+    
+    // Update stats
+    document.getElementById('previewTotalCards').textContent = allCards.length;
+    document.getElementById('previewValidCards').textContent = validCards.length;
+    document.getElementById('previewIssues').textContent = issues;
+    
+    // Show sample cards (first 5)
+    const previewList = document.getElementById('previewCardsList');
+    previewList.innerHTML = '';
+    
+    const sampleCards = allCards.slice(0, 5);
+    sampleCards.forEach((card, idx) => {
+        const isInvalid = !card.term || !card.def || !card.term.trim() || !card.def.trim();
+        const cardEl = document.createElement('div');
+        cardEl.className = `preview-card ${isInvalid ? 'invalid' : ''}`;
+        cardEl.innerHTML = `
+            <div class="preview-card-number">#${idx + 1}</div>
+            <div class="preview-card-content">
+                <div><strong>Term:</strong> ${escapeHtml(card.term) || '<em>Empty</em>'}</div>
+                <div><strong>Definition:</strong> ${escapeHtml(card.def) || '<em>Empty</em>'}</div>
+                ${card.tags && card.tags.length > 0 ? `<div class="preview-tags">${card.tags.map(t => `<span class="tag-badge">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
+            ${isInvalid ? '<div class="preview-warning"><ion-icon name="alert-circle"></ion-icon> Invalid</div>' : ''}
+        `;
+        previewList.appendChild(cardEl);
+    });
+    
+    if (allCards.length > 5) {
+        const moreEl = document.createElement('div');
+        moreEl.className = 'preview-more';
+        moreEl.textContent = `... and ${allCards.length - 5} more cards`;
+        previewList.appendChild(moreEl);
+    }
+    
+    // Show preview modal
+    document.getElementById('exportPreviewModal').classList.remove('hidden');
+}
+
+function closeExportPreview() {
+    document.getElementById('exportPreviewModal').classList.add('hidden');
 }
 
 
