@@ -1320,7 +1320,6 @@ if (typeof marked !== 'undefined') {
     });
 }
 
-window.addEventListener('load', init);
 
 /* Import Preview */
 var pendingImport = {
