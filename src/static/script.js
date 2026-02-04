@@ -524,15 +524,64 @@ function renderWorkspace() {
             if (!card.term || !card.def) tr.className = 'row-error';
             else if (!card.term.trim() || !card.def.trim()) tr.className = 'row-warning';
             
+            // Ensure tags array exists
+            if (!card.tags) card.tags = [];
+            
+            // Create tag badges HTML
+            const tagBadgesHTML = card.tags.map(tag => 
+                `<span class="tag-badge">${escapeHtml(tag)}<button class="tag-remove" onclick="removeTag(${originalIndex}, '${escapeHtml(tag)}')">&times;</button></span>`
+            ).join('');
+            
             tr.innerHTML = `
                 <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.term)}" onchange="updateCard(${originalIndex}, 'term', this.value)"></td>
                 <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.def)}" onchange="updateCard(${originalIndex}, 'def', this.value)"></td>
+                <td class="tags-cell">
+                    <div class="tags-container">
+                        ${tagBadgesHTML}
+                        <input type="text" class="tag-input" placeholder="Add tag..." onkeydown="handleTagInput(event, ${originalIndex})" />
+                    </div>
+                </td>
                 <td><button class="action-btn secondary" onclick="removeCard(${originalIndex})" style="padding:4px;"><ion-icon name="close"></ion-icon></button></td>
             `;
             dom.tableBody.appendChild(tr);
         });
     }
 }
+
+/* Tag Management */
+window.handleTagInput = function(event, index) {
+    if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        const input = event.target;
+        const tag = input.value.trim().replace(/^#/, ''); // Remove # if user typed it
+        
+        if (tag) {
+            const deck = getActiveDeck();
+            if (!deck.cards[index].tags) deck.cards[index].tags = [];
+            
+            // Avoid duplicates
+            if (!deck.cards[index].tags.includes(tag)) {
+                deck.cards[index].tags.push(tag);
+                saveState();
+                renderWorkspace();
+                showToast(`Tag "${tag}" added`);
+            }
+            
+            input.value = '';
+        }
+    }
+};
+
+window.removeTag = function(index, tag) {
+    const deck = getActiveDeck();
+    if (deck.cards[index].tags) {
+        deck.cards[index].tags = deck.cards[index].tags.filter(t => t !== tag);
+        saveState();
+        renderWorkspace();
+        showToast(`Tag "${tag}" removed`);
+    }
+};
+
 
 /* Card Logic */
 window.updateCard = function(index, field, value) {
@@ -770,10 +819,10 @@ async function handleGoogleDoc(url) {
         if (response.ok) {
             const deck = getActiveDeck();
             if(data.cards) {
-                data.cards.forEach(c => deck.cards.unshift({ term: c.question, def: c.answer }));
+                data.cards.forEach(c => deck.cards.unshift({ term: c.question, def: c.answer, tags: [] }));
             }
             if(data.failures) {
-                data.failures.forEach(f => deck.cards.unshift({ term: f, def: "" }));
+                data.failures.forEach(f => deck.cards.unshift({ term: f, def: "", tags: [] }));
             }
             saveState();
             renderWorkspace();
@@ -799,12 +848,12 @@ function parseLine(line) {
     for (const sep of separators) {
         if (cleaned.includes(sep)) {
             const parts = cleaned.split(sep);
-            return { term: parts[0].trim(), def: parts.slice(1).join(sep).trim() };
+            return { term: parts[0].trim(), def: parts.slice(1).join(sep).trim(), tags: [] };
         }
     }
     
     // No separator found -> Add as Incomplete
-    return { term: cleaned, def: "" }; 
+    return { term: cleaned, def: "", tags: [] }; 
 }
 
 /* File Handling */
@@ -827,13 +876,13 @@ async function handleFileUpload(file) {
             // Backend returns { cards: [{question, answer}], ... }
             if(data.cards) {
                 data.cards.forEach(c => {
-                    deck.cards.unshift({ term: c.question, def: c.answer });
+                    deck.cards.unshift({ term: c.question, def: c.answer, tags: [] });
                 });
             }
             if(data.failures) {
                 // Add failures as incomplete cards
                 data.failures.forEach(f => {
-                    deck.cards.unshift({ term: f, def: "" });
+                    deck.cards.unshift({ term: f, def: "", tags: [] });
                 });
             }
             saveState();
