@@ -314,6 +314,45 @@
       </div>
     </div>
 
+    <!-- Import Preview Modal -->
+    <div id="importPreviewModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>📥 Import Preview</h2>
+        
+        <div class="import-stats">
+          <span>📊 Total: <strong id="importTotal">0</strong> cards</span>
+        </div>
+        
+        <!-- Column Mapping (CSV only) -->
+        <div id="columnMapping" class="hidden">
+          <h3>Column Mapping</h3>
+          <div class="mapping-controls">
+            <div class="mapping-row">
+              <label>Term Column:</label>
+              <select id="termColumnSelect"></select>
+            </div>
+            <div class="mapping-row">
+              <label>Definition Column:</label>
+              <select id="defColumnSelect"></select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Preview List -->
+        <div class="import-preview-section">
+          <h3>Preview (first 10 cards)</h3>
+          <div class="import-preview-list" id="importPreviewList">
+            <!-- Cards preview here -->
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="action-btn secondary" id="btnCancelImport">Cancel</button>
+          <button class="action-btn primary" id="btnConfirmImport">Import Cards</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     

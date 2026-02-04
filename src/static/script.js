@@ -905,25 +905,26 @@ async function handleFileUpload(file) {
         });
         const data = await response.json();
         
-        if(response.ok) {
-            const deck = getActiveDeck();
-            // Backend returns { cards: [{question, answer}], ... }
-            if(data.cards) {
-                data.cards.forEach(c => {
-                    deck.cards.unshift({ term: c.question, def: c.answer, tags: [] });
-                });
-            }
-            if(data.failures) {
-                // Add failures as incomplete cards
+        if(response.ok && data.cards) {
+            // Convert backend format to our format
+            const cards = data.cards.map(c => ({
+                term: c.question,
+                def: c.answer,
+                tags: []
+            }));
+            
+            // Add failures as incomplete cards
+            if (data.failures) {
                 data.failures.forEach(f => {
-                    deck.cards.unshift({ term: f, def: "", tags: [] });
+                    cards.push({ term: f, def: "", tags: [] });
                 });
             }
-            saveState();
-            renderWorkspace();
-            showToast(`Imported ${data.cards.length} cards`);
+            
+            //Show preview instead of direct import
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            showImportPreview(cards, fileExt);
         } else {
-            ui.alert("Error parsing file: " + data.error);
+            ui.alert("Error parsing file: " + (data.error || "Unknown error"));
         }
 
     } catch(e) {
@@ -1320,3 +1321,147 @@ if (typeof marked !== 'undefined') {
 }
 
 window.addEventListener('load', init);
+
+/* Import Preview */
+var pendingImport = {
+    cards: [],
+    rawData: null,
+    fileType: '',
+    columns: []
+};
+
+function showImportPreview(cards, fileType, rawData = null, columns = []) {
+    pendingImport = { cards, fileType, rawData, columns };
+    
+    // Update stats
+    document.getElementById('importTotal').textContent = cards.length;
+    
+    // Show column mapping for CSV
+    const mappingSection = document.getElementById('columnMapping');
+    if (fileType === 'csv' && columns.length > 0) {
+        setupColumnMapping(columns);
+        mappingSection.classList.remove('hidden');
+    } else {
+        mappingSection.classList.add('hidden');
+    }
+    
+    // Render preview
+    renderImportPreview(cards.slice(0, 10));
+    
+    // Show modal
+    document.getElementById('importPreviewModal').classList.remove('hidden');
+}
+
+function setupColumnMapping(columns) {
+    const termSelect = document.getElementById('termColumnSelect');
+    const defSelect = document.getElementById('defColumnSelect');
+    
+    // Clear existing options
+    termSelect.innerHTML = '';
+    defSelect.innerHTML = '';
+    
+    // Add column options
+    columns.forEach((col, idx) => {
+        const termOption = document.createElement('option');
+        termOption.value = idx;
+        termOption.textContent = col || `Column ${idx + 1}`;
+        termSelect.appendChild(termOption);
+        
+        const defOption = document.createElement('option');
+        defOption.value = idx;
+        defOption.textContent = col || `Column ${idx + 1}`;
+        defSelect.appendChild(defOption);
+    });
+    
+    // Set defaults (column 0 = term, column 1 = def)
+    if (columns.length >= 2) {
+        termSelect.value = 0;
+        defSelect.value = 1;
+    }
+}
+
+function renderImportPreview(cards) {
+    const previewList = document.getElementById('importPreviewList');
+    previewList.innerHTML = '';
+    
+    if (cards.length === 0) {
+        previewList.innerHTML = '<p style="text-align: center; color: var(--text-tertiary);">No cards to preview</p>';
+        return;
+    }
+    
+    cards.forEach((card, idx) => {
+        const isInvalid = !card.term || !card.def || !card.term.trim() || !card.def.trim();
+        const cardEl = document.createElement('div');
+        cardEl.className = `import-card-preview ${isInvalid ? 'invalid' : ''}`;
+        
+        cardEl.innerHTML = `
+            <div class="import-card-number">#${idx + 1}</div>
+            <div class="import-card-content">
+                <div><strong>Term:</strong> <span class="value">${escapeHtml(card.term) || '<em style="color: #ef4444;">Empty</em>'}</span></div>
+                <div><strong>Definition:</strong> <span class="value">${escapeHtml(card.def) || '<em style="color: #ef4444;">Empty</em>'}</span></div>
+                ${card.tags && card.tags.length > 0 ? `<div><strong>Tags:</strong> ${card.tags.map(t => `<span class="tag-badge">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+            </div>
+        `;
+        
+        previewList.appendChild(cardEl);
+    });
+    
+    // Show "and X more" if there are more cards
+    if (pendingImport.cards.length > 10) {
+        const moreEl = document.createElement('div');
+        moreEl.style.textAlign = 'center';
+        moreEl.style.padding = '12px';
+        moreEl.style.color = 'var(--text-tertiary)';
+        moreEl.textContent = `... and ${pendingImport.cards.length - 10} more cards`;
+        previewList.appendChild(moreEl);
+    }
+}
+
+function updateImportPreview() {
+    if (pendingImport.fileType !== 'csv' || !pendingImport.rawData) return;
+    
+    const termColIdx = parseInt(document.getElementById('termColumnSelect').value);
+    const defColIdx = parseInt(document.getElementById('defColumnSelect').value);
+    
+    // Re-parse with new column mapping
+    const remappedCards = pendingImport.rawData.map(row => ({
+        term: row[termColIdx] || '',
+        def: row[defColIdx] || '',
+        tags: []
+    }));
+    
+    pendingImport.cards = remappedCards;
+    renderImportPreview(remappedCards.slice(0, 10));
+    document.getElementById('importTotal').textContent = remappedCards.length;
+}
+
+function confirmImport() {
+    const deck = getActiveDeck();
+    if (!deck) {
+        showToast('No active deck', 'error');
+        closeImportPreview();
+        return;
+    }
+    
+    // Filter out completely empty cards
+    const validCards = pendingImport.cards.filter(c => c.term || c.def);
+    
+    if (validCards.length === 0) {
+        showToast('No valid cards to import', 'error');
+        closeImportPreview();
+        return;
+    }
+    
+    // Add to deck
+    deck.cards.push(...validCards);
+    saveState();
+    renderWorkspace();
+    
+    showToast(`Imported ${validCards.length} cards`);
+    closeImportPreview();
+}
+
+function closeImportPreview() {
+    document.getElementById('importPreviewModal').classList.add('hidden');
+    pendingImport = { cards: [], rawData: null, fileType: '', columns: [] };
+}
