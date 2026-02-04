@@ -1,7 +1,10 @@
-/* Core State */
 const STATE = {
     decks: [],
     activeDeckId: null,
+    showingTrash: false, // Trash view toggle
+    searchQuery: '', // Search filter
+    history: [], // Undo/Redo stack
+    historyIndex: -1 // Current position in history
 };
 
 /* DOM Elements */
@@ -24,11 +27,10 @@ const dom = {
     btnCancelExport: document.getElementById('btnCancelExport'),
     btnConfirmExport: document.getElementById('btnConfirmExport'),
     exportLoader: document.getElementById('exportLoader'),
-    btnConfirmExport: document.getElementById('btnConfirmExport'),
-    exportLoader: document.getElementById('exportLoader'),
-    exportLoader: document.getElementById('exportLoader'),
     toast: document.getElementById('toast'),
     commandDropdown: document.getElementById('commandDropdown'),
+    searchInput: document.getElementById('searchInput'),
+    btnClearSearch: document.getElementById('btnClearSearch'),
     // Modal Elements
     customModal: document.getElementById('customModal'),
     customModalTitle: document.getElementById('customModalTitle'),
@@ -139,10 +141,11 @@ const ui = {
 
 /* Command Registry */
 const COMMANDS = [
-    { id: 'new_deck', label: 'Create New Deck', icon: 'add-circle', desc: 'Start a fresh collection', action: () => dom.btnNewDeck.click() },
-    { id: 'export', label: 'Export to Anki', icon: 'download', desc: 'Download .apkg file', action: () => dom.btnExportAnki.click() },
-    { id: 'clear', label: 'Clear Current Deck', icon: 'trash', desc: 'Remove all cards', action: () => dom.btnClearDeck.click() },
-    { id: 'upload', label: 'Upload File', icon: 'cloud-upload', desc: 'Import from computer', action: () => dom.fileInput.click() },
+    { id: 'new_deck', label: 'Create New Deck',  desc: 'Add a new flashcard deck', icon: 'folder-outline', shortcut: '',  action: () => document.getElementById('btnNewDeck').click() },
+    { id: 'export', label: 'Export to Anki', desc: 'Download as .anki file', icon: 'download-outline', shortcut: '', action: () => document.getElementById('btnExportAnki').click() },
+    { id: 'clear', label: 'Clear Current Deck', desc: 'Delete all cards', icon: 'trash-bin-outline', shortcut: '', action: () => document.getElementById('btnClearDeck').click() },
+    { id: 'upload', label: 'Upload File', desc: 'Import from TXT/CSV/DOCX', icon: 'cloud-upload-outline', shortcut: '', action: () => document.getElementById('fileInput').click() },
+    { id: 'shortcuts', label: 'Keyboard Shortcuts', desc: 'View all keyboard shortcuts', icon: 'help-circle-outline', shortcut: 'Ctrl+?', action: () => openShortcutsModal() },
     { id: 'help', label: 'Help / About', icon: 'help-circle', desc: 'Show documentation', action: () => window.open('https://github.com/sodops/anki-formatter', '_blank') },
 ];
 let activeCommandIndex = 0;
@@ -166,14 +169,54 @@ function setupEventListeners() {
         const name = await ui.prompt("Deck Name:", "New Deck");
         if (name) createDeck(name);
     });
+    
+    // Shortcuts Modal Close Button
+    document.getElementById('btnCloseShortcuts')?.addEventListener('click', closeShortcutsModal);
 
     // Omnibar
     dom.omnibarInput.addEventListener('keydown', handleOmnibarKey);
     dom.omnibarInput.addEventListener('input', handleOmnibarInput); // Added input listener
     dom.omnibarInput.addEventListener('paste', handleOmnibarPaste);
     
+    // Make ENTER button (key-hint) clickable
+    document.querySelector('.key-hint').addEventListener('click', () => {
+        const text = dom.omnibarInput.value.trim();
+        if (!text) return;
+        if (text.startsWith('>')) {
+            // Command mode - execute active command
+            if (filteredCommands[activeCommandIndex]) {
+                filteredCommands[activeCommandIndex].action();
+                closeCommandPalette();
+            }
+        } else {
+            // Normal mode - process text
+            processInputText(text);
+            dom.omnibarInput.value = '';
+        }
+    });
+    
     // Global Shortcuts
     document.addEventListener('keydown', (e) => {
+        // Undo/Redo
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+            return;
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'Z' || (e.shiftKey && e.key === 'z'))) {
+            e.preventDefault();
+            redo();
+            return;
+        }
+        
+        // Ctrl+? - Keyboard Shortcuts
+        if ((e.ctrlKey || e.metaKey) && e.key === '?') {
+            e.preventDefault();
+            openShortcutsModal();
+            return;
+        }
+        
+        // F1 - Command Palette
         if(e.key === 'F1') {
             e.preventDefault();
             dom.omnibarInput.focus();
@@ -207,11 +250,36 @@ function setupEventListeners() {
             dom.fileInput.value = ''; // Reset
         }
     });
+    
+    // Search Input
+    dom.searchInput.addEventListener('input', (e) => {
+        STATE.searchQuery = e.target.value.trim();
+        // Toggle clear button visibility
+        dom.btnClearSearch.classList.toggle('hidden', !STATE.searchQuery);
+        renderWorkspace();
+    });
+    
+    // Clear Search Button
+    dom.btnClearSearch.addEventListener('click', () => {
+        STATE.searchQuery = '';
+        dom.searchInput.value = '';
+        dom.btnClearSearch.classList.add('hidden');
+        renderWorkspace();
+    });
 
     // Actions
     dom.btnClearDeck.addEventListener('click', async () => {
         if(await ui.confirm("Are you sure you want to clear this deck?")) {
             const deck = getActiveDeck();
+            const oldCards = [...deck.cards]; // Copy before clearing
+            
+            // Track in history
+            pushHistory({
+                type: 'clear',
+                deckId: deck.id,
+                cards: oldCards
+            });
+            
             deck.cards = [];
             saveState();
             renderWorkspace();
@@ -298,25 +366,27 @@ function switchDeck(id) {
 window.deleteDeck = async function(id, event) {
     if(event) event.stopPropagation();
     
-    // Prevent deleting the last deck
-    if(STATE.decks.length <= 1) {
-        ui.alert("Cannot delete the only deck.");
+    // Count active decks
+    const activeDecks = STATE.decks.filter(d => !d.isDeleted);
+    if(activeDecks.length <= 1) {
+        ui.alert("Cannot delete the only active deck.");
         return;
     }
 
-    if(await ui.confirm("Permanently delete this deck?")) {
-        const index = STATE.decks.findIndex(d => d.id === id);
-        if(index > -1) {
-            STATE.decks.splice(index, 1);
+    if(await ui.confirm("Move this deck to Trash?")) {
+        const deck = STATE.decks.find(d => d.id === id);
+        if(deck) {
+            deck.isDeleted = true;
             
-            // If deleted active deck, switch to first one available
+            // If deleted active deck, switch to another
             if(STATE.activeDeckId === id) {
-                STATE.activeDeckId = STATE.decks[0].id;
+                const nextDeck = STATE.decks.find(d => !d.isDeleted && d.id !== id);
+                if(nextDeck) STATE.activeDeckId = nextDeck.id;
             }
             saveState();
             renderSidebar();
             renderWorkspace();
-            showToast("Deck Deleted");
+            showToast("Moved to Trash");
         }
     }
 };
@@ -324,26 +394,94 @@ window.deleteDeck = async function(id, event) {
 /* Rendering */
 function renderSidebar() {
     dom.deckList.innerHTML = '';
-    STATE.decks.forEach(deck => {
+    
+    // Filter decks based on view mode
+    const visibleDecks = STATE.decks.filter(d => 
+        STATE.showingTrash ? d.isDeleted : !d.isDeleted
+    );
+
+    if(visibleDecks.length === 0) {
+        dom.deckList.innerHTML = `<li style="padding:10px; color:var(--text-muted); font-size:12px; text-align:center;">
+            ${STATE.showingTrash ? 'Trash is empty' : 'No decks found'}
+        </li>`;
+    }
+
+    visibleDecks.forEach(deck => {
         const li = document.createElement('li');
         li.className = `deck-item ${deck.id === STATE.activeDeckId ? 'active' : ''}`;
         
-        // Inner content with delete button
+        let actionBtn = '';
+        if(STATE.showingTrash) {
+            // Restore Button
+            actionBtn = `
+            <div class="restore-btn" onclick="restoreDeck('${deck.id}', event)" title="Restore Deck">
+                <ion-icon name="refresh-outline"></ion-icon>
+            </div>`;
+        } else {
+            // Delete Button
+            actionBtn = `
+            <div class="delete-btn" onclick="deleteDeck('${deck.id}', event)" title="Move to Trash">
+                <ion-icon name="trash-outline"></ion-icon>
+            </div>`;
+        }
+
         li.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px; flex:1">
-                <ion-icon name="folder-open-outline"></ion-icon> 
+                <ion-icon name="${STATE.showingTrash ? 'trash-outline' : 'folder-open-outline'}"></ion-icon> 
                 ${escapeHtml(deck.name)}
             </div>
-            <div class="delete-btn" onclick="deleteDeck('${deck.id}', event)">
-                <ion-icon name="trash-outline"></ion-icon>
-            </div>
+            ${actionBtn}
         `;
         
         li.onclick = (e) => {
-            if(!e.target.closest('.delete-btn')) switchDeck(deck.id);
+            if(!e.target.closest('.delete-btn') && !e.target.closest('.restore-btn')) {
+                 if(!STATE.showingTrash) switchDeck(deck.id);
+            }
         };
         dom.deckList.appendChild(li);
     });
+
+    // Sidebar Footer (Trash Toggle)
+    let footer = document.getElementById('sidebarFooter');
+    if(!footer) {
+        footer = document.createElement('div');
+        footer.id = 'sidebarFooter';
+        dom.deckList.parentElement.appendChild(footer);
+    }
+    
+    footer.innerHTML = `
+        <button class="sidebar-trash-btn ${STATE.showingTrash ? 'active' : ''}" onclick="toggleTrash()">
+            <ion-icon name="${STATE.showingTrash ? 'arrow-back-outline' : 'trash-bin-outline'}"></ion-icon>
+            ${STATE.showingTrash ? 'Back to Decks' : 'Trash'}
+        </button>
+    `;
+}
+
+window.toggleTrash = function() {
+    STATE.showingTrash = !STATE.showingTrash;
+    renderSidebar();
+};
+
+window.restoreDeck = function(id, event) {
+    if(event) event.stopPropagation();
+    const deck = STATE.decks.find(d => d.id === id);
+    if(deck) {
+        deck.isDeleted = false;
+        saveState();
+        renderSidebar();
+        showToast("Deck Restored");
+        // Maintain trash view
+    }
+};
+
+/* Helper: Get filtered cards based on search query */
+function getFilteredCards(cards) {
+    if (!STATE.searchQuery) return cards;
+    const query = STATE.searchQuery.toLowerCase();
+    return cards.filter(card => 
+        card.term.toLowerCase().includes(query) || 
+        card.def.toLowerCase().includes(query)
+    );
 }
 
 function renderWorkspace() {
@@ -351,30 +489,45 @@ function renderWorkspace() {
     if (!deck) return;
 
     dom.currentDeckTitle.textContent = deck.name;
-    dom.countTotal.textContent = deck.cards.length;
     
-    // Check issues
-    const issues = deck.cards.filter(c => !c.term || !c.def).length;
+    // Get filtered cards
+    const allCards = deck.cards;
+    const filteredCards = getFilteredCards(allCards);
+    
+    // Update counts
+    dom.countTotal.textContent = STATE.searchQuery 
+        ? `${filteredCards.length} / ${allCards.length}` 
+        : allCards.length;
+    
+    // Check issues (in all cards, not just filtered)
+    const issues = allCards.filter(c => !c.term || !c.def).length;
     dom.countIssues.textContent = `${issues} Issues`;
     dom.countIssues.classList.toggle('hidden', issues === 0);
 
     dom.tableBody.innerHTML = '';
 
-    if (deck.cards.length === 0) {
+    if (filteredCards.length === 0) {
         dom.emptyState.classList.remove('hidden');
+        // Update empty state message if searching
+        if (STATE.searchQuery) {
+            dom.emptyState.querySelector('p').textContent = 'No cards match your search.';
+        } else {
+            dom.emptyState.querySelector('p').textContent = 'No cards yet. Type "word - definition" above to add your first card!';
+        }
     } else {
         dom.emptyState.classList.add('hidden');
-        deck.cards.forEach((card, index) => {
+        filteredCards.forEach((card) => {
             const tr = document.createElement('tr');
+            const originalIndex = allCards.indexOf(card); // Get original index for editing
             
             // Check validity
             if (!card.term || !card.def) tr.className = 'row-error';
             else if (!card.term.trim() || !card.def.trim()) tr.className = 'row-warning';
             
             tr.innerHTML = `
-                <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.term)}" onchange="updateCard(${index}, 'term', this.value)"></td>
-                <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.def)}" onchange="updateCard(${index}, 'def', this.value)"></td>
-                <td><button class="action-btn secondary" onclick="removeCard(${index})" style="padding:4px;"><ion-icon name="close"></ion-icon></button></td>
+                <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.term)}" onchange="updateCard(${originalIndex}, 'term', this.value)"></td>
+                <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.def)}" onchange="updateCard(${originalIndex}, 'def', this.value)"></td>
+                <td><button class="action-btn secondary" onclick="removeCard(${originalIndex})" style="padding:4px;"><ion-icon name="close"></ion-icon></button></td>
             `;
             dom.tableBody.appendChild(tr);
         });
@@ -384,19 +537,39 @@ function renderWorkspace() {
 /* Card Logic */
 window.updateCard = function(index, field, value) {
     const deck = getActiveDeck();
+    const oldValue = field === 'term' ? deck.cards[index].term : deck.cards[index].def;
+    
+    // Track in history
+    pushHistory({
+        type: 'edit',
+        deckId: deck.id,
+        index: index,
+        field: field,
+        oldValue: oldValue,
+        newValue: value
+    });
+    
     if(field === 'term') deck.cards[index].term = value;
     if(field === 'def') deck.cards[index].def = value;
     saveState();
-    // We don't re-render entire table to keep focus, but update stats?
-    // For simplicity, let's just save. The row style won't update until refresh or re-render.
-    // To make it perfect, we could update row class here.
 };
 
 window.removeCard = function(index) {
     const deck = getActiveDeck();
+    const deletedCard = {...deck.cards[index]}; // Copy before deleting
+    
+    // Track in history
+    pushHistory({
+        type: 'delete',
+        deckId: deck.id,
+        index: index,
+        card: deletedCard
+    });
+    
     deck.cards.splice(index, 1);
     saveState();
     renderWorkspace();
+    showToast('Card deleted');
 };
 
 /* Omnibar Logic */
@@ -552,17 +725,27 @@ function processInputText(text) {
 
     const lines = text.split('\n');
     let addedCount = 0;
+    const addedCards = [];
 
     lines.forEach(line => {
         if (!line.trim()) return;
         const result = parseLine(line);
         if (result) {
             deck.cards.unshift(result); // Add to top
+            addedCards.push(result);
             addedCount++;
         }
     });
 
     if (addedCount > 0) {
+        // Track in history
+        pushHistory({
+            type: 'add',
+            deckId: deck.id,
+            count: addedCount,
+            cards: addedCards
+        });
+        
         saveState();
         renderWorkspace();
         showToast(`Added ${addedCount} cards`);
@@ -715,7 +898,10 @@ async function downloadApkg(deck, filename) {
 
     const data = await response.json();
     if(response.ok) {
-        window.location.href = data.download_url;
+        // Fetch the file as a blob to give it a proper name client-side
+        const fileRes = await fetch(data.download_url);
+        const blob = await fileRes.blob();
+        triggerDownloadBlob(blob, `${filename}.apkg`);
     } else {
         throw new Error(data.error);
     }
@@ -744,6 +930,10 @@ function downloadMd(deck, filename) {
 
 function triggerDownload(content, filename, type) {
     const blob = new Blob([content], { type: type });
+    triggerDownloadBlob(blob, filename);
+}
+
+function triggerDownloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -752,6 +942,111 @@ function triggerDownload(content, filename, type) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+/* Undo/Redo System */
+function pushHistory(operation) {
+    // Remove any "future" history if we're not at the end
+    STATE.history = STATE.history.slice(0, STATE.historyIndex + 1);
+    
+    // Add new operation
+    STATE.history.push(operation);
+    STATE.historyIndex++;
+    
+    // Limit history size (keep last 50 operations)
+    if (STATE.history.length > 50) {
+        STATE.history.shift();
+        STATE.historyIndex--;
+    }
+}
+
+function undo() {
+    if (STATE.historyIndex < 0) {
+        showToast('Nothing to undo', 'warning');
+        return;
+    }
+    
+    const operation = STATE.history[STATE.historyIndex];
+    const deck = STATE.decks.find(d => d.id === operation.deckId);
+    if (!deck) {
+        showToast('Cannot undo: deck not found', 'warning');
+        return;
+    }
+    
+    // Reverse the operation
+    switch (operation.type) {
+        case 'add':
+            // Remove the added cards
+            deck.cards.splice(0, operation.count);
+            break;
+        case 'delete':
+            // Restore the deleted card at its original position
+            deck.cards.splice(operation.index, 0, operation.card);
+            break;
+        case 'edit':
+            // Restore old value
+            if (operation.field === 'term') deck.cards[operation.index].term = operation.oldValue;
+            if (operation.field === 'def') deck.cards[operation.index].def = operation.oldValue;
+            break;
+        case 'clear':
+            // Restore all cards
+            deck.cards = [...operation.cards];
+            break;
+    }
+    
+    STATE.historyIndex--;
+    saveState();
+    renderWorkspace();
+    showToast('Undo successful');
+}
+
+function redo() {
+    if (STATE.historyIndex >= STATE.history.length - 1) {
+        showToast('Nothing to redo', 'warning');
+        return;
+    }
+    
+    STATE.historyIndex++;
+    const operation = STATE.history[STATE.historyIndex];
+    const deck = STATE.decks.find(d => d.id === operation.deckId);
+    if (!deck) {
+        showToast('Cannot redo: deck not found', 'warning');
+        return;
+    }
+    
+    // Re-apply the operation
+    switch (operation.type) {
+        case 'add':
+            // Re-add cards
+            operation.cards.forEach(card => deck.cards.unshift(card));
+            break;
+        case 'delete':
+            // Re-delete the card
+            deck.cards.splice(operation.index, 1);
+            break;
+        case 'edit':
+            // Re-apply new value
+            if (operation.field === 'term') deck.cards[operation.index].term = operation.newValue;
+            if (operation.field === 'def') deck.cards[operation.index].def = operation.newValue;
+            break;
+        case 'clear':
+            // Re-clear deck
+            deck.cards = [];
+            break;
+    }
+    
+    saveState();
+    renderWorkspace();
+    showToast('Redo successful');
+}
+
+/* Keyboard Shortcuts Modal */
+function openShortcutsModal() {
+    document.getElementById('shortcutsModal').classList.remove('hidden');
+}
+
+function closeShortcutsModal() {
+    document.getElementById('shortcutsModal').classList.add('hidden');
 }
 
 /* Utilities */

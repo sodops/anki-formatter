@@ -6,7 +6,7 @@
     <title>Smart Anki Dashboard</title>
     <link rel="stylesheet" href="/static/style.css" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <!-- Ionicons for beautiful icons -->
@@ -20,11 +20,8 @@
     ></script>
   </head>
   <body>
-    <div class="app-background">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-    </div>
+    <!-- Subtle Background (Minimal) -->
+    <div class="app-background"></div>
 
     <div class="app-container">
       <!-- SIDEBAR -->
@@ -84,6 +81,21 @@
         <div class="workspace">
           <div class="deck-header">
             <h1 id="currentDeckTitle">My Vocabulary</h1>
+            
+            <!-- Search Input -->
+            <div class="search-container">
+              <ion-icon name="search-outline" class="search-icon"></ion-icon>
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search cards..." 
+                autocomplete="off"
+              />
+              <button class="search-clear hidden" id="btnClearSearch">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            
             <div class="deck-stats">
               <span class="stat-badge"
                 ><span id="countTotal">0</span> Items</span
@@ -171,6 +183,53 @@
             </div>
             <div id="exportLoader" class="loader-line hidden"></div>
         </div>
+    </div>
+
+    <!-- KEYBOARD SHORTCUTS MODAL -->
+    <div id="shortcutsModal" class="modal-overlay hidden">
+      <div class="modal-glass">
+        <h2>Keyboard Shortcuts</h2>
+        <div class="shortcuts-table">
+          <div class="shortcuts-section">
+            <h3>Navigation</h3>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>F1</kbd></span>
+              <span class="shortcut-desc">Open command palette</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+              <span class="shortcut-desc">Close modals / Clear command palette</span>
+            </div>
+          </div>
+          
+          <div class="shortcuts-section">
+            <h3>Editing</h3>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Enter</kbd></span>
+              <span class="shortcut-desc">Add card from omnibar</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></span>
+              <span class="shortcut-desc">Undo last action</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></span>
+              <span class="shortcut-desc">Redo action</span>
+            </div>
+          </div>
+          
+          <div class="shortcuts-section">
+            <h3>Help</h3>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>?</kbd></span>
+              <span class="shortcut-desc">Show this help panel</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="action-btn primary" id="btnCloseShortcuts">Close</button>
+        </div>
+      </div>
     </div>
 
     <!-- GENERIC CUSTOM MODAL -->
