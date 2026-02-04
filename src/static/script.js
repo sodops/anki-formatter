@@ -331,6 +331,10 @@ function setupEventListeners() {
             else if(format === 'md') dom.btnConfirmExport.textContent = 'Download .md';
         });
     });
+    
+    // Import Preview Buttons
+    document.getElementById('btnConfirmImport').addEventListener('click', confirmImport);
+    document.getElementById('btnCancelImport').addEventListener('click', closeImportPreview);
 }
 
 function preventDefaults(e) {
