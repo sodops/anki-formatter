@@ -66,6 +66,16 @@ A modern, feature-rich web application for creating and managing Anki flashcards
 - DOCX support
 - Drag & drop file upload
 
+### ✨ **Markdown Support**
+
+- Format cards with Markdown syntax
+- **Bold text** with `**text**`
+- _Italic text_ with `*text*`
+- `Inline code` with backticks
+- Renders in export preview and final .apkg export
+- Input fields show plain markdown syntax
+- Preview shows formatted HTML
+
 ### 💾 **Export Formats**
 
 - Anki Package (`.apkg`) - Ready to import into Anki
