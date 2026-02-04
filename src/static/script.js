@@ -172,6 +172,12 @@ function setupEventListeners() {
     
     // Shortcuts Modal Close Button
     document.getElementById('btnCloseShortcuts')?.addEventListener('click', closeShortcutsModal);
+    
+    // Color Picker
+    document.getElementById('btnCancelColor')?.addEventListener('click', closeColorPicker);
+    document.querySelectorAll('.color-option').forEach(btn => {
+        btn.addEventListener('click', () => applyDeckColor(btn.dataset.color));
+    });
 
     // Omnibar
     dom.omnibarInput.addEventListener('keydown', handleOmnibarKey);
@@ -342,7 +348,8 @@ function createDeck(name) {
     const newDeck = {
         id: crypto.randomUUID(),
         name: name,
-        cards: []
+        cards: [],
+        color: '#6366F1' // Default indigo accent color
     };
     STATE.decks.push(newDeck);
     STATE.activeDeckId = newDeck.id;
@@ -410,6 +417,10 @@ function renderSidebar() {
         const li = document.createElement('li');
         li.className = `deck-item ${deck.id === STATE.activeDeckId ? 'active' : ''}`;
         
+        // Ensure deck has color
+        if (!deck.color) deck.color = '#6366F1';
+        li.style.borderLeft = `4px solid ${deck.color}`;
+        
         let actionBtn = '';
         if(STATE.showingTrash) {
             // Restore Button
@@ -426,10 +437,11 @@ function renderSidebar() {
         }
 
         li.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; flex:1">
+            <div style="display:flex; align-items:center; gap:8px; flex:1">
                 <ion-icon name="${STATE.showingTrash ? 'trash-outline' : 'folder-open-outline'}"></ion-icon> 
                 ${escapeHtml(deck.name)}
             </div>
+            ${!STATE.showingTrash ? `<button class="icon-btn color-picker-btn" onclick="openColorPicker('${deck.id}', event)" title="Change color"><ion-icon name="color-palette-outline"></ion-icon></button>` : ''}
             ${actionBtn}
         `;
         
@@ -1097,6 +1109,34 @@ function openShortcutsModal() {
 function closeShortcutsModal() {
     document.getElementById('shortcutsModal').classList.add('hidden');
 }
+
+/* Color Picker */
+let colorPickerTargetDeckId = null;
+
+window.openColorPicker = function(deckId, event) {
+    if (event) event.stopPropagation();
+    colorPickerTargetDeckId = deckId;
+    document.getElementById('colorPickerModal').classList.remove('hidden');
+};
+
+function closeColorPicker() {
+    document.getElementById('colorPickerModal').classList.add('hidden');
+    colorPickerTargetDeckId = null;
+}
+
+function applyDeckColor(color) {
+    if (colorPickerTargetDeckId) {
+        const deck = STATE.decks.find(d => d.id === colorPickerTargetDeckId);
+        if (deck) {
+            deck.color = color;
+            saveState();
+            renderSidebar();
+            showToast(`Deck color updated`);
+        }
+    }
+    closeColorPicker();
+}
+
 
 /* Utilities */
 function showToast(msg, type='success') {
