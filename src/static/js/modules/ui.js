@@ -6,16 +6,44 @@
 import { dom } from './dom.js';
 
 /**
- * Show toast notification
- * @param {string} msg - Message to display
- * @param {string} type - Type: 'success' | 'error' | 'info'
+ * Show a status update with typing effect (replaces Toast)
+ * @param {string} message 
+ * @param {string} type 'info' | 'error' | 'success'
  */
-export function showToast(msg, type = 'success') {
-    dom.toast.textContent = msg;
-    dom.toast.classList.remove('hidden');
-    setTimeout(() => {
-        dom.toast.classList.add('hidden');
-    }, 3000);
+export function showToast(message, type = 'info') {
+    // Find the status text node
+    const statusIndicator = document.querySelector('.status-indicator');
+    if (!statusIndicator) return;
+
+    // Reset any existing timeout (if we attach it to the element)
+    if (statusIndicator.typingTimeout) clearTimeout(statusIndicator.typingTimeout);
+    if (statusIndicator.resetTimeout) clearTimeout(statusIndicator.resetTimeout);
+
+    // Clear only the text node, keep the dot
+    let textNode = statusIndicator.lastChild;
+    if (textNode.nodeType !== Node.TEXT_NODE) {
+        textNode = document.createTextNode('');
+        statusIndicator.appendChild(textNode);
+    }
+
+    const fullText = " " + message;
+    let charIndex = 0;
+    textNode.textContent = ""; 
+
+    // Typing effect
+    const typeChar = () => {
+        if (charIndex < fullText.length) {
+            textNode.textContent += fullText[charIndex];
+            charIndex++;
+            statusIndicator.typingTimeout = setTimeout(typeChar, 30);
+        } else {
+            statusIndicator.resetTimeout = setTimeout(() => {
+                textNode.textContent = " System Ready";
+            }, 3000);
+        }
+    };
+
+    typeChar();
 }
 
 /**

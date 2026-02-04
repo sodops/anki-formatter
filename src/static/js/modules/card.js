@@ -506,12 +506,10 @@ export function parseLine(line) {
     // 2. (->|=>|→|⇒) -> Arrows
     // 3. (=) -> Single equals (allow tight)
     // 4. (:) -> Colon (allow tight)
-    // 5. (\s-\s) -> Dash (MUST have spaces to avoid hyphenated-words)
+    // 5. (\s-\s) -> Dash (MUST have spaces to avoid hyphenated-words: e.g. "semi-colon")
     // 6. (\t) -> Tab
     
-    // We construct a regex to find the split point.
-    // Note: We need to capture the split to know we found one, but really we just want the index.
-    
+    // Regex for Strict Separators
     const separatorRegex = /((?:[\t]|={1,3}|->|=>|→|⇒|:)|(?:\s+(?:-|–|—)\s+))/;
     
     const match = cleaned.match(separatorRegex);
@@ -523,12 +521,25 @@ export function parseLine(line) {
         let term = cleaned.substring(0, idx).trim();
         let def = cleaned.substring(idx + sep.length).trim();
         
-        // Edge case: if term is empty, maybe it wasn't a separator? (e.g. "=def")
-        if (!term && def) {
-             // Treat as failed? Or term is empty?
+        // Check for empty parts
+        if (term && def) {
+            return { term, def, tags: [] };
         }
+    }
+    
+    // FALLBACK: Space Separator
+    // If no strong separator found, try splitting by the FIRST space.
+    // Useful for: "ban taqiqlamoq" -> Term: "ban", Def: "taqiqlamoq"
+    // Heuristic: Must have at least one space.
+    const firstSpaceIndex = cleaned.indexOf(' ');
+    if (firstSpaceIndex !== -1) {
+        // We split at the first space
+        let term = cleaned.substring(0, firstSpaceIndex).trim();
+        let def = cleaned.substring(firstSpaceIndex + 1).trim();
         
-        return { term, def, tags: [] };
+        if (term && def) {
+             return { term, def, tags: [] };
+        }
     }
     
     // No separator found -> Add as Incomplete

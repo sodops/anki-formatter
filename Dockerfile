@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 5000
 
 # Use gunicorn to run the application in production
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+# app.py is in src/, so we change dir to src
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "--chdir", "src", "app:app"]
