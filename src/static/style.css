@@ -1224,3 +1224,37 @@ kbd {
   font-size: 13px;
   font-style: italic;
 }
+
+/* ===========================
+   DRAG & DROP
+   =========================== */
+.drag-handle {
+  cursor: grab;
+  text-align: center;
+  color: var(--text-tertiary);
+  opacity: 0.4;
+  transition: opacity var(--transition-fast);
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+tr:hover .drag-handle {
+  opacity: 1;
+  color: var(--accent);
+}
+
+tr[draggable="true"] {
+  transition: background var(--transition-fast);
+}
+
+tr.drag-over {
+  background: var(--bg-hover) !important;
+  border-top: 2px solid var(--accent);
+}
+
+tr[draggable="true"]:active {
+  cursor: grabbing;
+}

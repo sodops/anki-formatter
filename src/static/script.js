@@ -552,7 +552,14 @@ function renderWorkspace() {
                 `<span class="tag-badge">${escapeHtml(tag)}<button class="tag-remove" onclick="removeTag(${originalIndex}, '${escapeHtml(tag)}')">&times;</button></span>`
             ).join('');
             
+            // Make row draggable
+            tr.setAttribute('draggable', 'true');
+            tr.dataset.cardIndex = originalIndex;
+            
             tr.innerHTML = `
+                <td class="drag-handle">
+                    <ion-icon name="reorder-two-outline"></ion-icon>
+                </td>
                 <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.term)}" onchange="updateCard(${originalIndex}, 'term', this.value)"></td>
                 <td><input type="text" class="editable-cell" style="width:100%" value="${escapeHtml(card.def)}" onchange="updateCard(${originalIndex}, 'def', this.value)"></td>
                 <td class="tags-cell">
@@ -563,6 +570,13 @@ function renderWorkspace() {
                 </td>
                 <td><button class="action-btn secondary" onclick="removeCard(${originalIndex})" style="padding:4px;"><ion-icon name="close"></ion-icon></button></td>
             `;
+            
+            // Add drag event listeners
+            tr.addEventListener('dragstart', handleDragStart);
+            tr.addEventListener('dragover', handleDragOver);
+            tr.addEventListener('drop', handleDrop);
+            tr.addEventListener('dragend', handleDragEnd);
+            
             dom.tableBody.appendChild(tr);
         });
     }
@@ -1193,6 +1207,72 @@ function showExportPreview() {
 
 function closeExportPreview() {
     document.getElementById('exportPreviewModal').classList.add('hidden');
+}
+
+/* Drag & Drop Card Reordering */
+let draggedElement = null;
+let draggedIndex = null;
+
+function handleDragStart(e) {
+    draggedElement = e.currentTarget;
+    draggedIndex = parseInt(draggedElement.dataset.cardIndex);
+    
+    e.currentTarget.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Add visual indicator
+    const targetRow = e.currentTarget;
+    if (targetRow && targetRow !== draggedElement) {
+        targetRow.classList.add('drag-over');
+    }
+    
+    return false;
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    const targetRow = e.currentTarget;
+    targetRow.classList.remove('drag-over');
+    
+    if (draggedElement && draggedElement !== targetRow) {
+        const targetIndex = parseInt(targetRow.dataset.cardIndex);
+        
+        // Reorder cards in deck
+        const deck = getActiveDeck();
+        if (deck && draggedIndex !== null && targetIndex !== null) {
+            const [movedCard] = deck.cards.splice(draggedIndex, 1);
+            deck.cards.splice(targetIndex, 0, movedCard);
+            
+            saveState();
+            renderWorkspace();
+            showToast(`Card reordered`);
+        }
+    }
+    
+    return false;
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.style.opacity = '';
+    
+    // Remove drag-over class from all rows
+    document.querySelectorAll('.drag-over').forEach(row => {
+        row.classList.remove('drag-over');
+    });
+    
+    draggedElement = null;
+    draggedIndex = null;
 }
 
 
