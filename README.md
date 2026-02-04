@@ -148,10 +148,18 @@ anki-formatter/
 
 ## 🎯 Roadmap
 
+**Phase 1 (Completed):**
+
 - [x] Tags System
 - [x] Deck Color Picker
+
+**Phase 2 (Completed):**
+
+- [x] Drag & Drop Card Reordering
 - [x] Export Preview
-- [ ] Drag & Drop Card Reordering
+
+**Phase 3 (Upcoming):**
+
 - [ ] Markdown Support in Cards
 - [ ] Enhanced Import Preview
 - [ ] Built-in Study Mode
