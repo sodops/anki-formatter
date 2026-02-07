@@ -143,14 +143,14 @@ export function confirm(message) {
 
 /**
  * Show alert dialog
- * @param {string} message - Alert message
+ * @param {string} message - Alert message (supports HTML)
  * @returns {Promise<void>}
  */
 export function alert(message) {
     return new Promise((resolve) => {
         dom.customModalTitle.textContent = 'Notice';
         dom.customModalContent.style.display = 'block'; // Show content
-        dom.customModalContent.textContent = message;
+        dom.customModalContent.innerHTML = message; // Support HTML
         dom.customModalInputContainer.classList.add('hidden');
         
         dom.btnModalCancel.style.display = 'none';
