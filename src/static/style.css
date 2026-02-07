@@ -1778,6 +1778,7 @@ tr[draggable="true"]:active {
 
 .study-controls {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 16px;
@@ -1795,6 +1796,83 @@ tr[draggable="true"]:active {
 .action-btn.large {
     padding: 12px 32px;
     font-size: 16px;
+}
+
+/* SRS Rating Buttons */
+.study-rating-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.rating-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.rating-again {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border-color: #ff5252;
+    color: white;
+}
+
+.rating-again:hover {
+    background: #ee5a6f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
+}
+
+.rating-hard {
+    background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);
+    border-color: #ffb700;
+    color: #333;
+}
+
+.rating-hard:hover {
+    background: #ffb700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 183, 0, 0.3);
+}
+
+.rating-good {
+    background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+    border-color: #37b24d;
+    color: white;
+}
+
+.rating-good:hover {
+    background: #37b24d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(55, 178, 77, 0.3);
+}
+
+.rating-easy {
+    background: linear-gradient(135deg, #4dabf7 0%, #339af0 100%);
+    border-color: #339af0;
+    color: white;
+}
+
+.rating-easy:hover {
+    background: #339af0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(51, 154, 240, 0.3);
+}
+
+.rating-btn ion-icon {
+    font-size: 18px;
 }
 
 /* Bulk Action Bar */

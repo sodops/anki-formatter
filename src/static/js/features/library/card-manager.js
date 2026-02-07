@@ -8,6 +8,7 @@ import { dom } from '../../utils/dom-helpers.js';
 import { ui, escapeHtml, showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
 import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from '../../ui/interactions/drag-drop.js';
+import { initializeReviewData } from '../../core/srs/scheduler.js';
 
 // Bulk Selection State
 let selectedIndices = new Set();
@@ -405,7 +406,12 @@ export function addCard(term, def) {
 
     if (!term && !def) return; // Ignore empty
 
-    const newCard = { term, def, tags: [] };
+    const newCard = { 
+        term, 
+        def, 
+        tags: [],
+        reviewData: initializeReviewData() // SRS data
+    };
     deck.cards.unshift(newCard);
     
     addToHistory('add', {

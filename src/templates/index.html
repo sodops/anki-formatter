@@ -405,16 +405,34 @@
                 </div>
             </div>
 
+
             <div class="study-controls">
-                <button class="action-btn secondary" id="btnStudyPrev">
-                    <ion-icon name="arrow-back"></ion-icon> Prev
-                </button>
-                <div class="spacer"></div>
+                <!-- Show Answer Button (hidden after answer shown) -->
                  <button class="action-btn primary large" id="btnStudyFlip">
                     Show Answer (Space)
                 </button>
-                <div class="spacer"></div>
-                <button class="action-btn secondary" id="btnStudyNext">
+                
+                <!-- Rating Buttons (hidden until answer shown) -->
+                <div class="study-rating-buttons hidden">
+                    <button class="rating-btn rating-again" id="btnAgain">
+                        <ion-icon name="close-circle"></ion-icon> Again (1d)
+                    </button>
+                    <button class="rating-btn rating-hard" id="btnHard">
+                        <ion-icon name="sad-outline"></ion-icon> Hard (6d)
+                    </button>
+                    <button class="rating-btn rating-good" id="btnGood">
+                        <ion-icon name="checkmark-circle"></ion-icon> Good (1d)
+                    </button>
+                    <button class="rating-btn rating-easy" id="btnEasy">
+                        <ion-icon name="happy-outline"></ion-icon> Easy (4d)
+                    </button>
+                </div>
+                
+                <!-- Keep prev/next hidden for now (SRS mode) -->
+                <button class="action-btn secondary hidden" id="btnStudyPrev">
+                    <ion-icon name="arrow-back"></ion-icon> Prev
+                </button>
+                <button class="action-btn secondary hidden" id="btnStudyNext">
                     Next <ion-icon name="arrow-forward"></ion-icon>
                 </button>
             </div>
