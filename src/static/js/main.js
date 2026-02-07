@@ -15,6 +15,8 @@ import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport
 import { undo, redo } from './core/history/history-manager.js';
 import { startStudySession } from './features/study/study-session.js';
 import { openStats, closeStats } from './features/stats/stats-calculator.js';
+import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
+
 
 // --- Command Registry ---
 const COMMANDS = [
@@ -51,6 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     renderSidebar();
     renderWorkspace();
+    
+    // Initialize multi-view navigation
+    initViewManager();
+    initTabNavigation();
     
     console.log("AnkiFlow Ready");
 });
