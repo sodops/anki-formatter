@@ -7,6 +7,7 @@ import { STATE, saveState, getActiveDeck, setActiveDeck, generateId } from '../.
 import { dom } from '../../utils/dom-helpers.js';
 import { ui, escapeHtml, showToast, colorPicker } from '../../ui/components/ui.js';
 import { renderWorkspace } from './card-manager.js';
+import { getDeckReviewStats } from '../../core/srs/scheduler.js';
 
 /**
  * Create a new deck
@@ -203,6 +204,20 @@ export function renderSidebar() {
         const nameSpan = document.createElement('span');
         nameSpan.textContent = deck.name;
         contentDiv.appendChild(nameSpan);
+        
+        // Due cards badge
+        if (!STATE.showingTrash) {
+            const stats = getDeckReviewStats(deck);
+            const dueCount = stats.newCards + stats.dueCards;
+            
+            if (dueCount > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'due-badge';
+                badge.textContent = dueCount;
+                badge.title = `${stats.newCards} new, ${stats.dueCards} due`;
+                contentDiv.appendChild(badge);
+            }
+        }
         
         li.appendChild(contentDiv);
 
