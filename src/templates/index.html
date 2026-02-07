@@ -203,12 +203,11 @@
             <div style="padding: 24px;">
               <div style="max-width: 600px;">
                 <h3 style="margin-bottom: 16px; color: var(--text-primary);">Appearance</h3>
-                <div style="padding: 16px; background: var(--bg-surface); border-radius: 12px; border: 1px solid var(--border-color);">
-                  <p style="color: var(--text-secondary); margin-bottom: 12px;">Theme settings</p>
-                  <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                    <input type="checkbox" id="darkModeToggle" checked>
-                    <span style="color: var(--text-primary);">Dark Mode</span>
-                  </label>
+                <div style="padding: 20px; background: var(--bg-surface); border-radius: 12px; border: 1px solid var(--border-color);">
+                  <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">Choose your preferred theme</p>
+                  <div id="themeOptions" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Theme options will be populated by JavaScript -->
+                  </div>
                 </div>
               </div>
             </div>

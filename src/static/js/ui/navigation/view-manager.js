@@ -147,6 +147,16 @@ function notifyViewChange(viewName) {
             console.error('Error in view change listener:', error);
         }
     });
+    
+    // Special handling for settings view
+    if (viewName === VIEWS.SETTINGS) {
+        // Render theme options after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+            if (window.renderThemeOptions) {
+                window.renderThemeOptions();
+            }
+        }, 50);
+    }
 }
 
 /**

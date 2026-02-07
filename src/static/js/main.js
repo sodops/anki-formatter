@@ -16,6 +16,7 @@ import { undo, redo } from './core/history/history-manager.js';
 import { startStudySession } from './features/study/study-session.js';
 import { openStats, closeStats } from './features/stats/stats-calculator.js';
 import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
+import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } from './ui/theme/theme-manager.js';
 
 
 // --- Command Registry ---
@@ -54,6 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSidebar();
     renderWorkspace();
     
+    // Initialize theme system
+    initThemeManager();
+    
     // Initialize multi-view navigation
     initViewManager();
     initTabNavigation();
@@ -87,6 +91,34 @@ function setupGlobalExports() {
 
     window.undo = undo;
     window.redo = redo;
+    
+    // Theme switching
+    window.switchTheme = switchTheme;
+    window.toggleTheme = toggleTheme;
+    window.getCurrentTheme = getCurrentTheme;
+    
+    // Render theme options UI
+    window.renderThemeOptions = () => {
+        const container = document.getElementById('themeOptions');
+        if (!container) return;
+        
+        const currentTheme = getCurrentTheme();
+        const options = [
+            { value: 'dark', icon: '🌙', label: 'Dark Mode', desc: 'Easy on the eyes' },
+            { value: 'light', icon: '☀️', label: 'Light Mode', desc: 'Better in bright environments' },
+            { value: 'auto', icon: '🌗', label: 'Auto', desc: 'Match system preference' }
+        ];
+        
+        container.innerHTML = options.map(opt => `
+            <label class="theme-option" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s ease; background: ${currentTheme === opt.value ? 'var(--bg-hover)' : 'transparent'}">
+                <input type="radio" name="theme" value="${opt.value}" ${currentTheme === opt.value ? 'checked' : ''} onchange="window.switchTheme('${opt.value}'); window.renderThemeOptions();" style="cursor: pointer;">
+                <div style="flex: 1;">
+                    <div style="color: var(--text-primary); font-weight: 500;">${opt.icon} ${opt.label}</div>
+                    <div style="color: var(--text-tertiary); font-size: 13px;">${opt.desc}</div>
+                </div>
+            </label>
+        `).join('');
+    };
     
     // Helper to open color picker from HTML onclick
     window.openColorPicker = (color, gradient) => {
