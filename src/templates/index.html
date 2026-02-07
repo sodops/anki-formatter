@@ -173,11 +173,63 @@
         </div> <!-- End Library View -->
 
         <!-- STUDY VIEW -->
+        <!-- STUDY VIEW -->
         <div id="view-study" class="view-container hidden">
-          <div class="workspace">
+          <div class="workspace" style="display: flex; flex-direction: column; height: 100vh;">
             <div class="deck-header">
-              <h1>Study Session</h1>
-              <p style="color: var(--text-secondary); margin-top: 8px;">Select a deck from the sidebar and click "Study" to begin</p>
+              <h1 id="studyDeckTitle">Study Session</h1>
+              <div class="header-actions">
+                 <div class="study-progress-pill">
+                    <span id="studyindex">0</span> / <span id="studyTotal">0</span>
+                 </div>
+              </div>
+            </div>
+            
+            <div class="study-container" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                <div id="studyPlaceholder" style="text-align: center; color: var(--text-secondary);">
+                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.5;">📚</div>
+                    <h3>Start Studying</h3>
+                    <p>Select a deck from the Library to begin reviewing cards.</p>
+                </div>
+
+                <div id="studyInterface" class="hidden" style="width: 100%; max-width: 800px;">
+                    <div class="flashcard-area" id="flashcard">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">
+                                <div class="card-label">TERM</div>
+                                <div class="card-content" id="studyFront"></div>
+                                <div class="hint-text">Click to Flip (Space)</div>
+                            </div>
+                            <div class="flashcard-back">
+                                <div class="card-label">DEFINITION</div>
+                                <div class="card-content" id="studyBack"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="study-controls">
+                        <!-- Show Answer Button (hidden after answer shown) -->
+                         <button class="action-btn primary large" id="btnStudyFlip">
+                            Show Answer (Space)
+                        </button>
+                        
+                        <!-- Rating Buttons (hidden until answer shown) -->
+                        <div class="study-rating-buttons hidden">
+                            <button class="rating-btn rating-again" id="btnAgain">
+                                <ion-icon name="close-circle"></ion-icon> Again
+                            </button>
+                            <button class="rating-btn rating-hard" id="btnHard">
+                                <ion-icon name="sad-outline"></ion-icon> Hard
+                            </button>
+                            <button class="rating-btn rating-good" id="btnGood">
+                                <ion-icon name="checkmark-circle"></ion-icon> Good
+                            </button>
+                            <button class="rating-btn rating-easy" id="btnEasy">
+                                <ion-icon name="happy-outline"></ion-icon> Easy
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
           </div>
         </div>

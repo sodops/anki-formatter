@@ -9,6 +9,8 @@ import { ui, showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
 import { getDueCards, updateCardAfterReview, getIntervalPreview } from '../../core/srs/scheduler.js';
 
+import { switchView, VIEWS } from '../../ui/navigation/view-manager.js';
+
 let sessionCards = [];
 let currentIndex = 0;
 let isAnswerShown = false;
@@ -42,7 +44,14 @@ export function startStudySession() {
     // Reset session results
     sessionResults = { again: 0, hard: 0, good: 0, easy: 0 };
     
-    dom.studyModal.classList.remove('hidden');
+    // Switch to study view
+    switchView(VIEWS.STUDY);
+    
+    // Update UI
+    if (dom.studyDeckTitle) dom.studyDeckTitle.textContent = `Studying: ${deck.name}`;
+    if (dom.studyPlaceholder) dom.studyPlaceholder.classList.add('hidden');
+    if (dom.studyInterface) dom.studyInterface.classList.remove('hidden');
+    
     renderStudyCard();
     setupStudyListeners();
 }
@@ -176,14 +185,23 @@ function endSession() {
  * Close Session
  */
 export function closeStudySession() {
-    dom.studyModal.classList.add('hidden');
+    // Hide interface, show placeholder
+    if (dom.studyInterface) dom.studyInterface.classList.add('hidden');
+    if (dom.studyPlaceholder) dom.studyPlaceholder.classList.remove('hidden');
+    if (dom.studyDeckTitle) dom.studyDeckTitle.textContent = "Study Session";
+    
     removeStudyListeners();
+    
+    // Switch back to library
+    switchView(VIEWS.LIBRARY);
 }
 
 // --- Event Listeners ---
 
 function handleKeydown(e) {
-    if (dom.studyModal.classList.contains('hidden')) return;
+    // If not in study view, ignore
+    const studyView = document.getElementById('view-study');
+    if (studyView && studyView.classList.contains('hidden')) return;
 
     if (e.code === 'Space') {
         e.preventDefault();
@@ -206,7 +224,7 @@ function handleKeydown(e) {
 function setupStudyListeners() {
     document.addEventListener('keydown', handleKeydown);
     dom.btnStudyFlip.onclick = showAnswer;
-    dom.btnCloseStudy.onclick = closeStudySession;
+    // dom.btnCloseStudy removed from UI
     
     // Rating buttons
     const btnAgain = document.getElementById('btnAgain');
@@ -227,5 +245,4 @@ function setupStudyListeners() {
 function removeStudyListeners() {
     document.removeEventListener('keydown', handleKeydown);
     dom.btnStudyFlip.onclick = null;
-    dom.btnCloseStudy.onclick = null;
 }

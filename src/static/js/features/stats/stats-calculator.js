@@ -7,25 +7,20 @@ import { STATE } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { escapeHtml } from '../../ui/components/ui.js';
 
+import { switchView, VIEWS } from '../../ui/navigation/view-manager.js';
+
 /**
- * Open Stats Modal
+ * Open Stats View
  */
 export function openStats() {
     calculateAndRenderStats();
-    dom.statsModal.classList.remove('hidden');
+    switchView(VIEWS.STATISTICS);
 }
 
 /**
- * Close Stats Modal
+ * Calculate and render stats (Public)
  */
-export function closeStats() {
-    dom.statsModal.classList.add('hidden');
-}
-
-/**
- * Calculate stats and render HTML
- */
-function calculateAndRenderStats() {
+export function calculateAndRenderStats() {
     const decks = STATE.decks;
     const totalDecks = decks.length;
     let totalCards = 0;
@@ -52,18 +47,32 @@ function calculateAndRenderStats() {
     });
 
     // Overview numbers
-    document.getElementById('statTotalCards').textContent = totalCards;
-    document.getElementById('statTotalDecks').textContent = totalDecks;
+    const totalCardsEl = document.getElementById('statTotalCards');
+    if (totalCardsEl) totalCardsEl.textContent = totalCards;
+    
+    const totalDecksEl = document.getElementById('statTotalDecks');
+    if (totalDecksEl) totalDecksEl.textContent = totalDecks;
+
+    // Tab View Overview
+    const tabTotalCards = document.getElementById('tabStatTotalCards');
+    if (tabTotalCards) tabTotalCards.textContent = totalCards;
+    
+    const tabTotalDecks = document.getElementById('tabStatTotalDecks');
+    if (tabTotalDecks) tabTotalDecks.textContent = totalDecks;
     
     // Enhanced statistics
     const enhancedStats = calculateEnhancedStats(decks);
-    renderEnhancedStats(enhancedStats);
+    renderEnhancedStats(enhancedStats); 
+    // Render to tab view as well
+    renderEnhancedStats(enhancedStats, 'tabEnhancedStats');
 
     // Deck Distribution Bar Chart
     renderDeckChart(cardsPerDeck, totalCards);
+    renderDeckChart(cardsPerDeck, totalCards, 'tabStatDeckChart');
 
     // Top Tags
     renderTopTags(tagCounts);
+    renderTopTags(tagCounts, 'tabStatTagCloud');
 }
 
 /**
@@ -175,12 +184,14 @@ function calculateStudyStreak(decks) {
 }
 
 /**
- * Render enhanced stats in modal
+ * Render enhanced stats in modal or tab
  */
-function renderEnhancedStats(stats) {
+function renderEnhancedStats(stats, containerId = 'enhancedStatsContainer') {
     // Check if enhanced stats container exists
-    let container = document.getElementById('enhancedStatsContainer');
-    if (!container) {
+    let container = document.getElementById(containerId);
+    
+    // Only auto-create for modal (legacy behavior)
+    if (!container && containerId === 'enhancedStatsContainer') {
         // Insert after total stats, before deck chart
         const totalCards = document.getElementById('statTotalCards');
         if (totalCards && totalCards.parentElement) {
@@ -192,6 +203,8 @@ function renderEnhancedStats(stats) {
             return; // Can't find insertion point
         }
     }
+    
+    if (!container) return;
     
     container.innerHTML = `
         <div class="stat-grid">
@@ -222,8 +235,10 @@ function renderEnhancedStats(stats) {
     `;
 }
 
-function renderDeckChart(data, total) {
-    const container = document.getElementById('statDeckChart');
+function renderDeckChart(data, total, containerId = 'statDeckChart') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
     container.innerHTML = '';
     
     if (total === 0) {
@@ -254,8 +269,10 @@ function renderDeckChart(data, total) {
     });
 }
 
-function renderTopTags(tagCounts) {
-    const container = document.getElementById('statTagCloud');
+function renderTopTags(tagCounts, containerId = 'statTagCloud') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
     container.innerHTML = '';
     
     const sortedTags = Object.entries(tagCounts)

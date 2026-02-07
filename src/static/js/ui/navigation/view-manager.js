@@ -157,6 +157,20 @@ function notifyViewChange(viewName) {
             }
         }, 50);
     }
+    
+    // Special handling for statistics view
+    if (viewName === VIEWS.STATISTICS) {
+        setTimeout(() => {
+            // Import dynamically or use global if available
+            // Since we're in modules, we can't easily access other modules unless exported
+            // But we made calculateAndRenderStats exportable, we need to import it or expose it
+            // Let's assume main.js exposes it or we import it here.
+            // Better approach: main.js should listen to view changes.
+            if (window.refreshStats) {
+                window.refreshStats();
+            }
+        }, 50);
+    }
 }
 
 /**

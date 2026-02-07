@@ -76,9 +76,12 @@ export const dom = {
     toast: document.getElementById('toast'),
 
     // Study Mode
+    // Study Mode
     btnStudyDeck: document.getElementById('btnStudyDeck'),
-    studyModal: document.getElementById('studyModal'),
-    btnCloseStudy: document.getElementById('btnCloseStudy'),
+    // studyModal removed, using view directly
+    studyInterface: document.getElementById('studyInterface'),
+    studyPlaceholder: document.getElementById('studyPlaceholder'),
+    studyDeckTitle: document.getElementById('studyDeckTitle'),
     flashcard: document.getElementById('flashcard'),
     studyFront: document.getElementById('studyFront'),
     studyBack: document.getElementById('studyBack'),

@@ -14,7 +14,7 @@ import { executeExport, showExportPreview, closeExportPreview } from './features
 import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview, handleGoogleDocImport } from './features/import/import-handler.js';
 import { undo, redo } from './core/history/history-manager.js';
 import { startStudySession } from './features/study/study-session.js';
-import { openStats, closeStats } from './features/stats/stats-calculator.js';
+import { openStats } from './features/stats/stats-calculator.js';
 import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
 import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } from './ui/theme/theme-manager.js';
 
@@ -143,7 +143,7 @@ function setupEventListeners() {
 
     // Stats Button
     if(dom.btnOpenStats) dom.btnOpenStats.addEventListener('click', openStats);
-    if(dom.btnCloseStats) dom.btnCloseStats.addEventListener('click', closeStats);
+    // if(dom.btnCloseStats) dom.btnCloseStats.addEventListener('click', closeStats);
     
     // Trash Button (this might be dynamic, check dom.js) - dom.btnTrash might be null if not in HTML
     // It's created in deck.js renderSidebar.
