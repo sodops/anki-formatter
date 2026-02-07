@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Core Colors (Proper Dark Grays, not pure black) */
+  --bg-base: #0A0A0C;
+  --bg-surface: #111113;
+  --bg-elevated: #19191C;
+  --bg-hover: #232326;
+  
+  /* Borders (Very subtle) */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-focus: rgba(255, 255, 255, 0.2);
+  
+  /* Text */
+  --text-primary: #EDEDEF;
+  --text-secondary: #8B8B8D;
+  --text-tertiary: #5C5C5E;
+  
+  /* Accent */
+  --accent: #6366F1; /* Indigo */
+  --accent-hover: #818CF8;
+  --accent-glow: rgba(99, 102, 241, 0.3);
+  
+  /* Status */
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #22C55E;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-base: #FAFAFA;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #F5F5F5;
+    --bg-hover: #EEEEEE;
+    
+    --border-subtle: rgba(0, 0, 0, 0.06);
+    --border-default: rgba(0, 0, 0, 0.1);
+    --border-focus: rgba(0, 0, 0, 0.2);
+    
+    --text-primary: #171717;
+    --text-secondary: #737373;
+    --text-tertiary: #A3A3A3;
+    
+    --accent: #6366F1;
+    --accent-hover: #4F46E5;
+    --accent-glow: rgba(99, 102, 241, 0.15);
+    
+    --danger: #DC2626;
+    --warning: #D97706;
+    --success: #059669;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-focus);
+}
