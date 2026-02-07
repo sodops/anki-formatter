@@ -3,7 +3,7 @@
  * Safe markdown rendering using marked.js
  */
 
-import { escapeHtml } from './ui.js';
+import { escapeHtml } from '../ui/components/ui.js';
 
 /**
  * Configure marked.js options

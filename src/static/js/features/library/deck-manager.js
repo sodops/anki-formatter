@@ -3,10 +3,10 @@
  * Deck CRUD, Sidebar rendering, Trash management
  */
 
-import { STATE, saveState, getActiveDeck, setActiveDeck, generateId } from './state.js';
-import { dom } from './dom.js';
-import { ui, escapeHtml, showToast, colorPicker } from './ui.js';
-import { renderWorkspace } from './card.js';
+import { STATE, saveState, getActiveDeck, setActiveDeck, generateId } from '../../core/storage/storage.js';
+import { dom } from '../../utils/dom-helpers.js';
+import { ui, escapeHtml, showToast, colorPicker } from '../../ui/components/ui.js';
+import { renderWorkspace } from './card-manager.js';
 
 /**
  * Create a new deck

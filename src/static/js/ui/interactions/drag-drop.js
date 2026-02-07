@@ -3,9 +3,9 @@
  * Handles card reordering via drag and drop
  */
 
-import { getActiveDeck, saveState } from './state.js';
-import { renderWorkspace } from './card.js';
-import { showToast } from './ui.js';
+import { getActiveDeck, saveState } from '../../core/storage/storage.js';
+import { renderWorkspace } from '../../features/library/card-manager.js';
+import { showToast } from '../components/ui.js';
 
 let draggedElement = null;
 let draggedIndex = null;

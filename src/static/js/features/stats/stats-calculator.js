@@ -3,9 +3,9 @@
  * Analyze deck data and render dashboard
  */
 
-import { STATE } from './state.js';
-import { dom } from './dom.js';
-import { escapeHtml } from './ui.js';
+import { STATE } from '../../core/storage/storage.js';
+import { dom } from '../../utils/dom-helpers.js';
+import { escapeHtml } from '../../ui/components/ui.js';
 
 /**
  * Open Stats Modal

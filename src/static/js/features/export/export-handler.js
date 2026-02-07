@@ -3,11 +3,11 @@
  * Handle exporting decks to files
  */
 
-import { getActiveDeck } from './state.js';
-import { dom } from './dom.js';
-import { showToast } from './ui.js';
-import { renderMarkdown } from './markdown.js';
-import { escapeHtml } from './ui.js';
+import { getActiveDeck } from '../../core/storage/storage.js';
+import { dom } from '../../utils/dom-helpers.js';
+import { showToast } from '../../ui/components/ui.js';
+import { renderMarkdown } from '../../utils/markdown-parser.js';
+import { escapeHtml } from '../../ui/components/ui.js';
 
 /**
  * Execute export of the current deck

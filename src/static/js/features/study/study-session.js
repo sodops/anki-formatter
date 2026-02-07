@@ -3,10 +3,10 @@
  * Flashcard session logic
  */
 
-import { getActiveDeck } from './state.js';
-import { dom } from './dom.js';
-import { ui } from './ui.js'; // For alerts if deck empty
-import { renderMarkdown } from './markdown.js';
+import { getActiveDeck } from '../../core/storage/storage.js';
+import { dom } from '../../utils/dom-helpers.js';
+import { ui } from '../../ui/components/ui.js'; // For alerts if deck empty
+import { renderMarkdown } from '../../utils/markdown-parser.js';
 
 let sessionCards = [];
 let currentIndex = 0;

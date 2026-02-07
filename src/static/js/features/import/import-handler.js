@@ -3,10 +3,10 @@
  * Handle file uploads and import preview
  */
 
-import { STATE, saveState, getActiveDeck } from './state.js';
-import { ui, showToast, escapeHtml } from './ui.js';
-import { renderWorkspace } from './card.js';
-import { dom } from './dom.js';
+import { STATE, saveState, getActiveDeck } from '../../core/storage/storage.js';
+import { ui, showToast, escapeHtml } from '../../ui/components/ui.js';
+import { renderWorkspace } from '../library/card-manager.js';
+import { dom } from '../../utils/dom-helpers.js';
 
 // Module state for pending import
 let pendingImport = {

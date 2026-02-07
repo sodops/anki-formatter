@@ -3,7 +3,7 @@
  * Modal interactions, toasts, color picker
  */
 
-import { dom } from './dom.js';
+import { dom } from '../../utils/dom-helpers.js';
 
 /**
  * Show a status update with typing effect (replaces Toast)

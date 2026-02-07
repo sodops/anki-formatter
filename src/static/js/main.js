@@ -3,18 +3,18 @@
  * App initialization, event listeners, and command palette
  */
 
-import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './modules/state.js';
-import { dom, verifyDomElements } from './modules/dom.js';
-import { ui } from './modules/ui.js'; // Default export object
-import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './modules/deck.js';
-import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection } from './modules/card.js';
-import { setupDragDrop, handleDrop } from './modules/drag-drop.js';
-import { setupMarked, insertMarkdown } from './modules/markdown.js';
-import { executeExport, showExportPreview, closeExportPreview } from './modules/export.js';
-import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview, handleGoogleDocImport } from './modules/import.js';
-import { undo, redo } from './modules/history.js';
-import { startStudySession } from './modules/study.js';
-import { openStats, closeStats } from './modules/stats.js';
+import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './core/storage/storage.js';
+import { dom, verifyDomElements } from './utils/dom-helpers.js';
+import { ui } from './ui/components/ui.js'; // Default export object
+import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './features/library/deck-manager.js';
+import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection } from './features/library/card-manager.js';
+import { setupDragDrop, handleDrop } from './ui/interactions/drag-drop.js';
+import { setupMarked, insertMarkdown } from './utils/markdown-parser.js';
+import { executeExport, showExportPreview, closeExportPreview } from './features/export/export-handler.js';
+import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview, handleGoogleDocImport } from './features/import/import-handler.js';
+import { undo, redo } from './core/history/history-manager.js';
+import { startStudySession } from './features/study/study-session.js';
+import { openStats, closeStats } from './features/stats/stats-calculator.js';
 
 // --- Command Registry ---
 const COMMANDS = [

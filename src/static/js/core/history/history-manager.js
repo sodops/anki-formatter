@@ -3,9 +3,9 @@
  * Handles Undo/Redo operations
  */
 
-import { STATE, saveState, getActiveDeck } from './state.js';
-import { renderWorkspace } from './card.js';
-import { showToast } from './ui.js';
+import { STATE, saveState, getActiveDeck } from '../storage/storage.js';
+import { renderWorkspace } from '../../features/library/card-manager.js';
+import { showToast } from '../../ui/components/ui.js';
 
 // Maximum history stack size
 const MAX_HISTORY = 50;

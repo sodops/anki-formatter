@@ -3,11 +3,11 @@
  * Card CRUD, Workspace Rendering, Tag Management
  */
 
-import { STATE, saveState, getActiveDeck, addToHistory } from './state.js';
-import { dom } from './dom.js';
-import { ui, escapeHtml, showToast } from './ui.js';
-import { renderMarkdown } from './markdown.js';
-import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from './drag-drop.js';
+import { STATE, saveState, getActiveDeck, addToHistory } from '../../core/storage/storage.js';
+import { dom } from '../../utils/dom-helpers.js';
+import { ui, escapeHtml, showToast } from '../../ui/components/ui.js';
+import { renderMarkdown } from '../../utils/markdown-parser.js';
+import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from '../../ui/interactions/drag-drop.js';
 
 // Bulk Selection State
 let selectedIndices = new Set();
