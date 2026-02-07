@@ -116,7 +116,7 @@ export function verifyDomElements() {
     for (const [key, element] of Object.entries(dom)) {
         if (!element) {
             // Filter out optional/dynamic elements
-            if(['trashList', 'btnRenameDeck', 'btnDeckColor'].includes(key)) continue;
+            if(['trashList', 'btnRenameDeck', 'btnDeckColor', 'btnClearDeck', 'btnExportDeck'].includes(key)) continue;
             missing.push(key);
         }
     }
