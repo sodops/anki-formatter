@@ -23,7 +23,11 @@ export function createDeck(name) {
         color: '#6366f1', // Default color
         gradient: false,
         created: Date.now(),
-        isDeleted: false
+        isDeleted: false,
+        settings: {
+            newCardsPerDay: 20,
+            maxReviewsPerDay: 100
+        }
     };
     
     STATE.decks.push(newDeck);
@@ -155,6 +159,95 @@ export async function clearDeck() {
 }
 
 /**
+ * Edit deck settings (daily limits)
+ * @param {string} id - Deck ID
+ * @param {Event} event - UI event
+ */
+export async function editDeckSettings(id, event) {
+    if(event) event.stopPropagation();
+    
+    const deck = STATE.decks.find(d => d.id === id);
+    if (!deck) return;
+    
+    // Ensure settings exist (for old decks)
+    if (!deck.settings) {
+        deck.settings = {
+            newCardsPerDay: 20,
+            maxReviewsPerDay: 100
+        };
+    }
+    
+    // Create settings modal  
+    const content = document.createElement('div');
+    content.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">
+                    New cards per day:
+                </label>
+                <input type="number" id="settingNewCards" value="${deck.settings.newCardsPerDay}" 
+                    min="0" max="999" 
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); color: var(--text-primary); font-size: 14px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">
+                    Max reviews per day:
+                </label>
+                <input type="number" id="settingMaxReviews" value="${deck.settings.maxReviewsPerDay}" 
+                    min="0" max="999" 
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); color: var(--text-primary); font-size: 14px;">
+            </div>
+            <div style="padding: 12px; background: var(--bg-surface-2); border-radius: 8px; font-size: 13px; color: var(--text-tertiary);">
+                <strong>Note:</strong> Set to 0 for unlimited. These limits apply only to new study sessions.
+            </div>
+        </div>
+    `;
+    
+    dom.customModalTitle.textContent = `⚙️ ${deck.name} Settings`;
+    dom.customModalContent.style.display = 'block';
+    dom.customModalContent.innerHTML = '';
+    dom.customModalContent.appendChild(content);
+    dom.customModalInputContainer.classList.add('hidden');
+    
+    dom.btnModalCancel.style.display = 'block';
+    dom.btnModalConfirm.textContent = 'Save';
+    
+    // Show modal
+    dom.customModal.classList.remove('hidden');
+    
+    // Promise for user action
+    return new Promise((resolve) => {
+        const confirmHandler = () => {
+            const newCards = parseInt(document.getElementById('settingNewCards').value) || 0;
+            const maxReviews = parseInt(document.getElementById('settingMaxReviews').value) || 0;
+            
+            deck.settings.newCardsPerDay = newCards;
+            deck.settings.maxReviewsPerDay = maxReviews;
+            
+            saveState();
+            showToast("Settings saved");
+            cleanup();
+            resolve(true);
+        };
+        
+        const cancelHandler = () => {
+            cleanup();
+            resolve(false);
+        };
+        
+        const cleanup = () => {
+            dom.customModal.classList.add('hidden');
+            dom.customModalContent.innerHTML = '';
+            dom.btnModalConfirm.removeEventListener('click', confirmHandler);
+            dom.btnModalCancel.removeEventListener('click', cancelHandler);
+        };
+        
+        dom.btnModalConfirm.addEventListener('click', confirmHandler);
+        dom.btnModalCancel.addEventListener('click', cancelHandler);
+    });
+}
+
+/**
  * Toggle trash view
  */
 export function toggleTrash() {
@@ -243,6 +336,14 @@ export function renderSidebar() {
                 });
             };
             btnsDiv.appendChild(colorBtn);
+            
+            // Settings Button
+            const settingsBtn = document.createElement('button');
+            settingsBtn.className = 'icon-btn';
+            settingsBtn.innerHTML = '<ion-icon name="settings-outline"></ion-icon>';
+            settingsBtn.title = 'Deck settings';
+            settingsBtn.onclick = (e) => editDeckSettings(deck.id, e);
+            btnsDiv.appendChild(settingsBtn);
             
             // Rename Button
             const renameBtn = document.createElement('button');

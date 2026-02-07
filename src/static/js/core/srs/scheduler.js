@@ -79,23 +79,51 @@ export function calculateNextReview(card, quality) {
 /**
  * Get cards that are due for review
  * @param {Object} deck - Deck object with cards array
+ * @param {Object} options - Optional limits { newCardsLimit, reviewsLimit }
  * @returns {Array} Cards that are due for review (or new cards)
  */
-export function getDueCards(deck) {
+export function getDueCards(deck, options = {}) {
     if (!deck || !deck.cards) return [];
 
     const now = new Date();
+    const newCards = [];
+    const dueCards = [];
     
-    return deck.cards.filter(card => {
-        // If card has no reviewData or nextReview is null, it's a new card
+    // Separate new vs due cards
+    deck.cards.forEach(card => {
         if (!card.reviewData || !card.reviewData.nextReview) {
-            return true; // New cards are always due
+            newCards.push(card);
+        } else {
+            const nextReview = new Date(card.reviewData.nextReview);
+            if (nextReview <= now) {
+                dueCards.push(card);
+            }
         }
-
-        // Check if next review date has passed
-        const nextReview = new Date(card.reviewData.nextReview);
-        return nextReview <= now;
     });
+    
+    // Apply limits from options or deck settings
+    let newCardsLimit = options.newCardsLimit;
+    let reviewsLimit = options.reviewsLimit;
+    
+    // If no options provided, use deck settings
+    if (newCardsLimit === undefined && deck.settings) {
+        newCardsLimit = deck.settings.newCardsPerDay || 0;
+    }
+    if (reviewsLimit === undefined && deck.settings) {
+        reviewsLimit = deck.settings.maxReviewsPerDay || 0;
+    }
+    
+    // Apply limits (0 means unlimited)
+    const limitedNew = (newCardsLimit > 0) 
+        ? newCards.slice(0, newCardsLimit)
+        : newCards;
+    
+    const limitedDue = (reviewsLimit > 0) 
+        ? dueCards.slice(0, reviewsLimit)
+        : dueCards;
+    
+    // Combine: due cards first, then new cards
+    return [...limitedDue, ...limitedNew];
 }
 
 /**
