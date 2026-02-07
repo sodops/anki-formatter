@@ -196,24 +196,24 @@ function renderEnhancedStats(stats) {
     container.innerHTML = `
         <div class="stat-grid">
             <div class="stat-card">
-                <div class="stat-icon">🔥</div>
+                <div class="stat-icon"></div>
                 <div class="stat-label">Study Streak</div>
                 <div class="stat-value">${stats.streak} ${stats.streak === 1 ? 'day' : 'days'}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">✅</div>
+                <div class="stat-icon"></div>
                 <div class="stat-label">Accuracy</div>
                 <div class="stat-value">${stats.accuracy}%</div>
                 <div class="stat-sublabel">${stats.totalReviewed} reviewed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📅</div>
+                <div class="stat-icon"></div>
                 <div class="stat-label">Today</div>
                 <div class="stat-value">${stats.upcomingToday}</div>
                 <div class="stat-sublabel">cards due</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📊</div>
+                <div class="stat-icon"></div>
                 <div class="stat-label">This Week</div>
                 <div class="stat-value">${stats.upcomingWeek}</div>
                 <div class="stat-sublabel">upcoming</div>

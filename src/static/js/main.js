@@ -104,9 +104,9 @@ function setupGlobalExports() {
         
         const currentTheme = getCurrentTheme();
         const options = [
-            { value: 'dark', icon: '🌙', label: 'Dark Mode', desc: 'Easy on the eyes' },
-            { value: 'light', icon: '☀️', label: 'Light Mode', desc: 'Better in bright environments' },
-            { value: 'auto', icon: '🌗', label: 'Auto', desc: 'Match system preference' }
+            { value: 'dark', icon: '', label: 'Dark Mode', desc: 'Easy on the eyes' },
+            { value: 'light', icon: '', label: 'Light Mode', desc: 'Better in bright environments' },
+            { value: 'auto', icon: '', label: 'Auto', desc: 'Match system preference' }
         ];
         
         container.innerHTML = options.map(opt => `

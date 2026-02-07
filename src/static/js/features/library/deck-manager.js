@@ -203,7 +203,7 @@ export async function editDeckSettings(id, event) {
         </div>
     `;
     
-    dom.customModalTitle.textContent = `⚙️ ${deck.name} Settings`;
+    dom.customModalTitle.textContent = `${deck.name} Settings`;
     dom.customModalContent.style.display = 'block';
     dom.customModalContent.innerHTML = '';
     dom.customModalContent.appendChild(content);
