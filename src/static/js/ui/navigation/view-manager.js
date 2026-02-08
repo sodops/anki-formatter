@@ -3,6 +3,9 @@
  * Handles multi-view navigation with tab-based interface
  */
 
+import { store } from '../../core/store.js';
+import { eventBus, EVENTS } from '../../core/events.js';
+import { appLogger } from '../../core/logger.js';
 import { STATE } from '../../core/storage/storage.js';
 
 // View definitions
@@ -36,46 +39,48 @@ export function initViewManager() {
 /**
  * Switch to a different view
  * @param {string} viewName - View to switch to
- * @param {boolean} saveState - Whether to save state (default true)
+ * @param {boolean} persistView - Whether to save view to store (default true)
  */
-export function switchView(viewName, saveState = true) {
-    if (!Object.values(VIEWS).includes(viewName)) {
-        console.error('Invalid view:', viewName);
-        return;
-    }
-    
-    // Hide all views
-    Object.values(VIEWS).forEach(view => {
-        const viewEl = document.getElementById(`view-${view}`);
-        if (viewEl) {
-            viewEl.classList.add('hidden');
+export function switchView(viewName, persistView = true) {
+    try {
+        if (!Object.values(VIEWS).includes(viewName)) {
+            appLogger.error('Invalid view:', viewName);
+            return;
         }
-    });
-    
-    // Show target view
-    const targetView = document.getElementById(`view-${viewName}`);
-    if (targetView) {
-        targetView.classList.remove('hidden');
-    }
-    
-    // Update tab states
-    updateTabStates(viewName);
-    
-    // Update current view
-    currentView = viewName;
-    
-    // Save to state
-    if (saveState) {
-        STATE.activeView = viewName;
-        // Save state is handled by storage module
-        const saveState = window.saveState || (() => {
-            localStorage.setItem('ankiState', JSON.stringify(STATE));
+        
+        // Hide all views
+        Object.values(VIEWS).forEach(view => {
+            const viewEl = document.getElementById(`view-${view}`);
+            if (viewEl) {
+                viewEl.classList.add('hidden');
+            }
         });
-        saveState();
+        
+        // Show target view
+        const targetView = document.getElementById(`view-${viewName}`);
+        if (targetView) {
+            targetView.classList.remove('hidden');
+        }
+        
+        // Update tab states
+        updateTabStates(viewName);
+        
+        // Update current view
+        currentView = viewName;
+        
+        // Save to store if needed
+        if (persistView) {
+            store.dispatch('VIEW_SET', { view: viewName });
+            eventBus.emit(EVENTS.VIEW_CHANGED, { view: viewName });
+        }
+        
+        // Notify view-specific listeners (stats refresh, study init, etc.)
+        notifyViewChange(viewName);
+        
+        appLogger.info(`Switched to view: ${viewName}`);
+    } catch (error) {
+        appLogger.error("Failed to switch view", error);
     }
-    
-    // Notify listeners
-    notifyViewChange(viewName);
 }
 
 /**
@@ -168,6 +173,21 @@ function notifyViewChange(viewName) {
             // Better approach: main.js should listen to view changes.
             if (window.refreshStats) {
                 window.refreshStats();
+            }
+        }, 50);
+    }
+    
+    // Special handling for study view
+    // Only auto-init if navigated via tab, not via Study button
+    // Study button calls startStudySession() directly which already switches view
+    if (viewName === VIEWS.STUDY) {
+        setTimeout(() => {
+            if (window._studySessionStartedManually) {
+                window._studySessionStartedManually = false;
+                return; // Skip — session already started by Study button
+            }
+            if (window.initStudyView) {
+                window.initStudyView();
             }
         }, 50);
     }

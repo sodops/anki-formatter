@@ -3,6 +3,9 @@
  * Card CRUD, Workspace Rendering, Tag Management
  */
 
+import { store } from '../../core/store.js';
+import { eventBus, EVENTS } from '../../core/events.js';
+import { appLogger } from '../../core/logger.js';
 import { STATE, saveState, getActiveDeck, addToHistory } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { ui, escapeHtml, showToast } from '../../ui/components/ui.js';
@@ -12,6 +15,7 @@ import { initializeReviewData } from '../../core/srs/scheduler.js';
 
 // Bulk Selection State
 let selectedIndices = new Set();
+let activeTagFilter = null;
 
 /**
  * Render the workspace (card table)
@@ -45,6 +49,9 @@ export function renderWorkspace() {
     }
 
     dom.currentDeckTitle.textContent = deck.name;
+    
+    // Render tag filter bar
+    renderTagFilterBar(deck);
     
     // Get filtered cards
     const allCards = deck.cards;
@@ -214,6 +221,32 @@ export function renderWorkspace() {
 
             // Actions Cell
             const actionTd = document.createElement('td');
+            actionTd.className = 'card-actions-cell';
+            
+            // Move/Copy button
+            const moveBtn = document.createElement('button');
+            moveBtn.className = 'action-btn secondary';
+            moveBtn.style.padding = '4px';
+            moveBtn.innerHTML = '<ion-icon name="arrow-forward-outline"></ion-icon>';
+            moveBtn.title = 'Move/Copy to deck';
+            moveBtn.onclick = (e) => {
+                e.stopPropagation();
+                showMoveMenu(originalIndex, moveBtn);
+            };
+            actionTd.appendChild(moveBtn);
+            
+            // Review history button
+            const histBtn = document.createElement('button');
+            histBtn.className = 'action-btn secondary';
+            histBtn.style.padding = '4px';
+            histBtn.innerHTML = '<ion-icon name="time-outline"></ion-icon>';
+            histBtn.title = 'Review history';
+            histBtn.onclick = (e) => {
+                e.stopPropagation();
+                showReviewHistory(card);
+            };
+            actionTd.appendChild(histBtn);
+            
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-btn secondary';
             deleteBtn.style.padding = '4px';
@@ -292,46 +325,67 @@ function updateBulkActionBar() {
 }
 
 export function bulkDelete() {
-    const deck = getActiveDeck();
-    if (selectedIndices.size === 0) return;
-    
-    ui.confirm(`Delete ${selectedIndices.size} cards?`).then(confirmed => {
-        if(confirmed) {
-            // Sort indices descending to splice correctly
-            const indices = Array.from(selectedIndices).sort((a,b) => b - a);
-            
-            indices.forEach(idx => {
-               deck.cards.splice(idx, 1); 
-            });
-            
-            selectedIndices.clear();
-            saveState();
-            renderWorkspace();
-            showToast(`${indices.length} cards deleted`);
-        }
-    });
+    try {
+        const deck = getActiveDeck();
+        if (selectedIndices.size === 0) return;
+        
+        ui.confirm(`Delete ${selectedIndices.size} cards?`).then(confirmed => {
+            if(confirmed) {
+                // Sort indices descending to splice correctly
+                const indices = Array.from(selectedIndices).sort((a,b) => b - a);
+                
+                indices.forEach(idx => {
+                    const card = deck.cards[idx];
+                    store.dispatch('CARD_DELETE', {
+                        deckId: deck.id,
+                        cardId: card.id || idx
+                    });
+                });
+                
+                selectedIndices.clear();
+                renderWorkspace();
+                showToast(`${indices.length} cards deleted`);
+                eventBus.emit(EVENTS.CARD_BULK_DELETED, { count: indices.length });
+                appLogger.info(`Bulk deleted ${indices.length} cards`);
+            }
+        });
+    } catch (error) {
+        appLogger.error("Failed to bulk delete", error);
+        showToast("Failed to delete cards");
+    }
 }
 
 export function bulkTag() {
-    if (selectedIndices.size === 0) return;
-    
-    ui.prompt("Enter tag name:", "").then(tag => {
-        if(tag) {
-             const deck = getActiveDeck();
-             selectedIndices.forEach(idx => {
-                 const card = deck.cards[idx];
-                 if (!card.tags) card.tags = [];
-                 if (!card.tags.includes(tag)) card.tags.push(tag);
-             });
-             
-             saveState();
-             renderWorkspace();
-             showToast(`Tag added to ${selectedIndices.size} cards`);
-             // Keep selection? prefer clear
-             selectedIndices.clear();
-             updateBulkActionBar();
-        }
-    });
+    try {
+        if (selectedIndices.size === 0) return;
+        
+        ui.prompt("Enter tag name:", "").then(tag => {
+            if(tag) {
+                const deck = getActiveDeck();
+                selectedIndices.forEach(idx => {
+                    const card = deck.cards[idx];
+                    if (!card.tags) card.tags = [];
+                    if (!card.tags.includes(tag)) {
+                        store.dispatch('CARD_TAG', {
+                            deckId: deck.id,
+                            cardId: card.id || idx,
+                            tag: tag.trim()
+                        });
+                    }
+                });
+                
+                renderWorkspace();
+                showToast(`Tag added to ${selectedIndices.size} cards`);
+                eventBus.emit(EVENTS.CARD_BULK_TAGGED, { count: selectedIndices.size, tag });
+                appLogger.info(`Bulk tagged ${selectedIndices.size} cards with "${tag}"`);
+                selectedIndices.clear();
+                updateBulkActionBar();
+            }
+        });
+    } catch (error) {
+        appLogger.error("Failed to bulk tag", error);
+        showToast("Failed to tag cards");
+    }
 }
 
 export function cancelBulkSelection() {
@@ -348,12 +402,41 @@ export function cancelBulkSelection() {
  * @returns {Array} Filtered cards
  */
 export function getFilteredCards(cards) {
-    if (!STATE.searchQuery) return cards;
-    const query = STATE.searchQuery.toLowerCase();
-    return cards.filter(card => 
-        (card.term || '').toLowerCase().includes(query) || 
-        (card.def || '').toLowerCase().includes(query)
-    );
+    let filtered = cards;
+    
+    // Tag filter
+    if (activeTagFilter) {
+        filtered = filtered.filter(card => 
+            card.tags && card.tags.includes(activeTagFilter)
+        );
+    }
+    
+    // Search query filter
+    if (STATE.searchQuery) {
+        const query = STATE.searchQuery.toLowerCase();
+        filtered = filtered.filter(card => 
+            (card.term || '').toLowerCase().includes(query) || 
+            (card.def || '').toLowerCase().includes(query)
+        );
+    }
+    
+    return filtered;
+}
+
+/**
+ * Set active tag filter
+ * @param {string|null} tag 
+ */
+export function setTagFilter(tag) {
+    activeTagFilter = tag;
+    renderWorkspace();
+}
+
+/**
+ * Get current tag filter
+ */
+export function getActiveTagFilter() {
+    return activeTagFilter;
 }
 
 /**
@@ -363,35 +446,37 @@ export function getFilteredCards(cards) {
  * @param {string} value - New value
  */
 export function updateCard(index, field, value) {
-    const deck = getActiveDeck();
-    const oldValue = field === 'term' ? deck.cards[index].term : deck.cards[index].def;
-    
-    // Track in history
-    addToHistory('edit', {
-        deckId: deck.id,
-        index: index,
-        field: field,
-        oldValue: oldValue,
-        newValue: value
-    });
-    
-    if(field === 'term') deck.cards[index].term = value;
-    if(field === 'def') deck.cards[index].def = value;
-    saveState();
-    // No need to renderWorkspace for simple text change if using input.value
-    // But to be safe and update counts/status
-    // renderWorkspace(); // Might lose focus? 
-    // Usually we don't re-render entire table on single cell edit to keep focus.
-    // If we re-render, focus is lost.
-    // So separate logic:
-    // Only saveState is strictly needed. State is updated.
-    
-    // Check if we need to update status (warning/error row class)
-    // We can do this without full re-render
-    const tr = dom.tableBody.children[index]; // Note: index matches if not filtered. If filtered, this map is wrong.
-    // If filtered, index passed here is originalIndex. We need to find the row with data-cardIndex == originalIndex
-    if (STATE.searchQuery) {
-        // pass
+    try {
+        const deck = getActiveDeck();
+        const oldValue = field === 'term' ? deck.cards[index].term : deck.cards[index].def;
+        
+        // Track in history
+        addToHistory('edit', {
+            deckId: deck.id,
+            index: index,
+            field: field,
+            oldValue: oldValue,
+            newValue: value
+        });
+        
+        // Use store to update card
+        const card = deck.cards[index];
+        const updatedCard = {
+            ...card,
+            [field]: value
+        };
+        
+        store.dispatch('CARD_UPDATE', {
+            deckId: deck.id,
+            cardId: card.id,
+            updates: { [field]: value }
+        });
+        
+        eventBus.emit(EVENTS.CARD_UPDATED, { index, field, value });
+        appLogger.debug(`Card updated: field=${field}`);
+    } catch (error) {
+        appLogger.error("Failed to update card", error);
+        showToast("Failed to update card");
     }
 }
 
@@ -401,27 +486,45 @@ export function updateCard(index, field, value) {
  * @param {string} def 
  */
 export function addCard(term, def) {
-    const deck = getActiveDeck();
-    if (!deck) return;
+    try {
+        let deck = getActiveDeck();
+        
+        // Auto-select first deck if none active
+        if (!deck) {
+            const state = store.getState();
+            const firstDeck = state.decks.find(d => !d.isDeleted);
+            if (firstDeck) {
+                store.dispatch('DECK_SELECT', firstDeck.id);
+                deck = store.getActiveDeck();
+            }
+        }
+        
+        if (!deck) {
+            showToast("Select a deck first");
+            return;
+        }
 
-    if (!term && !def) return; // Ignore empty
+        if (!term && !def) return;
 
-    const newCard = { 
-        term, 
-        def, 
-        tags: [],
-        reviewData: initializeReviewData() // SRS data
-    };
-    deck.cards.unshift(newCard);
-    
-    addToHistory('add', {
-        deckId: deck.id,
-        count: 1,
-        cards: [newCard]
-    });
-    
-    saveState();
-    renderWorkspace();
+        const result = store.dispatch('CARD_ADD', {
+            deckId: deck.id,
+            term: (term || '').trim(),
+            def: (def || '').trim(),
+            tags: []
+        });
+        
+        if (!result) {
+            showToast("Failed to add card");
+            return;
+        }
+        
+        eventBus.emit(EVENTS.CARD_ADDED, { term, def });
+        renderWorkspace();
+        appLogger.info(`Card added: ${term} -> ${def}`);
+    } catch (error) {
+        appLogger.error("Failed to add card", error);
+        showToast("Failed to add card: " + error.message);
+    }
 }
 
 /**
@@ -429,20 +532,31 @@ export function addCard(term, def) {
  * @param {number} index - Card index
  */
 export function removeCard(index) {
-    const deck = getActiveDeck();
-    const deletedCard = {...deck.cards[index]}; // Copy before deleting
-    
-    // Track in history
-    addToHistory('delete', {
-        deckId: deck.id,
-        index: index,
-        card: deletedCard
-    });
-    
-    deck.cards.splice(index, 1);
-    saveState();
-    renderWorkspace();
-    showToast('Card deleted');
+    try {
+        const deck = getActiveDeck();
+        const card = deck.cards[index];
+        const deletedCard = {...card}; // Copy before deleting
+        
+        // Track in history
+        addToHistory('delete', {
+            deckId: deck.id,
+            index: index,
+            card: deletedCard
+        });
+        
+        store.dispatch('CARD_DELETE', {
+            deckId: deck.id,
+            cardId: card.id || index
+        });
+        
+        eventBus.emit(EVENTS.CARD_DELETED, { index, card: deletedCard });
+        renderWorkspace();
+        showToast('Card deleted');
+        appLogger.info(`Card deleted at index ${index}`);
+    } catch (error) {
+        appLogger.error("Failed to remove card", error);
+        showToast("Failed to delete card");
+    }
 }
 
 /**
@@ -458,21 +572,23 @@ export function handleTagInput(event, index) {
         
         if (tag) {
             const deck = getActiveDeck();
-            if (!deck.cards[index].tags) deck.cards[index].tags = [];
+            if (!deck || !deck.cards[index]) return;
+            
+            const card = deck.cards[index];
+            const currentTags = Array.isArray(card.tags) ? card.tags : [];
             
             // Avoid duplicates
-            if (!deck.cards[index].tags.includes(tag)) {
-                deck.cards[index].tags.push(tag);
-                saveState();
+            if (!currentTags.includes(tag)) {
+                store.dispatch('CARD_UPDATE', {
+                    deckId: deck.id,
+                    cardId: card.id,
+                    updates: { tags: [...currentTags, tag] }
+                });
                 renderWorkspace();
                 showToast(`Tag "${tag}" added`);
             }
             
             input.value = '';
-            // Focus logic? Re-render kills focus.
-            // Ideally we should just update DOM, but renderWorkspace is easier.
-            // To keep focus, we need to find the input again after render.
-            // For now, let's accept focus loss or improve renderWorkspace later.
         }
     }
 }
@@ -483,13 +599,262 @@ export function handleTagInput(event, index) {
  * @param {string} tag 
  */
 export function removeTag(index, tag) {
-    const deck = getActiveDeck();
-    if (deck.cards[index].tags) {
-        deck.cards[index].tags = deck.cards[index].tags.filter(t => t !== tag);
-        saveState();
-        renderWorkspace();
-        showToast(`Tag "${tag}" removed`);
+    try {
+        const deck = getActiveDeck();
+        const card = deck.cards[index];
+        
+        if (card.tags && card.tags.includes(tag)) {
+            store.dispatch('CARD_TAG_REMOVE', {
+                deckId: deck.id,
+                cardId: card.id || index,
+                tag
+            });
+            
+            renderWorkspace();
+            showToast(`Tag "${tag}" removed`);
+            eventBus.emit(EVENTS.CARD_UPDATED, { index, field: 'tags' });
+            appLogger.info(`Tag removed: ${tag}`);
+        }
+    } catch (error) {
+        appLogger.error("Failed to remove tag", error);
+        showToast("Failed to remove tag");
     }
+}
+
+/**
+ * Show move/copy deck menu
+ */
+function showMoveMenu(cardIndex, anchorEl) {
+    // Remove existing menu
+    const existing = document.getElementById('moveCardMenu');
+    if (existing) existing.remove();
+    
+    const currentDeck = getActiveDeck();
+    if (!currentDeck) return;
+    
+    const state = store.getState();
+    const otherDecks = state.decks.filter(d => !d.isDeleted && d.id !== currentDeck.id);
+    
+    if (otherDecks.length === 0) {
+        showToast('No other decks available');
+        return;
+    }
+    
+    const menu = document.createElement('div');
+    menu.id = 'moveCardMenu';
+    menu.className = 'context-menu';
+    
+    menu.innerHTML = `
+        <div class="context-menu-header">Move / Copy to...</div>
+        ${otherDecks.map(d => `
+            <div class="context-menu-item" data-deck="${d.id}" data-action="move">
+                <ion-icon name="arrow-forward-outline"></ion-icon> Move to ${d.name}
+            </div>
+            <div class="context-menu-item" data-deck="${d.id}" data-action="copy">
+                <ion-icon name="copy-outline"></ion-icon> Copy to ${d.name}
+            </div>
+        `).join('<div class="context-menu-divider"></div>')}
+    `;
+    
+    // Position
+    const rect = anchorEl.getBoundingClientRect();
+    menu.style.top = rect.bottom + 4 + 'px';
+    menu.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+    document.body.appendChild(menu);
+    
+    menu.querySelectorAll('.context-menu-item').forEach(item => {
+        item.onclick = () => {
+            const deckId = item.dataset.deck;
+            const action = item.dataset.action;
+            if (action === 'move') moveCard(cardIndex, deckId);
+            else copyCard(cardIndex, deckId);
+            menu.remove();
+        };
+    });
+    
+    // Close on click outside
+    setTimeout(() => {
+        const closeHandler = (e) => {
+            if (!menu.contains(e.target)) {
+                menu.remove();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        document.addEventListener('click', closeHandler);
+    }, 0);
+}
+
+/**
+ * Show review history for a card
+ */
+function showReviewHistory(card) {
+    const history = card.reviewData?.reviewHistory || [];
+    
+    if (history.length === 0) {
+        ui.alert('<div style="text-align:center;"><p>No review history yet.</p><p style="color:var(--text-tertiary);margin-top:8px;">Study this card to see its history here.</p></div>');
+        return;
+    }
+    
+    const qualityLabels = { 0: 'Again', 2: 'Hard', 3: 'Good', 5: 'Easy' };
+    const qualityColors = { 0: '#ef4444', 2: '#f59e0b', 3: '#22c55e', 5: '#3b82f6' };
+    
+    const rows = history.slice(-20).reverse().map(r => {
+        const date = new Date(r.timestamp);
+        const label = qualityLabels[r.quality] || 'Unknown';
+        const color = qualityColors[r.quality] || '#888';
+        const interval = r.interval > 0 ? (r.interval < 30 ? `${r.interval}d` : `${Math.round(r.interval/30)}mo`) : '<1d';
+        return `<tr>
+            <td style="padding:6px 10px;">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</td>
+            <td style="padding:6px 10px;"><span style="color:${color};font-weight:600;">${label}</span></td>
+            <td style="padding:6px 10px;">${interval}</td>
+            <td style="padding:6px 10px;">${r.easeFactor?.toFixed(2) || '-'}</td>
+        </tr>`;
+    }).join('');
+    
+    const html = `
+        <div style="max-height:400px;overflow:auto;">
+            <p style="margin-bottom:12px;color:var(--text-secondary);">
+                <strong>${card.term}</strong> — ${history.length} reviews total
+            </p>
+            <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                <thead><tr style="border-bottom:1px solid var(--border-default);color:var(--text-tertiary);">
+                    <th style="padding:6px 10px;text-align:left;">Date</th>
+                    <th style="padding:6px 10px;text-align:left;">Rating</th>
+                    <th style="padding:6px 10px;text-align:left;">Interval</th>
+                    <th style="padding:6px 10px;text-align:left;">Ease</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
+    
+    ui.alert(html);
+}
+
+/**
+ * Render tag filter pills above card table
+ */
+function renderTagFilterBar(deck) {
+    let bar = document.getElementById('tagFilterBar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'tagFilterBar';
+        bar.className = 'tag-filter-bar';
+        const tableContainer = document.querySelector('.table-container');
+        if (tableContainer) tableContainer.parentNode.insertBefore(bar, tableContainer);
+    }
+    
+    // Collect all tags from deck
+    const tagSet = new Set();
+    deck.cards.forEach(c => (c.tags || []).forEach(t => tagSet.add(t)));
+    const tags = Array.from(tagSet).sort();
+    
+    if (tags.length === 0) {
+        bar.classList.add('hidden');
+        return;
+    }
+    
+    bar.classList.remove('hidden');
+    bar.innerHTML = `
+        <span class="tag-filter-label">Filter:</span>
+        <button class="tag-filter-pill ${!activeTagFilter ? 'active' : ''}" data-tag="">All</button>
+        ${tags.map(t => `<button class="tag-filter-pill ${activeTagFilter === t ? 'active' : ''}" data-tag="${t}">${t}</button>`).join('')}
+    `;
+    
+    bar.querySelectorAll('.tag-filter-pill').forEach(btn => {
+        btn.onclick = () => {
+            const tag = btn.dataset.tag;
+            setTagFilter(tag || null);
+        };
+    });
+}
+
+/**
+ * Move a card to another deck
+ * @param {number} cardIndex
+ * @param {string} targetDeckId
+ */
+export function moveCard(cardIndex, targetDeckId) {
+    const deck = getActiveDeck();
+    if (!deck) return;
+    const card = deck.cards[cardIndex];
+    if (!card) return;
+    
+    store.dispatch('CARD_MOVE', {
+        fromDeckId: deck.id,
+        toDeckId: targetDeckId,
+        cardId: card.id
+    });
+    
+    renderWorkspace();
+    showToast('Card moved');
+}
+
+/**
+ * Copy a card to another deck
+ * @param {number} cardIndex
+ * @param {string} targetDeckId
+ */
+export function copyCard(cardIndex, targetDeckId) {
+    const deck = getActiveDeck();
+    if (!deck) return;
+    const card = deck.cards[cardIndex];
+    if (!card) return;
+    
+    store.dispatch('CARD_COPY', {
+        fromDeckId: deck.id,
+        toDeckId: targetDeckId,
+        cardId: card.id
+    });
+    
+    renderWorkspace();
+    showToast('Card copied');
+}
+
+/**
+ * Find & Replace across all cards in active deck
+ * @param {string} find
+ * @param {string} replace
+ * @param {Object} options
+ * @returns {number} Number of replacements made
+ */
+export function findAndReplace(find, replace, options = {}) {
+    if (!find) return 0;
+    const deck = getActiveDeck();
+    if (!deck) return 0;
+    
+    const { caseSensitive = false, wholeWord = false, field = 'both' } = options;
+    let count = 0;
+    const flags = caseSensitive ? 'g' : 'gi';
+    const pattern = wholeWord ? `\\b${find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b` : find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(pattern, flags);
+    
+    deck.cards.forEach((card, idx) => {
+        let newTerm = card.term;
+        let newDef = card.def;
+        let changed = false;
+        
+        if (field === 'both' || field === 'term') {
+            const result = (newTerm || '').replace(regex, replace);
+            if (result !== newTerm) { newTerm = result; changed = true; }
+        }
+        if (field === 'both' || field === 'def') {
+            const result = (newDef || '').replace(regex, replace);
+            if (result !== newDef) { newDef = result; changed = true; }
+        }
+        
+        if (changed) {
+            store.dispatch('CARD_UPDATE', {
+                deckId: deck.id,
+                cardId: card.id,
+                updates: { term: newTerm, def: newDef }
+            });
+            count++;
+        }
+    });
+    
+    if (count > 0) renderWorkspace();
+    return count;
 }
 
 /**

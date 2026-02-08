@@ -3,11 +3,40 @@
  * Analyze deck data and render dashboard
  */
 
+import { store } from '../../core/store.js';
+import { eventBus, EVENTS } from '../../core/events.js';
+import { appLogger } from '../../core/logger.js';
 import { STATE } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { escapeHtml } from '../../ui/components/ui.js';
 
 import { switchView, VIEWS } from '../../ui/navigation/view-manager.js';
+
+/**
+ * Animate a stat value count-up
+ */
+function animateStatValue(el, target, duration = 600) {
+    if (!el) return;
+    if (target === 0) { el.textContent = '0'; return; }
+    
+    const start = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(start + (target - start) * eased);
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            el.textContent = target;
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
 
 /**
  * Open Stats View
@@ -21,58 +50,60 @@ export function openStats() {
  * Calculate and render stats (Public)
  */
 export function calculateAndRenderStats() {
-    const decks = STATE.decks;
-    const totalDecks = decks.length;
-    let totalCards = 0;
-    let tagCounts = {};
-    let cardsPerDeck = [];
+    try {
+        const currentState = store.getState();
+        const decks = currentState.decks;
+        const totalDecks = decks.length;
+        let totalCards = 0;
+        let tagCounts = {};
+        let cardsPerDeck = [];
 
-    // Aggregate Data
-    decks.forEach(deck => {
-        // Skip Trash
-        if (deck.id === 'trash' || deck.isTrash) return;
+        // Aggregate Data
+        decks.forEach(deck => {
+            // Skip Trash
+            if (deck.id === 'trash' || deck.isTrash) return;
 
-        const count = deck.cards.length;
-        totalCards += count;
-        cardsPerDeck.push({ name: deck.name, count: count, color: deck.color || '#6366F1' });
-        
-        // Tags
-        deck.cards.forEach(card => {
-            if (card.tags) {
-                card.tags.forEach(tag => {
-                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-                });
-            }
+            const count = deck.cards.length;
+            totalCards += count;
+            cardsPerDeck.push({ name: deck.name, count: count, color: deck.color || '#6366F1' });
+            
+            // Tags
+            deck.cards.forEach(card => {
+                if (card.tags) {
+                    card.tags.forEach(tag => {
+                        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                    });
+                }
+            });
         });
-    });
 
-    // Overview numbers
-    const totalCardsEl = document.getElementById('statTotalCards');
-    if (totalCardsEl) totalCardsEl.textContent = totalCards;
-    
-    const totalDecksEl = document.getElementById('statTotalDecks');
-    if (totalDecksEl) totalDecksEl.textContent = totalDecks;
-
-    // Tab View Overview
+        // Overview numbers with count-up animation
     const tabTotalCards = document.getElementById('tabStatTotalCards');
-    if (tabTotalCards) tabTotalCards.textContent = totalCards;
+    if (tabTotalCards) {
+        const target = totalCards;
+        animateStatValue(tabTotalCards, target);
+    }
     
     const tabTotalDecks = document.getElementById('tabStatTotalDecks');
-    if (tabTotalDecks) tabTotalDecks.textContent = totalDecks;
+    if (tabTotalDecks) {
+        animateStatValue(tabTotalDecks, totalDecks);
+    }
     
     // Enhanced statistics
     const enhancedStats = calculateEnhancedStats(decks);
-    renderEnhancedStats(enhancedStats); 
-    // Render to tab view as well
     renderEnhancedStats(enhancedStats, 'tabEnhancedStats');
 
     // Deck Distribution Bar Chart
-    renderDeckChart(cardsPerDeck, totalCards);
     renderDeckChart(cardsPerDeck, totalCards, 'tabStatDeckChart');
 
+    // Card Maturity Chart
+    renderMaturityChart(decks, 'tabStatMaturity');
+
     // Top Tags
-    renderTopTags(tagCounts);
     renderTopTags(tagCounts, 'tabStatTagCloud');
+    } catch (error) {
+        console.error('Failed to calculate stats:', error);
+    }
 }
 
 /**
@@ -186,24 +217,8 @@ function calculateStudyStreak(decks) {
 /**
  * Render enhanced stats in modal or tab
  */
-function renderEnhancedStats(stats, containerId = 'enhancedStatsContainer') {
-    // Check if enhanced stats container exists
-    let container = document.getElementById(containerId);
-    
-    // Only auto-create for modal (legacy behavior)
-    if (!container && containerId === 'enhancedStatsContainer') {
-        // Insert after total stats, before deck chart
-        const totalCards = document.getElementById('statTotalCards');
-        if (totalCards && totalCards.parentElement) {
-            container = document.createElement('div');
-            container.id = 'enhancedStatsContainer';
-            container.className = 'enhanced-stats';
-            totalCards.parentElement.parentElement.insertAdjacentElement('afterend', container);
-        } else {
-            return; // Can't find insertion point
-        }
-    }
-    
+function renderEnhancedStats(stats, containerId = 'tabEnhancedStats') {
+    const container = document.getElementById(containerId);
     if (!container) return;
     
     container.innerHTML = `
@@ -235,7 +250,69 @@ function renderEnhancedStats(stats, containerId = 'enhancedStatsContainer') {
     `;
 }
 
-function renderDeckChart(data, total, containerId = 'statDeckChart') {
+/**
+ * Render card maturity distribution chart
+ * Categories: New, Learning, Young (<21d), Mature (>=21d)
+ */
+function renderMaturityChart(decks, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    let newCount = 0, learningCount = 0, youngCount = 0, matureCount = 0;
+    
+    decks.forEach(deck => {
+        if (deck.isDeleted) return;
+        deck.cards.forEach(card => {
+            const rd = card.reviewData;
+            if (!rd || !rd.nextReview) {
+                newCount++;
+            } else if (rd.isLearning) {
+                learningCount++;
+            } else if (rd.interval && rd.interval >= 21) {
+                matureCount++;
+            } else {
+                youngCount++;
+            }
+        });
+    });
+    
+    const total = newCount + learningCount + youngCount + matureCount;
+    if (total === 0) {
+        container.innerHTML = '<div class="empty-chart">No data available</div>';
+        return;
+    }
+    
+    const segments = [
+        { label: 'New', count: newCount, color: '#3B82F6' },
+        { label: 'Learning', count: learningCount, color: '#F59E0B' },
+        { label: 'Young', count: youngCount, color: '#22C55E' },
+        { label: 'Mature', count: matureCount, color: '#6366F1' }
+    ];
+    
+    // Build horizontal stacked bar
+    const barHtml = segments.map(s => {
+        const pct = total > 0 ? (s.count / total * 100) : 0;
+        if (pct === 0) return '';
+        return `<div class="maturity-segment" style="width:${pct}%;background:${s.color};" title="${s.label}: ${s.count} (${Math.round(pct)}%)"></div>`;
+    }).join('');
+    
+    const legendHtml = segments.map(s => {
+        const pct = total > 0 ? Math.round(s.count / total * 100) : 0;
+        return `<div class="maturity-legend-item">
+            <span class="maturity-dot" style="background:${s.color};"></span>
+            <span>${s.label}</span>
+            <strong>${s.count}</strong>
+            <span class="maturity-pct">(${pct}%)</span>
+        </div>`;
+    }).join('');
+    
+    container.innerHTML = `
+        <div class="maturity-bar">${barHtml}</div>
+        <div class="maturity-legend">${legendHtml}</div>
+    `;
+}
+
+function renderDeckChart(data, total, containerId = 'tabStatDeckChart') {
     const container = document.getElementById(containerId);
     if (!container) return;
     
@@ -269,7 +346,7 @@ function renderDeckChart(data, total, containerId = 'statDeckChart') {
     });
 }
 
-function renderTopTags(tagCounts, containerId = 'statTagCloud') {
+function renderTopTags(tagCounts, containerId = 'tabStatTagCloud') {
     const container = document.getElementById(containerId);
     if (!container) return;
     

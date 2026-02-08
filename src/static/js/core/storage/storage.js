@@ -1,46 +1,37 @@
 /**
- * State Management Module
- * Handles application state, localStorage persistence, and state accessors
+ * Storage Module (Compatibility Layer)
+ * Wraps new Store for backward compatibility
+ * DEPRECATED: Use core/store.js directly in new code
  */
 
-// Default state structure
-const DEFAULT_STATE = {
-    decks: [],
-    activeDeckId: null,
-    searchQuery: '',
-    history: []
-};
+import { store } from '../store.js';
 
-// Global state
-export let STATE = { ...DEFAULT_STATE };
+// Proxy STATE to store for backward compatibility
+export const STATE = new Proxy({}, {
+    get: (target, prop) => {
+        // Local properties not in store
+        if (prop in target) return target[prop];
+        return store.getState()[prop];
+    },
+    set: (target, prop, value) => {
+        // For properties not managed by store (like showingTrash), store locally
+        target[prop] = value;
+        return true;
+    }
+});
 
 /**
  * Load state from localStorage
  */
 export function loadState() {
-    const saved = localStorage.getItem('ankiState');
-    if (saved) {
-        try {
-            STATE = JSON.parse(saved);
-            // Migration: add missing fields
-            if (!STATE.searchQuery) STATE.searchQuery = '';
-            if (!STATE.history) STATE.history = [];
-        } catch (e) {
-            console.error('Failed to load state:', e);
-            STATE = { ...DEFAULT_STATE };
-        }
-    }
+    return store.load();
 }
 
 /**
  * Save state to localStorage
  */
 export function saveState() {
-    try {
-        localStorage.setItem('ankiState', JSON.stringify(STATE));
-    } catch (e) {
-        console.error('Failed to save state:', e);
-    }
+    store.persist();
 }
 
 /**
@@ -48,7 +39,7 @@ export function saveState() {
  * @returns {Object|null} Active deck or null
  */
 export function getActiveDeck() {
-    return STATE.decks.find(d => d.id === STATE.activeDeckId) || null;
+    return store.getActiveDeck();
 }
 
 /**
@@ -56,8 +47,7 @@ export function getActiveDeck() {
  * @param {string} id - Deck ID
  */
 export function setActiveDeck(id) {
-    STATE.activeDeckId = id;
-    saveState();
+    store.setActiveDeck(id);
 }
 
 /**
@@ -65,23 +55,17 @@ export function setActiveDeck(id) {
  * @returns {string} Unique ID
  */
 export function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return Math.random().toString(36).substr(2, 9);
 }
 
 /**
  * Add action to history
  * @param {string} action - Action type
  * @param {Object} data - Action data
+ * @deprecated Use store.dispatch('UNDO'/'REDO') instead
  */
 export function addToHistory(action, data) {
-    STATE.history.push({
-        action,
-        data,
-        timestamp: Date.now()
-    });
-    // Keep only last 50 actions
-    if (STATE.history.length > 50) {
-        STATE.history = STATE.history.slice(-50);
-    }
-    saveState();
+    // Legacy method - just log for now
+    console.warn('addToHistory deprecated, use store.dispatch instead');
 }
+

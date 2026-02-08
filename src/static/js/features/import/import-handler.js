@@ -3,6 +3,9 @@
  * Handle file uploads and import preview
  */
 
+import { store } from '../../core/store.js';
+import { eventBus, EVENTS } from '../../core/events.js';
+import { appLogger } from '../../core/logger.js';
 import { STATE, saveState, getActiveDeck } from '../../core/storage/storage.js';
 import { ui, showToast, escapeHtml } from '../../ui/components/ui.js';
 import { renderWorkspace } from '../library/card-manager.js';
@@ -175,11 +178,13 @@ function renderImportPreviewList(cards) {
     previewList.innerHTML = '';
     
     const activeDeck = getActiveDeck();
-    const existingTerms = new Set(activeDeck.cards.map(c => c.term.toLowerCase()));
+    const existingTerms = new Set(
+        activeDeck ? activeDeck.cards.map(c => (c.term || '').toLowerCase()) : []
+    );
     
     cards.forEach((card, idx) => {
         const cardEl = document.createElement('div');
-        const isDuplicate = existingTerms.has(card.term.toLowerCase());
+        const isDuplicate = card.term && existingTerms.has(card.term.toLowerCase());
         cardEl.className = 'preview-card' + (isDuplicate ? ' duplicate' : '');
         
         cardEl.innerHTML = `
@@ -251,29 +256,58 @@ export function updateImportPreview() {
  * Confirm import
  */
 export function confirmImport() {
-    const deck = getActiveDeck();
-    if (!deck) {
-        showToast('No active deck', 'error');
+    try {
+        let deck = getActiveDeck();
+        
+        // Auto-select first deck if none active
+        if (!deck) {
+            const state = store.getState();
+            const firstDeck = state.decks.find(d => !d.isDeleted);
+            if (firstDeck) {
+                store.dispatch('DECK_SELECT', firstDeck.id);
+                deck = store.getActiveDeck();
+            }
+        }
+        
+        if (!deck) {
+            showToast('No active deck', 'error');
+            closeImportPreview();
+            return;
+        }
+        
+        const validCards = pendingImport.cards.filter(c => c.term || c.def);
+        
+        if (validCards.length === 0) {
+            showToast('No valid cards to import', 'error');
+            closeImportPreview();
+            return;
+        }
+        
+        // Use store to add cards
+        let addedCount = 0;
+        validCards.forEach((card, i) => {
+            const result = store.dispatch('CARD_ADD', {
+                deckId: deck.id,
+                term: card.term,
+                def: card.def,
+                tags: card.tags || []
+            });
+            if (result) addedCount++;
+        });
+        
+        
+        renderWorkspace();
+        showToast(`Imported ${validCards.length} cards`);
+        eventBus.emit(EVENTS.CARD_ADDED, { count: validCards.length });
+        appLogger.info(`Imported ${validCards.length} cards`);
         closeImportPreview();
-        return;
+        
+        if(dom.fileInput) dom.fileInput.value = '';
+        if(dom.omnibarInput) dom.omnibarInput.value = '';
+    } catch (error) {
+        appLogger.error("Failed to import cards", error);
+        showToast("Failed to import cards");
     }
-    
-    const validCards = pendingImport.cards.filter(c => c.term || c.def);
-    
-    if (validCards.length === 0) {
-        showToast('No valid cards to import', 'error');
-        closeImportPreview();
-        return;
-    }
-    
-    deck.cards.push(...validCards);
-    saveState();
-    renderWorkspace();
-    showToast(`Imported ${validCards.length} cards`);
-    closeImportPreview();
-    
-    if(dom.fileInput) dom.fileInput.value = '';
-    if(dom.omnibarInput) dom.omnibarInput.value = '';
 }
 
 /**

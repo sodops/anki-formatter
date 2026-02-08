@@ -34,7 +34,7 @@ export const dom = {
     btnRenameDeck: document.getElementById('btnRenameDeck'),
     btnDeckColor: document.getElementById('btnDeckColor'),
     btnClearDeck: document.getElementById('btnClearDeck'),
-    btnExportDeck: document.getElementById('btnExportAnki'), // Mapped to btnExportAnki ID
+    btnExportDeck: document.getElementById('btnExportDeck'),
     
     // Export Modal
     exportModal: document.getElementById('exportModal'),
@@ -85,11 +85,15 @@ export const dom = {
     flashcard: document.getElementById('flashcard'),
     studyFront: document.getElementById('studyFront'),
     studyBack: document.getElementById('studyBack'),
-    studyIndex: document.getElementById('studyindex'),
+    studyIndex: document.getElementById('studyIndex'),
     studyTotal: document.getElementById('studyTotal'),
-    btnStudyPrev: document.getElementById('btnStudyPrev'),
+    studyProgressBar: document.getElementById('studyProgressBar'),
     btnStudyFlip: document.getElementById('btnStudyFlip'),
-    btnStudyNext: document.getElementById('btnStudyNext'),
+    
+    // Session Summary
+    sessionSummary: document.getElementById('sessionSummary'),
+    btnBackToLibrary: document.getElementById('btnBackToLibrary'),
+    btnStudyAgain: document.getElementById('btnStudyAgain'),
     
     // Bulk Operations
     selectAllCheckbox: document.getElementById('selectAllCheckbox'),
@@ -101,10 +105,6 @@ export const dom = {
     
     // Stats
     btnOpenStats: document.getElementById('btnOpenStats'),
-    statsModal: document.getElementById('statsModal'),
-    btnCloseStats: document.getElementById('btnCloseStats'),
-    statDeckChart: document.getElementById('statDeckChart'),
-    statTagCloud: document.getElementById('statTagCloud'),
     
     // Shortcuts
     btnCloseShortcuts: document.getElementById('btnCloseShortcuts'),
@@ -119,7 +119,7 @@ export function verifyDomElements() {
     for (const [key, element] of Object.entries(dom)) {
         if (!element) {
             // Filter out optional/dynamic elements
-            if(['trashList', 'btnRenameDeck', 'btnDeckColor', 'btnClearDeck', 'btnExportDeck'].includes(key)) continue;
+            if(['trashList', 'btnRenameDeck', 'btnDeckColor', 'btnClearDeck'].includes(key)) continue;
             missing.push(key);
         }
     }

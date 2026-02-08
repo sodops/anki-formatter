@@ -3,6 +3,8 @@
  * Handle exporting decks to files
  */
 
+import { store } from '../../core/store.js';
+import { appLogger } from '../../core/logger.js';
 import { getActiveDeck } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { showToast } from '../../ui/components/ui.js';

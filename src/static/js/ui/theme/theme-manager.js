@@ -3,7 +3,7 @@
  * Handles light/dark theme switching
  */
 
-import { STATE, saveState } from '../../core/storage/storage.js';
+import { store } from '../../core/store.js';
 
 // Theme constants
 export const THEMES = {
@@ -18,8 +18,9 @@ let currentTheme = THEMES.AUTO;
  * Initialize theme manager
  */
 export function initThemeManager() {
-    // Load saved theme preference
-    currentTheme = STATE.theme || THEMES.AUTO;
+    // Load saved theme from store (persisted in localStorage via ankiState)
+    const savedTheme = store.getState().theme;
+    currentTheme = savedTheme || THEMES.AUTO;
     
     // Apply theme
     applyTheme(currentTheme);
@@ -63,9 +64,8 @@ export function switchTheme(theme) {
     
     applyTheme(theme);
     
-    // Save to state
-    STATE.theme = theme;
-    saveState();
+    // Save to store (persisted to localStorage automatically)
+    store.dispatch('THEME_SET', theme);
     
     // Add smooth transition effect
     document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';

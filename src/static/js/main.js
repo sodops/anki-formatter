@@ -3,18 +3,26 @@
  * App initialization, event listeners, and command palette
  */
 
+// Core Store Management
+import { store } from './core/store.js';
+import { eventBus, EVENTS } from './core/events.js';
+import { appLogger, uiLogger } from './core/logger.js';
+
+// Legacy storage (deprecated - use store instead)
 import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './core/storage/storage.js';
+
 import { dom, verifyDomElements } from './utils/dom-helpers.js';
 import { ui } from './ui/components/ui.js'; // Default export object
 import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './features/library/deck-manager.js';
-import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection } from './features/library/card-manager.js';
+import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection, findAndReplace, moveCard, copyCard, setTagFilter } from './features/library/card-manager.js';
 import { setupDragDrop, handleDrop } from './ui/interactions/drag-drop.js';
 import { setupMarked, insertMarkdown } from './utils/markdown-parser.js';
 import { executeExport, showExportPreview, closeExportPreview } from './features/export/export-handler.js';
 import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview, handleGoogleDocImport } from './features/import/import-handler.js';
 import { undo, redo } from './core/history/history-manager.js';
 import { startStudySession } from './features/study/study-session.js';
-import { openStats } from './features/stats/stats-calculator.js';
+import { loadDailyGoal } from './features/study/study-session.js';
+import { openStats, calculateAndRenderStats } from './features/stats/stats-calculator.js';
 import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
 import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } from './ui/theme/theme-manager.js';
 
@@ -25,6 +33,7 @@ const COMMANDS = [
     { id: 'export', label: 'Export to Anki', desc: 'Download as .anki file', icon: 'download-outline', shortcut: '', action: () => { if(dom.btnExportDeck) dom.btnExportDeck.click() } },
     { id: 'clear', label: 'Clear Current Deck', desc: 'Delete all cards', icon: 'trash-bin-outline', shortcut: '', action: () => clearDeck() },
     { id: 'upload', label: 'Upload File', desc: 'Import from TXT/CSV/DOCX', icon: 'cloud-upload-outline', shortcut: '', action: () => { if(dom.fileInput) dom.fileInput.click() } },
+    { id: 'find_replace', label: 'Find & Replace', desc: 'Bulk text editing across cards', icon: 'search-outline', shortcut: '', action: () => openFindReplaceModal() },
     { id: 'shortcuts', label: 'Keyboard Shortcuts', desc: 'View all keyboard shortcuts', icon: 'help-circle-outline', shortcut: 'Ctrl+/', action: () => openShortcutsModal() },
     { id: 'help', label: 'Help / About', icon: 'help-circle', desc: 'Show documentation', action: () => window.open('https://github.com/sodops/anki-formatter', '_blank') },
 ];
@@ -35,40 +44,139 @@ let filteredCommands = [];
 // --- Initialization ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("AnkiFlow Initializing...");
+    appLogger.info("AnkiFlow Initializing...");
     
-    verifyDomElements();
-    setupMarked();
-    loadState();
-    
-    // Default Deck if none
-    if (!STATE.decks || STATE.decks.length === 0) {
-        createDeck("My First Deck");
-    }
-    
-    // Setup Global Scoping for HTML onclicks inside init to ensure deps are ready
-    setupGlobalExports();
+    try {
+        verifyDomElements();
+        setupMarked();
+        
+        // Load state from localStorage into store
+        loadState();
+        
+        // Default Deck if none exists
+        const currentState = store.getState();
+        if (!currentState.decks || currentState.decks.length === 0) {
+            const newDeck = store.dispatch('DECK_CREATE', { 
+                name: "My First Deck",
+                color: '#6366F1'
+            });
+            // Auto-select the new deck
+            if (newDeck && newDeck.id) {
+                store.dispatch('DECK_SELECT', newDeck.id);
+            }
+        }
+        
+        // If decks exist but no active deck, select the first one
+        const stateAfterLoad = store.getState();
+        if (stateAfterLoad.decks.length > 0 && !stateAfterLoad.activeDeckId) {
+            const firstDeck = stateAfterLoad.decks.find(d => !d.isDeleted);
+            if (firstDeck) {
+                store.dispatch('DECK_SELECT', firstDeck.id);
+            }
+        }
+        
+        // Setup Global Scoping for HTML onclicks inside init to ensure deps are ready
+        setupGlobalExports();
 
-    setupEventListeners();
-    setupDragDrop();
-    
-    renderSidebar();
-    renderWorkspace();
-    
-    // Initialize theme system
-    initThemeManager();
-    
-    // Initialize multi-view navigation
-    initViewManager();
-    initTabNavigation();
-    
-    console.log("AnkiFlow Ready");
+        try { setupEventListeners(); }
+        catch (e) { console.error('[INIT] setupEventListeners FAILED:', e); }
+        
+        try { setupDragDrop(); } catch (e) { console.error('[INIT] setupDragDrop FAILED:', e); }
+        
+        try { renderSidebar(); renderWorkspace(); }
+        catch (e) { console.error('[INIT] render FAILED:', e); }
+        
+        // Initialize theme system
+        try { initThemeManager(); }
+        catch (e) { console.error('[INIT] initThemeManager FAILED:', e); }
+        
+        // Initialize multi-view navigation
+        try { initViewManager(); initTabNavigation(); }
+        catch (e) { console.error('[INIT] initViewManager FAILED:', e); }
+        
+        // Initialize daily goal widget
+        try { loadDailyGoal(); } catch (e) { console.error('[INIT] loadDailyGoal FAILED:', e); }
+        
+        // Initialize settings from localStorage
+        try { initSettings(); }
+        catch (e) { console.error('[INIT] initSettings FAILED:', e); }
+        
+        // Setup hamburger menu
+        try { setupHamburgerMenu(); } catch (e) { console.error('[INIT] setupHamburgerMenu FAILED:', e); }
+        
+        // Hide skeleton, show app
+        const skeleton = document.getElementById('appSkeleton');
+        const appContainer = document.getElementById('appContainer');
+        if (skeleton) skeleton.classList.add('hidden');
+        if (appContainer) appContainer.style.display = '';
+        
+        // Subscribe to store changes for real-time updates
+        store.subscribe((newState) => {
+            appLogger.debug("Store updated", newState);
+            // Auto-save indicator
+            showAutoSaveIndicator();
+        });
+        
+        // === EVENT-DRIVEN UI UPDATES ===
+        // Deck operations
+        eventBus.on(EVENTS.DECK_CREATED, () => {
+            renderSidebar();
+        });
+        
+        eventBus.on(EVENTS.DECK_UPDATED, () => {
+            renderSidebar();
+            renderWorkspace();
+        });
+        
+        eventBus.on(EVENTS.DECK_DELETED, () => {
+            renderSidebar();
+            renderWorkspace();
+        });
+        
+        eventBus.on(EVENTS.DECK_RESTORED, () => {
+            renderSidebar();
+        });
+        
+        eventBus.on(EVENTS.DECK_SELECTED, () => {
+            renderWorkspace();
+        });
+        
+        // Card operations
+        eventBus.on(EVENTS.CARD_ADDED, () => {
+            renderWorkspace();
+        });
+        
+        eventBus.on(EVENTS.CARD_UPDATED, () => {
+            renderWorkspace();
+        });
+        
+        eventBus.on(EVENTS.CARD_DELETED, () => {
+            renderWorkspace();
+        });
+        
+        // Study session
+        eventBus.on(EVENTS.STUDY_CARD_RATED, () => {
+            appLogger.info("Card rated, session continues");
+        });
+        
+        // Search
+        eventBus.on(EVENTS.SEARCH_UPDATED, () => {
+            renderWorkspace();
+        });
+        
+        appLogger.info("AnkiFlow Ready");
+    } catch (error) {
+        appLogger.error("Initialization failed", error);
+        uiLogger.error("Failed to initialize app", error);
+    }
 });
 
 function setupGlobalExports() {
     window.createDeck = () => {
         ui.prompt("Enter deck name:", "New Deck").then(name => {
-            if(name) createDeck(name);
+            if(name && name.trim()) {
+                createDeck(name.trim());
+            }
         });
     };
     window.switchDeck = switchDeck;
@@ -80,7 +188,9 @@ function setupGlobalExports() {
     window.updateCard = updateCard;
     window.handleTagInput = handleTagInput;
     window.removeTag = removeTag;
-    window.handleFileUpload = (e) => handleFileUpload(e.target.files[0]);
+    window.handleFileUpload = (e) => {
+        handleFileUpload(e.target.files[0]);
+    };
     window.executeExport = executeExport;
     window.showExportPreview = showExportPreview;
     window.closeExportPreview = closeExportPreview;
@@ -91,6 +201,27 @@ function setupGlobalExports() {
 
     window.undo = undo;
     window.redo = redo;
+    window.findAndReplace = findAndReplace;
+    window.moveCard = moveCard;
+    window.copyCard = copyCard;
+    window.setTagFilter = setTagFilter;
+    
+    // Statistics refresh
+    window.refreshStats = calculateAndRenderStats;
+    
+    // Study view initialization
+    window.initStudyView = () => {
+        const currentState = store.getState();
+        const activeDeck = currentState.decks.find(d => d.id === currentState.activeDeckId);
+        
+        if (activeDeck && activeDeck.cards && activeDeck.cards.length > 0) {
+            // skipViewSwitch=true because we're already in study view
+            startStudySession(true);
+        } else {
+            uiLogger.warn("No cards in active deck to study");
+            ui.showToast("No cards to study in this deck");
+        }
+    };
     
     // Theme switching
     window.switchTheme = switchTheme;
@@ -139,22 +270,29 @@ function setupEventListeners() {
     if(dom.btnNewDeck) dom.btnNewDeck.addEventListener('click', window.createDeck);
     
     // Study Button
-    if(dom.btnStudyDeck) dom.btnStudyDeck.addEventListener('click', startStudySession);
+    if(dom.btnStudyDeck) dom.btnStudyDeck.addEventListener('click', () => startStudySession());
 
     // Stats Button
     if(dom.btnOpenStats) dom.btnOpenStats.addEventListener('click', openStats);
     // if(dom.btnCloseStats) dom.btnCloseStats.addEventListener('click', closeStats);
+    
+    // Import Button (opens file picker)
+    const btnImport = document.getElementById('btnImportCards');
+    if(btnImport) btnImport.addEventListener('click', () => {
+        if(dom.fileInput) dom.fileInput.click();
+    });
+    
+    // Export Button (opens export modal)
+    const btnExport = document.getElementById('btnExportDeck');
+    if(btnExport) btnExport.addEventListener('click', () => {
+        if(dom.exportModal) dom.exportModal.classList.remove('hidden');
+    });
     
     // Trash Button (this might be dynamic, check dom.js) - dom.btnTrash might be null if not in HTML
     // It's created in deck.js renderSidebar.
     
     // Clear Deck Button
     if(dom.btnClearDeck) dom.btnClearDeck.addEventListener('click', clearDeck);
-    
-    // Export Button (Open Modal)
-    if(dom.btnExportDeck) dom.btnExportDeck.addEventListener('click', () => {
-        if(dom.exportModal) dom.exportModal.classList.remove('hidden');
-    });
     
     // Export Modal Actions
     if(dom.btnCancelExport) dom.btnCancelExport.addEventListener('click', () => {
@@ -176,8 +314,8 @@ function setupEventListeners() {
     });
 
     // Import Preview Buttons
-    if(dom.btnConfirmImport) dom.btnConfirmImport.addEventListener('click', confirmImport);
-    if(dom.btnCancelImport) dom.btnCancelImport.addEventListener('click', closeImportPreview);
+    if(dom.btnConfirmImport) dom.btnConfirmImport.addEventListener('click', () => confirmImport());
+    if(dom.btnCancelImport) dom.btnCancelImport.addEventListener('click', () => closeImportPreview());
     
     // File Input
     if(dom.fileInput) dom.fileInput.addEventListener('change', window.handleFileUpload);
@@ -186,37 +324,51 @@ function setupEventListeners() {
     if(dom.omnibarInput) {
         dom.omnibarInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !dom.omnibarInput.value.startsWith('>')) {
+                e.preventDefault();
                 // Add Card
                 const line = dom.omnibarInput.value.trim();
                 const deck = getActiveDeck();
-                if (line && deck) {
-                    // Check for URL
-                    if (line.startsWith('http') && line.includes('docs.google.com')) {
-                        handleGoogleDocImport(line);
-                        dom.omnibarInput.value = '';
-                        return;
-                    }
+                
+                if (!deck) {
+                    ui.showToast("Select or create a deck first");
+                    return;
+                }
+                
+                if (!line) return;
 
-                    const parsedBulk = parseBulkLine(line);
-                    
-                    if (parsedBulk && parsedBulk.length > 1) {
-                         // Bulk added
-                         let added = 0;
-                         parsedBulk.forEach(p => {
-                             if(p.term && p.def) {
-                                 addCard(p.term, p.def);
-                                 added++;
-                             }
-                         });
-                         dom.omnibarInput.value = '';
-                         ui.showToast(`${added} cards added`);
-                    } else {
-                        const parsed = parseLine(line);
-                        if (parsed) {
-                            addCard(parsed.term, parsed.def);
-                            dom.omnibarInput.value = '';
+                // Check for URL
+                if (line.startsWith('http') && line.includes('docs.google.com')) {
+                    handleGoogleDocImport(line);
+                    dom.omnibarInput.value = '';
+                    return;
+                }
+
+                const parsedBulk = parseBulkLine(line);
+                
+                if (parsedBulk && parsedBulk.length > 1) {
+                     // Bulk added
+                     let added = 0;
+                     parsedBulk.forEach(p => {
+                         if(p.term || p.def) {
+                             addCard(p.term || '', p.def || '');
+                             added++;
+                         }
+                     });
+                     dom.omnibarInput.value = '';
+                     if (added > 0) ui.showToast(`${added} cards added`);
+                     else ui.showToast("Could not parse cards. Use format: term - definition");
+                } else {
+                    const parsed = parseLine(line);
+                    if (parsed && (parsed.term || parsed.def)) {
+                        addCard(parsed.term || '', parsed.def || '');
+                        dom.omnibarInput.value = '';
+                        if (parsed.def) {
                             ui.showToast("Card added");
+                        } else {
+                            ui.showToast("Card added (missing definition — edit in table)");
                         }
+                    } else {
+                        ui.showToast("Could not parse. Use format: term - definition");
                     }
                 }
             }
@@ -231,8 +383,10 @@ function setupEventListeners() {
                 filteredCommands = COMMANDS.filter(c => c.label.toLowerCase().includes(query));
                 activeCommandIndex = 0;
                 renderCommandDropdown();
+                hideOmnibarPreview();
             } else {
                 closeCommandPalette();
+                updateOmnibarPreview(val);
             }
         });
     }
@@ -245,22 +399,27 @@ function setupEventListeners() {
     // Search Input
     if(dom.searchInput) {
         dom.searchInput.addEventListener('input', (e) => {
-            STATE.searchQuery = e.target.value;
+            const query = e.target.value;
+            store.dispatch('SEARCH_SET', query);
+            
             if(dom.btnClearSearch) {
-                if(STATE.searchQuery) dom.btnClearSearch.classList.remove('hidden');
+                if(query) dom.btnClearSearch.classList.remove('hidden');
                 else dom.btnClearSearch.classList.add('hidden');
             }
-            saveState();
             renderWorkspace();
+            
+            // Emit search event for subscribers
+            eventBus.emit(EVENTS.SEARCH_UPDATED, { query });
         });
     }
     
     if(dom.btnClearSearch) {
         dom.btnClearSearch.addEventListener('click', () => {
-            STATE.searchQuery = '';
+            store.dispatch('SEARCH_SET', '');
             if(dom.searchInput) dom.searchInput.value = '';
             dom.btnClearSearch.classList.add('hidden');
             renderWorkspace();
+            eventBus.emit(EVENTS.SEARCH_UPDATED, { query: '' });
         });
     }
 
@@ -307,12 +466,10 @@ function setupEventListeners() {
 
             // 2. Feature Modals
             const modals = [
-                document.getElementById('statsModal'),
                 document.getElementById('shortcutsModal'),
                 dom.exportModal,
-                dom.exportPreviewModal, // or 'exportPreviewModal'
-                dom.importPreviewModal || document.getElementById('previewModal'), 
-                dom.studyModal,
+                dom.exportPreviewModal,
+                dom.importPreviewModal,
                 document.getElementById('colorPickerModal')
             ];
 
@@ -369,6 +526,12 @@ function setupEventListeners() {
     if(dom.btnBulkDelete) dom.btnBulkDelete.onclick = bulkDelete;
     if(dom.btnBulkTag) dom.btnBulkTag.onclick = bulkTag;
     if(dom.btnBulkCancel) dom.btnBulkCancel.onclick = cancelBulkSelection;
+
+    // Find & Replace
+    const btnFindReplace = document.getElementById('btnFindReplace');
+    if (btnFindReplace) {
+        btnFindReplace.addEventListener('click', openFindReplaceModal);
+    }
 
     // Shortcuts Modal Close
     if(dom.btnCloseShortcuts) dom.btnCloseShortcuts.addEventListener('click', () => {
@@ -489,8 +652,339 @@ function openShortcutsModal() {
 
 
 
+// --- Hamburger Menu ---
+
+function setupHamburgerMenu() {
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const closeBtn = document.getElementById('sidebarCloseBtn');
+    
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('active');
+    }
+    
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+    }
+    
+    if (hamburgerBtn) hamburgerBtn.addEventListener('click', openSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    
+    // Close sidebar when a deck is selected on mobile
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.deck-item') && window.innerWidth <= 768) {
+            setTimeout(closeSidebar, 150);
+        }
+    });
+}
+
+// --- Settings Management ---
+
+function initSettings() {
+    const settings = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+    
+    // Populate settings fields
+    const fields = {
+        settingNewCards: { key: 'newCards', default: 20 },
+        settingMaxReviews: { key: 'maxReviews', default: 100 },
+        settingDailyGoal: { key: 'dailyGoal', default: 20 },
+        settingIntervalMod: { key: 'intervalMod', default: 100 },
+        settingLearningSteps: { key: 'learningSteps', default: '1, 10' },
+        settingFontSize: { key: 'fontSize', default: 32 },
+        settingSoundEffects: { key: 'soundEffects', default: false },
+        settingKeyboardHints: { key: 'keyboardHints', default: true },
+        settingReverseMode: { key: 'reverseMode', default: false }
+    };
+    
+    for (const [id, config] of Object.entries(fields)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        
+        const value = settings[config.key] !== undefined ? settings[config.key] : config.default;
+        
+        if (el.type === 'checkbox') {
+            el.checked = value;
+        } else {
+            el.value = value;
+        }
+        
+        // Save setting helper
+        const saveSetting = () => {
+            const current = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+            current[config.key] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.type === 'range' ? Number(el.value) : el.value);
+            localStorage.setItem('ankiflow_settings', JSON.stringify(current));
+            
+            // Apply font size immediately
+            if (config.key === 'fontSize') {
+                document.documentElement.style.setProperty('--card-font-size', el.value + 'px');
+                const fontSizeValue = document.getElementById('fontSizeValue');
+                if (fontSizeValue) fontSizeValue.textContent = el.value + 'px';
+            }
+            
+            // Update daily goal widget
+            if (config.key === 'dailyGoal') {
+                loadDailyGoal();
+            }
+            
+            // Apply keyboard hints
+            if (config.key === 'keyboardHints') {
+                applyKeyboardHints(el.checked);
+            }
+            
+            // Update range display labels
+            if (config.key === 'intervalMod') {
+                const display = document.getElementById('intervalModValue');
+                if (display) display.textContent = el.value + '%';
+            }
+        };
+        
+        // Save on both change AND input so settings persist even on quick refresh
+        el.addEventListener('change', saveSetting);
+        
+        if (el.type === 'range' || el.type === 'number' || el.type === 'text') {
+            el.addEventListener('input', saveSetting);
+        }
+    }
+    
+    // Update display values on init
+    const intervalModValue = document.getElementById('intervalModValue');
+    if (intervalModValue) intervalModValue.textContent = (settings.intervalMod || 100) + '%';
+    
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    if (fontSizeValue) fontSizeValue.textContent = (settings.fontSize || 32) + 'px';
+    
+    // Apply font size
+    if (settings.fontSize) {
+        document.documentElement.style.setProperty('--card-font-size', settings.fontSize + 'px');
+    }
+    
+    // Apply keyboard hints visibility
+    applyKeyboardHints(settings.keyboardHints !== false);
+    
+    // Export all data button
+    const btnExportAll = document.getElementById('btnExportAllData');
+    if (btnExportAll) {
+        btnExportAll.addEventListener('click', () => {
+            const state = store.getState();
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ankiflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            ui.showToast('Backup downloaded');
+        });
+    }
+    
+    // Import backup button
+    const btnImportBackup = document.getElementById('btnImportBackup');
+    const backupFileInput = document.getElementById('backupFileInput');
+    if (btnImportBackup && backupFileInput) {
+        btnImportBackup.addEventListener('click', () => backupFileInput.click());
+        backupFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                if (!data.decks || !Array.isArray(data.decks)) {
+                    ui.alert('Invalid backup file — missing decks array.');
+                    return;
+                }
+                const confirmed = await ui.confirm(
+                    `Import ${data.decks.length} decks from backup?\n\nThis will REPLACE all current data.`
+                );
+                if (confirmed) {
+                    localStorage.setItem('ankiState', JSON.stringify(data));
+                    window.location.reload();
+                }
+            } catch (err) {
+                ui.alert('Failed to read backup file: ' + err.message);
+            }
+            backupFileInput.value = '';
+        });
+    }
+    
+    // Reset all data button
+    const btnResetAll = document.getElementById('btnResetAllData');
+    if (btnResetAll) {
+        btnResetAll.addEventListener('click', () => {
+            ui.confirm('Are you sure you want to delete ALL data? This cannot be undone!').then(confirmed => {
+                if (confirmed) {
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            });
+        });
+    }
+}
+
+/**
+ * Apply keyboard hints visibility
+ * @param {boolean} show - Whether to show keyboard hints on buttons
+ */
+function applyKeyboardHints(show) {
+    document.querySelectorAll('.rating-kbd, .key-hint, kbd').forEach(el => {
+        // Only target rating keyboard badges, not all kbd elements
+        if (el.classList.contains('rating-kbd')) {
+            el.style.display = show ? '' : 'none';
+        }
+    });
+}
+
+// --- Count-up Animation Utility ---
+
+export function animateCountUp(elementId, target, duration = 500) {
+    const el = document.getElementById(elementId);
+    if (!el || target === 0) { if(el) el.textContent = target; return; }
+    
+    const start = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        const current = Math.round(start + (target - start) * eased);
+        el.textContent = current;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            el.textContent = target;
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+
 function preventDefaults(e) {
   e.preventDefault();
   e.stopPropagation();
+}
+
+// --- Auto-Save Indicator ---
+let autoSaveTimeout = null;
+function showAutoSaveIndicator() {
+    const el = document.getElementById('autoSaveText');
+    if (!el) return;
+    el.textContent = 'Saving...';
+    el.parentElement.classList.add('saving');
+    
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        el.textContent = 'Saved ✓';
+        el.parentElement.classList.remove('saving');
+        el.parentElement.classList.add('saved');
+        setTimeout(() => {
+            el.textContent = 'System Ready';
+            el.parentElement.classList.remove('saved');
+        }, 2000);
+    }, 500);
+}
+
+// --- Omnibar Markdown Preview ---
+import { renderMarkdown } from './utils/markdown-parser.js';
+
+function updateOmnibarPreview(text) {
+    const preview = document.getElementById('omnibarPreview');
+    if (!preview) return;
+    
+    if (!text || text.length < 3) {
+        preview.classList.add('hidden');
+        return;
+    }
+    
+    // Check if text has markdown formatting
+    const hasMd = /[*_`#\[\]]/.test(text);
+    if (!hasMd) {
+        preview.classList.add('hidden');
+        return;
+    }
+    
+    // Parse and show preview
+    const parsed = parseLine(text);
+    if (parsed) {
+        let html = '';
+        if (parsed.term) html += `<div class="preview-term">${renderMarkdown(parsed.term)}</div>`;
+        if (parsed.def) html += `<div class="preview-sep">→</div><div class="preview-def">${renderMarkdown(parsed.def)}</div>`;
+        preview.innerHTML = html;
+        preview.classList.remove('hidden');
+    } else {
+        preview.innerHTML = renderMarkdown(text);
+        preview.classList.remove('hidden');
+    }
+}
+
+function hideOmnibarPreview() {
+    const preview = document.getElementById('omnibarPreview');
+    if (preview) preview.classList.add('hidden');
+}
+
+// --- Find & Replace Modal ---
+function openFindReplaceModal() {
+    const modal = document.getElementById('findReplaceModal');
+    if (!modal) return;
+    
+    modal.classList.remove('hidden');
+    const findInput = document.getElementById('findInput');
+    if (findInput) { findInput.value = ''; findInput.focus(); }
+    
+    const replaceInput = document.getElementById('replaceInput');
+    if (replaceInput) replaceInput.value = '';
+    
+    // Setup handlers
+    const btnExecute = document.getElementById('btnExecuteFindReplace');
+    const btnCancel = document.getElementById('btnCancelFindReplace');
+    
+    const execute = () => {
+        const find = document.getElementById('findInput')?.value;
+        const replace = document.getElementById('replaceInput')?.value ?? '';
+        const caseSensitive = document.getElementById('findCaseSensitive')?.checked || false;
+        const wholeWord = document.getElementById('findWholeWord')?.checked || false;
+        const field = document.getElementById('findField')?.value || 'both';
+        
+        if (!find) {
+            ui.showToast('Enter search text');
+            return;
+        }
+        
+        const count = findAndReplace(find, replace, { caseSensitive, wholeWord, field });
+        modal.classList.add('hidden');
+        
+        if (count > 0) {
+            ui.showToast(`Replaced in ${count} cards`);
+        } else {
+            ui.showToast('No matches found');
+        }
+        cleanup();
+    };
+    
+    const cancel = () => {
+        modal.classList.add('hidden');
+        cleanup();
+    };
+    
+    const cleanup = () => {
+        btnExecute?.removeEventListener('click', execute);
+        btnCancel?.removeEventListener('click', cancel);
+    };
+    
+    btnExecute?.addEventListener('click', execute);
+    btnCancel?.addEventListener('click', cancel);
+    
+    // Enter to execute
+    const keyHandler = (e) => {
+        if (e.key === 'Enter') execute();
+        if (e.key === 'Escape') cancel();
+    };
+    findInput?.addEventListener('keydown', keyHandler);
+    replaceInput?.addEventListener('keydown', keyHandler);
 }
 
