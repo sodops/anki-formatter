@@ -374,17 +374,29 @@ function setupEventListeners() {
                 const parsedBulk = parseBulkLine(line);
                 
                 if (parsedBulk && parsedBulk.length > 1) {
-                     // Bulk added
-                     let added = 0;
-                     parsedBulk.forEach(p => {
-                         if(p.term || p.def) {
-                             addCard(p.term || '', p.def || '');
-                             added++;
+                     // Bulk add — use batch dispatch for performance
+                     const validCards = parsedBulk.filter(p => p.term || p.def).map(p => ({
+                         term: p.term || '',
+                         def: p.def || '',
+                         tags: []
+                     }));
+                     
+                     if (validCards.length > 0) {
+                         const deck = getActiveDeck();
+                         if (deck) {
+                             store.dispatch('CARD_BATCH_ADD', {
+                                 deckId: deck.id,
+                                 cards: validCards
+                             });
+                             renderWorkspace();
+                             ui.showToast(`${validCards.length} cards added`);
+                         } else {
+                             ui.showToast('Select or create a deck first');
                          }
-                     });
+                     } else {
+                         ui.showToast("Could not parse cards. Use format: term - definition");
+                     }
                      dom.omnibarInput.value = '';
-                     if (added > 0) ui.showToast(`${added} cards added`);
-                     else ui.showToast("Could not parse cards. Use format: term - definition");
                 } else {
                     const parsed = parseLine(line);
                     if (parsed && (parsed.term || parsed.def)) {
@@ -403,6 +415,82 @@ function setupEventListeners() {
             handleOmnibarKey(e);
         });
         
+        // Handle paste of multi-line content (e.g. 300 cards pasted at once)
+        dom.omnibarInput.addEventListener('paste', (e) => {
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            if (!pastedText) return;
+            
+            const lines = pastedText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            
+            // If 3+ lines pasted, treat as bulk import via import preview
+            if (lines.length >= 3) {
+                e.preventDefault();
+                const deck = getActiveDeck();
+                if (!deck) {
+                    ui.showToast('Select or create a deck first');
+                    return;
+                }
+                
+                ui.showToast(`Parsing ${lines.length} lines...`, 'info');
+                
+                // Use server-side parse API for robust parsing
+                fetch('/api/parse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ raw_text: pastedText })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.cards && data.cards.length > 0) {
+                        const cards = data.cards.map(c => ({
+                            term: c.question,
+                            def: c.answer,
+                            tags: []
+                        }));
+                        // Add failures as term-only cards
+                        if (data.failures) {
+                            data.failures.forEach(f => {
+                                cards.push({ term: f.replace(/^\[.*?\]\s*/, ''), def: '', tags: [] });
+                            });
+                        }
+                        // Show import preview for review before adding
+                        showImportPreview(cards, 'txt');
+                    } else {
+                        // Fallback: client-side parse each line
+                        const cards = [];
+                        for (const line of lines) {
+                            const parsed = parseLine(line);
+                            if (parsed && (parsed.term || parsed.def)) {
+                                cards.push({ term: parsed.term || '', def: parsed.def || '', tags: [] });
+                            }
+                        }
+                        if (cards.length > 0) {
+                            showImportPreview(cards, 'txt');
+                        } else {
+                            ui.showToast('No parseable cards found in pasted content');
+                        }
+                    }
+                    dom.omnibarInput.value = '';
+                })
+                .catch(() => {
+                    // Offline fallback: client-side batch add
+                    const cards = [];
+                    for (const line of lines) {
+                        const parsed = parseLine(line);
+                        if (parsed && (parsed.term || parsed.def)) {
+                            cards.push({ term: parsed.term || '', def: parsed.def || '', tags: [] });
+                        }
+                    }
+                    if (cards.length > 0) {
+                        showImportPreview(cards, 'txt');
+                    } else {
+                        ui.showToast('Could not parse pasted content');
+                    }
+                    dom.omnibarInput.value = '';
+                });
+            }
+        });
+
         dom.omnibarInput.addEventListener('input', (e) => {
             const val = e.target.value;
             if (val.startsWith('>')) {

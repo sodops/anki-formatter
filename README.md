@@ -16,7 +16,7 @@
 | **UI** | Vanilla JavaScript ES6 modullari |
 | **Auth** | Supabase Auth (Email, Google, GitHub OAuth) |
 | **Ma'lumotlar bazasi** | Supabase PostgreSQL (JSONB) + localStorage fallback |
-| **Deploy** | Vercel (auto-deploy `nextjs` branch) |
+| **Deploy** | Vercel (auto-deploy `main` branch) |
 | **Algoritm** | SM-2 Spaced Repetition |
 
 ---
@@ -106,7 +106,6 @@
 ```bash
 git clone https://github.com/sodops/anki-formatter.git
 cd anki-formatter
-git checkout nextjs
 npm install
 ```
 
@@ -219,7 +218,7 @@ Har bir rating (Again, Hard, Good, Easy) kartaning ease factor va intervalini o'
 
 ## 🚢 Deploy (Vercel)
 
-1. GitHub repo'ni Vercel'ga ulang (`nextjs` branch)
+1. GitHub repo'ni Vercel'ga ulang (`main` branch)
 2. Environment Variables qo'shing:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

@@ -113,7 +113,9 @@ class Store {
      * @param {object} payload - Action payload
      */
     dispatch(action, payload = {}) {
-        const oldState = JSON.stringify(this.state);
+        // Shallow snapshot for rollback — only deep-clone on error
+        const snapshotDecks = this.state.decks;
+        const snapshotState = { ...this.state };
 
         try {
             switch (action) {
@@ -165,7 +167,9 @@ class Store {
             }
         } catch (error) {
             console.error(`[STORE] dispatch('${action}') FAILED:`, error.message, error.stack);
-            this.state = JSON.parse(oldState); // Rollback
+            // Rollback to snapshot
+            this.state = snapshotState;
+            this.state.decks = snapshotDecks;
             return false;
         }
     }
@@ -176,13 +180,15 @@ class Store {
      * @param {boolean} skipHistory - If true, don't add to undo history
      */
     setState(newState, skipHistory = false) {
-        const oldState = JSON.parse(JSON.stringify(this.state));
-        this.state = { ...this.state, ...newState };
-        
-        // Save history for undo/redo (skip for search/view/theme)
+        // Only deep-clone for undo history (skip for search/view/theme)
         if (!skipHistory) {
+            const oldState = typeof structuredClone === 'function'
+                ? structuredClone(this.state)
+                : JSON.parse(JSON.stringify(this.state));
             this._addToHistory(oldState);
         }
+        
+        this.state = { ...this.state, ...newState };
         
         // Persist to localStorage
         this.persist();
