@@ -6,7 +6,7 @@
 import { store } from '../../core/store.js';
 import { eventBus, EVENTS } from '../../core/events.js';
 import { appLogger } from '../../core/logger.js';
-import { STATE, saveState, getActiveDeck, addToHistory } from '../../core/storage/storage.js';
+import { STATE, saveState, getActiveDeck } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { ui, escapeHtml, showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
@@ -572,23 +572,9 @@ export function getActiveTagFilter() {
 export function updateCard(index, field, value) {
     try {
         const deck = getActiveDeck();
-        const oldValue = field === 'term' ? deck.cards[index].term : deck.cards[index].def;
         
-        // Track in history
-        addToHistory('edit', {
-            deckId: deck.id,
-            index: index,
-            field: field,
-            oldValue: oldValue,
-            newValue: value
-        });
-        
-        // Use store to update card
+        // Use store to update card (store.dispatch handles undo history)
         const card = deck.cards[index];
-        const updatedCard = {
-            ...card,
-            [field]: value
-        };
         
         store.dispatch('CARD_UPDATE', {
             deckId: deck.id,
@@ -708,13 +694,6 @@ export function removeCard(index) {
         }
         
         const deletedCard = {...card};
-        
-        // Track in history
-        addToHistory('delete', {
-            deckId: deck.id,
-            index: actualIndex,
-            card: deletedCard
-        });
         
         store.dispatch('CARD_DELETE', {
             deckId: deck.id,

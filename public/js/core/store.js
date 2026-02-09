@@ -42,6 +42,8 @@ class Store {
      * Setup listeners for auth events from React layer
      */
     _setupAuthListeners() {
+        this._cloudLoaded = false; // track if cloud data was already loaded this session
+
         // When auth is ready on page load
         window.addEventListener('ankiflow:auth-ready', (e) => {
             const detail = e.detail || {};
@@ -49,7 +51,6 @@ class Store {
             this._accessToken = detail.accessToken || null;
             if (this._authUser) {
                 console.log('[STORE] Auth ready, user:', this._authUser.email);
-                // Load from cloud if authenticated
                 this._loadFromCloud();
             }
         });
@@ -57,13 +58,20 @@ class Store {
         // When auth changes (login/logout)
         window.addEventListener('ankiflow:auth-change', (e) => {
             const detail = e.detail || {};
+            const prevUser = this._authUser;
             this._authUser = detail.user || null;
             this._accessToken = detail.accessToken || null;
             if (this._authUser) {
-                console.log('[STORE] Auth changed, loading cloud data');
-                this._loadFromCloud();
+                // Only load from cloud if this is a NEW login (not initial page load)
+                if (this._cloudLoaded) {
+                    console.log('[STORE] Auth changed, cloud already loaded — skipping');
+                } else {
+                    console.log('[STORE] Auth changed, loading cloud data');
+                    this._loadFromCloud();
+                }
             } else {
                 console.log('[STORE] User logged out');
+                this._cloudLoaded = false;
             }
         });
 
@@ -353,6 +361,7 @@ class Store {
                 // Re-render UI
                 this._triggerUIRefresh();
 
+                this._cloudLoaded = true;
                 this._updateSyncUI('synced');
                 return;
             } else {

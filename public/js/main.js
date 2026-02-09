@@ -145,17 +145,19 @@ function initAnkiFlow() {
             renderWorkspace();
         });
         
-        // Card operations
+        // Card operations — these events are for external listeners only.
+        // addCard/removeCard/suspendCard do targeted DOM updates,
+        // so we do NOT call renderWorkspace() here to avoid double-render.
         eventBus.on(EVENTS.CARD_ADDED, () => {
-            renderWorkspace();
+            // Targeted DOM insert handled in addCard()
         });
         
         eventBus.on(EVENTS.CARD_UPDATED, () => {
-            renderWorkspace();
+            // Inline edit handled in createCardRow saveTerm/saveDef
         });
         
         eventBus.on(EVENTS.CARD_DELETED, () => {
-            renderWorkspace();
+            // Targeted DOM removal handled in removeCard()
         });
         
         // Study session
