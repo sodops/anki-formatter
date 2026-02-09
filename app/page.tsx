@@ -10,6 +10,17 @@ export default function Home() {
     if (skeleton) skeleton.style.display = "none";
     if (container) container.style.display = "";
 
+    // Load Ionicons dynamically (avoids hydration mismatch from class="hydrated")
+    const ionModule = document.createElement("script");
+    ionModule.type = "module";
+    ionModule.src = "https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js";
+    document.head.appendChild(ionModule);
+
+    const ionFallback = document.createElement("script");
+    ionFallback.setAttribute("nomodule", "");
+    ionFallback.src = "https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js";
+    document.head.appendChild(ionFallback);
+
     // Load main.js as ES6 module via DOM injection
     // (Next.js strips <script> tags from JSX, so we do it programmatically)
     const script = document.createElement("script");
