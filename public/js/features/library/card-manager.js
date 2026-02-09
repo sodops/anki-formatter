@@ -101,7 +101,7 @@ export function renderWorkspace() {
             checkbox.className = 'row-checkbox';
             checkbox.style.marginRight = '8px';
             checkbox.dataset.index = originalIndex;
-            checkbox.setAttribute('aria-label', `Select card ${i + 1}`);
+            checkbox.setAttribute('aria-label', `Select card ${originalIndex + 1}`);
             checkbox.onclick = (e) => {
                 e.stopPropagation();
                 toggleRowSelection(originalIndex);
