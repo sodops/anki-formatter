@@ -2454,7 +2454,7 @@ tr[draggable="true"]:active {
   padding: 8px 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  display: flex;
+  display: none; /* Hidden - removed from UI */
   align-items: center;
   gap: 8px;
   font-size: 13px;
@@ -2576,7 +2576,7 @@ tr[draggable="true"]:active {
 .hamburger-btn {
   display: none;
   position: fixed;
-  top: 16px;
+  top: 14px;
   left: 10px;
   z-index: 1100;
   width: 40px;
@@ -3056,6 +3056,7 @@ tr[draggable="true"]:active {
     padding: 8px 16px 0;
     overflow-x: auto;
     gap: 2px;
+    justify-content: center;
   }
 
   .nav-tab span {
