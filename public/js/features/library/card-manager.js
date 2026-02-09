@@ -16,11 +16,13 @@ import { initializeReviewData } from '../../core/srs/scheduler.js';
 // Bulk Selection State
 let selectedIndices = new Set();
 let activeTagFilter = null;
+let _renderGeneration = 0; // incremented on each renderWorkspace call to cancel stale chunks
 
 /**
  * Render the workspace (card table)
  */
 export function renderWorkspace() {
+    _renderGeneration++; // cancel any in-progress chunked render
     const deck = getActiveDeck();
     
     // Update Select All Checkbox state
@@ -84,6 +86,7 @@ export function renderWorkspace() {
         const CHUNK_SIZE = 100;
         const totalCards = filteredCards.length;
         let renderedCount = 0;
+        const thisGeneration = _renderGeneration;
         
         // Show loading for very large decks
         if (totalCards > CHUNK_SIZE) {
@@ -91,6 +94,12 @@ export function renderWorkspace() {
         }
         
         function renderChunk() {
+            // Abort if a newer renderWorkspace call has been made
+            if (_renderGeneration !== thisGeneration) {
+                ui.hideLoading();
+                return;
+            }
+            
             const fragment = document.createDocumentFragment();
             const end = Math.min(renderedCount + CHUNK_SIZE, totalCards);
             
@@ -168,6 +177,7 @@ function createCardRow(card, originalIndex) {
             // Make row draggable (only if handle clicked? or whole row?)
             tr.setAttribute('draggable', 'true');
             tr.dataset.cardIndex = originalIndex;
+            tr.dataset.cardId = card.id || '';
             
             // Term Cell
             const termTd = document.createElement('td');
@@ -669,35 +679,54 @@ export function addCard(term, def) {
 export function removeCard(index) {
     try {
         const deck = getActiveDeck();
-        if (!deck || !deck.cards[index]) {
-            appLogger.warn(`removeCard: invalid index ${index}, deck has ${deck?.cards?.length} cards`);
+        if (!deck) {
+            appLogger.warn(`removeCard: no active deck`);
             return;
         }
-        const card = deck.cards[index];
-        const deletedCard = {...card}; // Copy before deleting
+        
+        // Find the row in DOM to get the card ID (more reliable than index)
+        const row = dom.tableBody.querySelector(`tr[data-card-index="${index}"]`);
+        const cardId = row?.dataset?.cardId;
+        
+        // Find card by ID first, fall back to index
+        let card, actualIndex;
+        if (cardId) {
+            actualIndex = deck.cards.findIndex(c => c.id === cardId);
+            card = actualIndex >= 0 ? deck.cards[actualIndex] : null;
+        }
+        if (!card) {
+            // Fallback to index
+            card = deck.cards[index];
+            actualIndex = index;
+        }
+        
+        if (!card) {
+            appLogger.warn(`removeCard: card not found (index=${index}, id=${cardId}, deckCards=${deck.cards.length})`);
+            // Remove stale row from DOM
+            if (row) row.remove();
+            return;
+        }
+        
+        const deletedCard = {...card};
         
         // Track in history
         addToHistory('delete', {
             deckId: deck.id,
-            index: index,
+            index: actualIndex,
             card: deletedCard
         });
         
         store.dispatch('CARD_DELETE', {
             deckId: deck.id,
-            cardId: card.id || index
+            cardId: card.id
         });
         
-        eventBus.emit(EVENTS.CARD_DELETED, { index, card: deletedCard });
+        eventBus.emit(EVENTS.CARD_DELETED, { index: actualIndex, card: deletedCard });
         
-        // Targeted DOM removal — find and remove just this row
-        const row = dom.tableBody.querySelector(`tr[data-card-index="${index}"]`);
+        // Targeted DOM removal
         if (row) {
-            // Mark as deleting to prevent double-click issues
             if (row.dataset.deleting) return;
             row.dataset.deleting = 'true';
-            
-            // Disable buttons in this row immediately
             row.querySelectorAll('button').forEach(btn => btn.disabled = true);
             
             row.style.transition = 'opacity 0.15s, transform 0.15s';
@@ -705,30 +734,28 @@ export function removeCard(index) {
             row.style.transform = 'translateX(-20px)';
             setTimeout(() => {
                 row.remove();
-                // Re-index remaining rows to match new card indices
+                // Re-index remaining rows
                 const rows = dom.tableBody.querySelectorAll('tr');
                 rows.forEach((r) => {
                     const oldIdx = parseInt(r.dataset.cardIndex);
-                    if (oldIdx > index) {
+                    if (oldIdx > actualIndex) {
                         r.dataset.cardIndex = oldIdx - 1;
                         const cb = r.querySelector('.row-checkbox');
                         if (cb) cb.dataset.index = oldIdx - 1;
                     }
                 });
                 updateCardCounts();
-                // Show empty state if no cards left
                 if (dom.tableBody.children.length === 0) {
                     dom.emptyState.classList.remove('hidden');
                     dom.emptyState.querySelector('p').textContent = 'No cards yet. Type "word - definition" above to add your first card!';
                 }
             }, 150);
         } else {
-            // Fallback: full re-render if row not found
             renderWorkspace();
         }
         
         showToast('Card deleted');
-        appLogger.info(`Card deleted at index ${index}`);
+        appLogger.info(`Card deleted: id=${card.id}, index=${actualIndex}`);
     } catch (error) {
         appLogger.error("Failed to remove card", error);
         showToast("Failed to delete card");

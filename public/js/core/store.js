@@ -30,6 +30,7 @@ class Store {
         this._syncTimer = null;
         this._syncDelay = 2000; // 2 second debounce
         this._isSyncing = false;
+        this._isLoadingCloud = false;
         this._authUser = null;
         this._accessToken = null;
 
@@ -317,6 +318,9 @@ class Store {
      */
     async _loadFromCloud() {
         if (!this._authUser) return;
+        // Prevent duplicate simultaneous loads (auth-ready + auth-change fire together)
+        if (this._isLoadingCloud) return;
+        this._isLoadingCloud = true;
 
         this._updateSyncUI('syncing');
 
@@ -359,6 +363,8 @@ class Store {
         } catch (error) {
             console.error('[STORE] Cloud load failed, using localStorage:', error.message);
             this._updateSyncUI('error');
+        } finally {
+            this._isLoadingCloud = false;
         }
     }
 
