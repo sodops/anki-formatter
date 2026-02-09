@@ -108,7 +108,11 @@ function initAnkiFlow() {
         const skeleton = document.getElementById('appSkeleton');
         const appContainer = document.getElementById('appContainer');
         if (skeleton) skeleton.classList.add('hidden');
-        if (appContainer) appContainer.style.display = '';
+        if (appContainer) {
+            appContainer.style.visibility = 'visible';
+            appContainer.style.position = 'static';
+            appContainer.removeAttribute('aria-hidden');
+        }
         
         // Subscribe to store changes for real-time updates
         store.subscribe((newState) => {

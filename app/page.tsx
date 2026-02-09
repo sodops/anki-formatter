@@ -8,7 +8,11 @@ export default function Home() {
     const skeleton = document.getElementById("appSkeleton");
     const container = document.getElementById("appContainer");
     if (skeleton) skeleton.style.display = "none";
-    if (container) container.style.display = "";
+    if (container) {
+      container.style.visibility = "visible";
+      container.style.position = "static";
+      container.removeAttribute('aria-hidden');
+    }
 
     // Load Ionicons dynamically (avoids hydration mismatch from class="hydrated")
     const ionModule = document.createElement("script");
@@ -30,7 +34,7 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <main id="app-main">
       <noscript>
         <div
           style={{
@@ -71,7 +75,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="app-container" id="appContainer" style={{ display: "none" }}>
+      <div className="app-container" id="appContainer" style={{ visibility: "hidden", position: "absolute" }}>
         {/* Mobile Hamburger */}
         <button className="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
           <ion-icon name="menu-outline"></ion-icon>
@@ -116,7 +120,7 @@ export default function Home() {
         </nav>
 
         {/* MAIN WORKSPACE */}
-        <main className="main-content" role="main">
+        <div className="main-content">
           {/* TOP BAR */}
           <div className="top-bar">
             <div className="omnibar-container" id="omnibarContainer">
@@ -524,7 +528,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-        </main>
+        </div>
       </div>
 
       {/* TOAST */}
@@ -727,6 +731,6 @@ export default function Home() {
         </div>
       </div>
 
-    </>
+    </main>
   );
 }
