@@ -271,7 +271,7 @@ export function startStudySession(skipViewSwitch = false) {
     updateProgressBar();
     setupStudyListeners();
     
-    console.log('Study session started with', sessionCards.length, 'cards');
+
 }
 
 /**
@@ -700,7 +700,7 @@ function setupStudyListeners() {
     if (btnGood) btnGood.onclick = () => rateCard(3);
     if (btnEasy) btnEasy.onclick = () => rateCard(5);
     
-    console.log('Study listeners setup complete');
+
 }
 
 function removeStudyListeners() {
