@@ -1,299 +1,194 @@
-# 🎴 AnkiFlow - Smart Anki Card Formatter
+# ⚡ AnkiFlow — Smart Flashcard Platform
 
-A modern, feature-rich web application for creating and managing Anki flashcards with a beautiful dark/light theme interface, built-in spaced repetition (SM-2), and a powerful study mode.
+A modern, feature-rich flashcard study platform with **Spaced Repetition (SM-2)**, built with Flask + Vanilla JS.
 
-![AnkiFlow Dashboard](https://img.shields.io/badge/Status-Active-success) ![Version](https://img.shields.io/badge/Version-5.0-blue)
+> **v6.0** — Major bug fixes, security hardening, and 8 new features
+
+---
 
 ## ✨ Features
 
-### 📚 **Study Mode with SRS**
+### 📚 Core
+- **Spaced Repetition (SM-2)** — intelligent review scheduling with learning steps
+- **Multi-deck management** — create, rename, color-code, drag-reorder
+- **Rich card editing** — inline editing with Markdown support (bold, italic, code)
+- **Tag system** — tag cards, filter by tags, bulk tagging
+- **Search** — instant full-text search across terms and definitions
+- **Reverse mode** — study definition → term
+- **Card suspend/bury** — temporarily exclude cards from study
 
-- Built-in SM-2 spaced repetition algorithm
-- Learning steps (1m, 10m) with graduation to review queue
-- 4-button rating system: Again, Hard, Good, Easy
-- Card re-queuing on "Again" within the same session
-- Session summary with accuracy ring and animated stats
-- Keyboard shortcuts: Space to flip, 1-4 to rate
-- Progress bar with card count and percentage
-- Sound effects (optional) via Web Audio API
-- 🆕 **Reverse Mode** — Study definition → term (toggle in Settings)
-- 🆕 **Confetti animation** on session completion 🎉
+### 📖 Study
+- **Smart sessions** — only due cards (new + learning + review)
+- **Visual flashcards** — flip animation, keyboard shortcuts (Space, 1-4)
+- **Sound effects** — subtle audio feedback (optional)
+- **Again re-queuing** — failed cards reappear later in session
+- **Daily goal tracking** — progress bar with streak counter
+- **Session summary** — accuracy ring, per-rating breakdown, confetti
 
-### 🔄 **Reverse Cards**
+### 📊 Statistics
+- **Overview** — total cards, decks, streak, accuracy, upcoming
+- **Deck distribution** — horizontal bar chart
+- **Card maturity** — New / Learning / Young / Mature breakdown
+- **Review heatmap** — GitHub-style 90-day activity calendar
+- **Review forecast** — 14-day upcoming due cards bar chart
+- **Per-deck breakdown** — table with New/Learning/Review/Suspended/Accuracy
+- **Top tags** — tag cloud with counts
 
-- Toggle in Settings → Study → Reverse mode
-- Shows definition on front, guess the term
-- Study title shows "(Reverse)" indicator
+### 📥 Import / Export
+- **Import**: TXT, CSV (with column mapping), DOCX, Google Docs URL
+- **Export**: .apkg (Anki), .txt (tab-separated), .md, .csv
+- **Batch import** — optimized single-state-update for 1000+ cards
+- **Import preview** — see first 10 cards + duplicate detection
+- **Full backup** — JSON export/import of all data
 
-### 🔍 **Find & Replace**
+### 🎨 UI/UX
+- **Dark & Light themes** — plus auto (system preference)
+- **Command palette** — press `>` in omnibar or `F1`
+- **Keyboard shortcuts** — Ctrl+Z undo, Ctrl+F search, Space flip, 1-4 rate
+- **Responsive design** — mobile hamburger menu, touch-friendly
+- **Find & Replace** — bulk text editing with case/whole-word/field options
+- **Move/Copy cards** — between decks via context menu
+- **Review history** — per-card review log with color-coded ratings
+- **Markdown preview** — live preview in omnibar
+- **Auto-save indicator** — visual feedback on state changes
+- **Drag & drop** — reorder cards in table
 
-- Bulk text editing across all cards in the active deck
-- Case-sensitive and whole-word match options
-- Target specific fields (term only, definition only, or both)
-- Accessible via toolbar button or Command Palette
+---
 
-### �� **Move & Copy Cards**
+## 🛡️ Security (v6.0)
 
-- Move or copy any card to another deck with one click
-- Context menu appears on the ➡️ button in each card row
-- Move removes from source deck, Copy keeps the original
-- Supports any number of decks
+- **XSS prevention** — all Markdown output sanitized (tag whitelist + attribute filtering)
+- **Path traversal fix** — `secure_filename()` on Flask download endpoint
+- **Request timeouts** — Google Docs import has 30s timeout
+- **localStorage quota** — graceful handling when storage is full
 
-### ✍️ **Markdown Preview**
-
-- Real-time markdown preview in the omnibar while typing
-- Shows formatted term → definition before adding
-- Activates automatically when markdown syntax is detected
-- Full markdown support: **bold**, *italic*, `code`, lists
-
-### 📊 **Review History**
-
-- Per-card review history accessible via ⏱ button on each row
-- Shows date, rating (color-coded), interval, and ease factor
-- Last 20 reviews displayed in reverse chronological order
-- Total review count per card
-
-### 📈 **Card Maturity Chart**
-
-- Visual breakdown of card states across all decks
-- Categories: New (blue), Learning (amber), Young (green), Mature (purple)
-- Horizontal stacked bar with percentage legend
-- Located in the Statistics view
-
-### 🏷️ **Tag Filter**
-
-- Filter cards by tag in the Library view
-- Auto-generated pill buttons for all tags in the deck
-- "All" button to reset filter
-- Combines with search for powerful filtering
-
-### 💾 **Auto-Save Indicator**
-
-- Visual feedback in the sidebar status bar on every save
-- Shows "Saving..." → "Saved ✓" → "System Ready"
-- Animated dot color changes (amber → green → default)
-
-### 🏷️ **Tags System**
-
-- Add multiple tags to each card for better organization
-- Tag input with Enter or comma to add tags
-- Beautiful tag badges with one-click removal
-- Bulk tagging of selected cards
-
-### 🎨 **Deck Color Picker**
-
-- Customize each deck with vibrant colors
-- 12 preset color options + custom color input
-- Color indicator on sidebar deck items
-- Optional gradient mode
-
-### 📋 **Export Preview**
-
-- Preview your export before downloading
-- See total cards, valid cards, and issues count
-- View first 5 sample cards with term, definition, and tags
-- Quick "Looks Good - Export" button
-
-### 🔍 **Search & Filter**
-
-- Real-time card search by term or definition
-- Clear button for quick reset
-- Filtered count display
-- Combines with tag filter
-
-### ↩️ **Undo/Redo System**
-
-- Full history tracking (last 50 operations)
-- Undo with Ctrl+Z, Redo with Ctrl+Y
-- Supports: add, edit, delete, clear, tag operations
-
-### ⌨️ **Keyboard Shortcuts**
-
-- F1 — Open command palette
-- Ctrl+/ — Show keyboard shortcuts panel
-- Ctrl+Z / Ctrl+Y — Undo / Redo
-- Ctrl+F — Focus search
-- Ctrl+1-4 — Switch views (Library, Study, Statistics, Settings)
-- Space — Show answer (study mode)
-- 1-4 — Rate card (study mode)
-
-### 🌓 **Dark/Light Theme**
-
-- Three modes: Dark, Light, Auto (system preference)
-- Premium color palette for both modes
-- Glassmorphism effects and smooth gradients
-
-### 📥 **Import Options**
-
-- Plain text with flexible separators
-- CSV files with column mapping
-- Google Docs integration
-- DOCX support via backend
-- Drag & drop file upload
-- JSON backup restore (Settings → Data → Import)
-
-### 💾 **Export Formats**
-
-- Anki Package (.apkg)
-- Plain Text (.txt)
-- Markdown (.md)
-- Full JSON backup (Settings → Data → Export)
-
-### 🗂️ **Deck Management**
-
-- Create unlimited decks
-- Per-deck settings (new cards/day, max reviews/day)
-- Rename, delete (trash), restore from trash
-- Color customization with due card badges
-
-### ⚡ **Smart Operations**
-
-- **Bulk Actions**: Select multiple cards to delete or tag at once
-- **Smart Paste**: Paste chains like term1=def1 -> term2=def2
-- **Flexible Import**: Handles various separators
-- **Clear Deck** uses efficient bulk delete
-
-### 📊 **Statistics Dashboard**
-
-- Total cards & decks overview with animated counters
-- Study streak and accuracy percentage
-- Due today & upcoming week counts
-- Deck distribution chart
-- Card maturity chart (New/Learning/Young/Mature)
-- Top tags cloud
+---
 
 ## 🚀 Quick Start
 
-### Installation
-
 ```bash
+# Clone & setup
 git clone https://github.com/sodops/anki-formatter.git
 cd anki-formatter
+
+# Install Python deps
 pip install -r requirements.txt
-./start_web.sh
+
+# Run
+python src/app.py
+# → http://localhost:5000
 ```
 
 ### Docker
-
 ```bash
 docker-compose up --build
 ```
 
-### Access
-
-```
-http://127.0.0.1:5000
-```
-
-## 📖 Usage
-
-1. **Create a Deck**: Click "+ New Deck" in the sidebar
-2. **Add Cards**: Type in the omnibar (e.g., apple - fruit)
-3. **Add Tags**: Click in the Tags column, type a tag, press Enter
-4. **Study**: Click "Study" to start a spaced repetition session
-5. **Move/Copy**: Click ➡️ on any card to move or copy to another deck
-6. **Find & Replace**: Click "Find & Replace" for bulk edits
-7. **Filter by Tag**: Click tag pills above the table
-8. **View History**: Click ⏱ on any card to see its review history
-9. **Export**: Click "Export", preview, then download
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Vanilla JavaScript (ES6 Modules), CSS3, HTML5
-- **Backend**: Python (Flask)
-- **Storage**: localStorage (client-side persistence)
-- **SRS**: SM-2 algorithm with learning steps
-- **Icons**: Ionicons 7
-- **Design**: Custom CSS with CSS Variables
+---
 
 ## 📁 Project Structure
 
 ```
-anki-formatter/
-├── src/
-│   ├── app.py                          # Flask backend
-│   ├── parser.py                       # Text parser
-│   ├── anki_generator.py               # .apkg generation
-│   ├── static/
-│   │   ├── style.css                   # 3300+ lines of CSS
-│   │   └── js/
-│   │       ├── main.js                 # Entry point
-│   │       ├── core/
-│   │       │   ├── store.js            # State management
-│   │       │   ├── events.js           # EventBus
-│   │       │   ├── logger.js           # Logging
-│   │       │   └── srs/scheduler.js    # SM-2 algorithm
-│   │       ├── features/
-│   │       │   ├── library/
-│   │       │   │   ├── card-manager.js # Cards + find & replace
-│   │       │   │   └── deck-manager.js # Decks + sidebar
-│   │       │   ├── study/
-│   │       │   │   └── study-session.js
-│   │       │   ├── import/import-handler.js
-│   │       │   ├── export/export-handler.js
-│   │       │   └── stats/stats-calculator.js
-│   │       ├── ui/
-│   │       │   ├── components/ui.js
-│   │       │   ├── navigation/view-manager.js
-│   │       │   ├── interactions/drag-drop.js
-│   │       │   └── theme/theme-manager.js
-│   │       └── utils/
-│   │           ├── dom-helpers.js
-│   │           └── markdown-parser.js
-│   └── templates/index.html
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-├── start_web.sh
-└── README.md
+src/
+├── app.py                    # Flask backend
+├── parser.py                 # Text → flashcard parser
+├── anki_generator.py         # .apkg file generator
+├── file_handler.py           # File reading utilities
+├── templates/
+│   └── index.html            # Single-page application (853 lines)
+└── static/
+    ├── style.css             # All styles (3500+ lines, dark/light)
+    └── js/
+        ├── main.js           # App entry, event listeners, commands
+        ├── core/
+        │   ├── store.js      # Redux-inspired state management
+        │   ├── events.js     # EventBus for decoupled updates
+        │   ├── logger.js     # Structured logging
+        │   ├── storage/
+        │   │   └── storage.js # Compatibility layer
+        │   ├── srs/
+        │   │   └── scheduler.js # SM-2 algorithm
+        │   └── history/
+        │       └── history-manager.js
+        ├── features/
+        │   ├── library/
+        │   │   ├── card-manager.js  # Card CRUD, tags, find/replace
+        │   │   └── deck-manager.js  # Deck CRUD, sidebar, trash
+        │   ├── study/
+        │   │   └── study-session.js # Study mode, rating, confetti
+        │   ├── import/
+        │   │   └── import-handler.js # File upload, CSV parsing
+        │   ├── export/
+        │   │   └── export-handler.js # APKG/TXT/MD/CSV export
+        │   └── stats/
+        │       └── stats-calculator.js # Dashboard, heatmap, forecast
+        ├── ui/
+        │   ├── components/ui.js     # Toast, modals, color picker
+        │   ├── interactions/drag-drop.js
+        │   ├── navigation/view-manager.js
+        │   └── theme/theme-manager.js
+        └── utils/
+            ├── dom-helpers.js       # DOM element references
+            └── markdown-parser.js   # Sanitized Markdown rendering
 ```
-
-## 🎯 Changelog
-
-### v5.0 (Current)
-- ✅ Reverse Cards (study definition → term)
-- ✅ Find & Replace (bulk text editing)
-- ✅ Move/Copy cards between decks
-- ✅ Markdown preview in omnibar
-- ✅ Per-card Review History UI
-- ✅ Card Maturity chart
-- ✅ Tag filter in Library view
-- ✅ Auto-save indicator
-- ✅ Confetti animation on session complete
-- ✅ 9 bug fixes (double session, store bypasses, etc.)
-
-### v4.x
-- ✅ SM-2 spaced repetition
-- ✅ Architecture refactoring (Store/EventBus/Logger)
-- ✅ 30+ bug fixes
-- ✅ Import/export with backup/restore
-- ✅ Session summary, streak, daily goal
-- ✅ Command palette
-
-### v3.0
-- ✅ Markdown support
-- ✅ CSV column mapping
-- ✅ Study mode, bulk operations
-- ✅ Statistics dashboard
-
-### v2.0
-- ✅ Tags, deck colors, drag & drop, export preview
-
-### v1.0
-- ✅ Basic flashcard creation, multi-deck, import/export
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to report bugs, suggest features, or submit PRs.
-
-## 📝 License
-
-MIT License
-
-## 👤 Author
-
-**Sodiq** - [@sodops](https://github.com/sodops)
 
 ---
 
-**Made with ❤️ for productive learning**
+## 📋 Changelog
+
+### v6.0 — Bug Fixes & Security Hardening
+**Critical Fixes:**
+- 🔴 Fixed APKG export (was calling wrong endpoint `/generate_apkg` → `/generate`)
+- 🔴 Fixed XSS vulnerability in Markdown rendering (added HTML sanitizer)
+- 🔴 Fixed path traversal vulnerability in Flask download endpoint
+- 🔴 Fixed undo/redo (search/view/theme no longer pollute history, off-by-one fixed)
+- 🔴 Fixed drag-drop card reorder (now uses store dispatch, correct index handling)
+
+**New Features:**
+- ✅ **Card suspend/bury** — exclude cards from study sessions
+- ✅ **CSV export** — export decks as .csv with Term, Definition, Tags columns
+- ✅ **Review heatmap** — 90-day GitHub-style activity calendar
+- ✅ **Review forecast** — 14-day upcoming due cards chart
+- ✅ **Per-deck statistics** — breakdown table with accuracy per deck
+- ✅ **Batch import** — single state update for 1000+ card imports
+- ✅ **localStorage quota handling** — graceful fallback when storage is full
+- ✅ **Better ID generation** — `crypto.randomUUID()` with fallback
+
+**Improvements:**
+- SM-2 ease factor only modified for graduated review cards (not learning)
+- TXT export uses tab separator (reimport-friendly)
+- Markdown export escapes `#` in terms to prevent heading corruption
+- Undo/redo skips inputs to preserve native browser undo
+- Flask Google Docs import has 30s timeout
+- Flask cleans up temp files on generation failure
+- All modals have `role="dialog"` and `aria-modal="true"`
+- Toast has `aria-live="polite"` for screen readers
+- `<noscript>` tag for JS-disabled browsers
+- Keyboard shortcuts help modal corrected (Ctrl+Y for redo)
+
+### v5.0 — 9 Features + Architecture
+- Reverse card mode, Find & Replace, Move/Copy cards
+- Markdown preview, review history, maturity chart
+- Tag filter, auto-save indicator, confetti animation
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `F1` | Command palette |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+F` | Focus search |
+| `Ctrl+/` | Show shortcuts |
+| `Ctrl+1-4` | Switch view |
+| `Space` | Show answer |
+| `1` / `2` / `3` / `4` | Again / Hard / Good / Easy |
+| `Esc` | Close modal / End session |
+
+---
+
+## 📄 License
+
+MIT © [sodops](https://github.com/sodops)

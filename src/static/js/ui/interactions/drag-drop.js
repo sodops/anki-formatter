@@ -3,6 +3,7 @@
  * Handles card reordering via drag and drop
  */
 
+import { store } from '../../core/store.js';
 import { getActiveDeck, saveState } from '../../core/storage/storage.js';
 import { renderWorkspace } from '../../features/library/card-manager.js';
 import { showToast } from '../components/ui.js';
@@ -12,16 +13,17 @@ let draggedIndex = null;
 
 /**
  * Initialize drag and drop listeners
- * @param {HTMLElement} container - Container to attach listeners to (optional)
+ * Only prevent defaults on the card table, not globally
  */
 export function setupDragDrop() {
-    // Global prevention of default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        document.body.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        }, false);
-    });
+    const tableBody = document.getElementById('tableBody');
+    if (tableBody) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            tableBody.addEventListener(eventName, (e) => {
+                e.preventDefault();
+            }, false);
+        });
+    }
 }
 
 /**
@@ -67,13 +69,18 @@ export function handleDrop(e) {
     if (draggedElement && draggedElement !== targetRow) {
         const targetIndex = parseInt(targetRow.dataset.cardIndex);
         
-        // Reorder cards in deck
+        // Reorder cards in deck via store
         const deck = getActiveDeck();
-        if (deck && draggedIndex !== null && targetIndex !== null) {
-            const [movedCard] = deck.cards.splice(draggedIndex, 1);
-            deck.cards.splice(targetIndex, 0, movedCard);
+        if (deck && draggedIndex !== null && !isNaN(targetIndex) && draggedIndex !== targetIndex) {
+            const newCards = [...deck.cards];
+            const [movedCard] = newCards.splice(draggedIndex, 1);
+            newCards.splice(targetIndex, 0, movedCard);
             
-            saveState();
+            store.dispatch('DECK_UPDATE', {
+                deckId: deck.id,
+                updates: { cards: newCards }
+            });
+            
             renderWorkspace();
             showToast(`Card reordered`);
         }

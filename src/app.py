@@ -36,7 +36,7 @@ def download_google_doc(url):
     doc_id = match.group(1)
     export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
     
-    response = requests.get(export_url)
+    response = requests.get(export_url, timeout=30)
     if response.status_code != 200:
         raise Exception(f"Failed to download. Status: {response.status_code}")
     
@@ -139,11 +139,20 @@ def generate_deck():
         })
 
     except Exception as e:
+        # Clean up on failure
+        if os.path.exists(output_path):
+            os.remove(output_path)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+    safe_name = secure_filename(filename)
+    if not safe_name:
+        return jsonify({'error': 'Invalid filename'}), 400
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_name)
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+    return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

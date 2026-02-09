@@ -283,17 +283,13 @@ export function confirmImport() {
             return;
         }
         
-        // Use store to add cards
-        let addedCount = 0;
-        validCards.forEach((card, i) => {
-            const result = store.dispatch('CARD_ADD', {
-                deckId: deck.id,
-                term: card.term,
-                def: card.def,
-                tags: card.tags || []
-            });
-            if (result) addedCount++;
+        // Use batch add for better performance (single state update)
+        const result = store.dispatch('CARD_BATCH_ADD', {
+            deckId: deck.id,
+            cards: validCards
         });
+        
+        const addedCount = result ? validCards.length : 0;
         
         
         renderWorkspace();

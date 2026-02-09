@@ -98,6 +98,10 @@ class Store {
                     return this._handleMoveCard(payload);
                 case 'CARD_COPY':
                     return this._handleCopyCard(payload);
+                case 'CARD_SUSPEND':
+                    return this._handleSuspendCard(payload);
+                case 'CARD_BATCH_ADD':
+                    return this._handleBatchAddCards(payload);
                 case 'SEARCH_SET':
                     return this._handleSetSearch(payload);
                 case 'VIEW_SET':
@@ -121,13 +125,17 @@ class Store {
 
     /**
      * Update state and notify listeners
+     * @param {Object} newState - Partial state to merge
+     * @param {boolean} skipHistory - If true, don't add to undo history
      */
-    setState(newState) {
+    setState(newState, skipHistory = false) {
         const oldState = JSON.parse(JSON.stringify(this.state));
         this.state = { ...this.state, ...newState };
         
-        // Save history for undo/redo
-        this._addToHistory(oldState);
+        // Save history for undo/redo (skip for search/view/theme)
+        if (!skipHistory) {
+            this._addToHistory(oldState);
+        }
         
         // Persist to localStorage
         this.persist();
@@ -165,9 +173,28 @@ class Store {
      */
     persist() {
         try {
-            localStorage.setItem('ankiState', JSON.stringify(this.state));
+            const data = JSON.stringify(this.state);
+            // Check size before saving (localStorage limit ~5MB)
+            const sizeKB = Math.round(data.length / 1024);
+            if (sizeKB > 4500) {
+                console.warn(`[STORE] State size ${sizeKB}KB approaching localStorage limit (5MB). Consider exporting data.`);
+            }
+            localStorage.setItem('ankiState', data);
         } catch (error) {
-            console.error('Storage error:', error);
+            if (error.name === 'QuotaExceededError' || error.code === 22) {
+                console.error('[STORE] localStorage quota exceeded! Data NOT saved. Export your data immediately.');
+                // Trim undo history to free space
+                this.history = this.history.slice(-5);
+                this.historyIndex = Math.min(this.historyIndex, this.history.length - 1);
+                // Try again without history
+                try {
+                    localStorage.setItem('ankiState', JSON.stringify(this.state));
+                } catch (e) {
+                    console.error('[STORE] Still over quota after trimming history');
+                }
+            } else {
+                console.error('Storage error:', error);
+            }
         }
     }
 
@@ -191,7 +218,8 @@ class Store {
                             ...card,
                             id: card.id || this._generateId(),
                             tags: Array.isArray(card.tags) ? card.tags : [],
-                            reviewData: card.reviewData || null
+                            reviewData: card.reviewData || null,
+                            suspended: card.suspended || false
                         })) : [],
                         isDeleted: deck.isDeleted || false
                     }));
@@ -227,9 +255,9 @@ class Store {
      * Undo last action
      */
     _handleUndo() {
-        if (this.historyIndex > 0) {
-            this.historyIndex--;
+        if (this.historyIndex >= 0 && this.history.length > 0) {
             this.state = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+            this.historyIndex--;
             this.persist();
             this._notifyListeners();
             return true;
@@ -549,11 +577,65 @@ class Store {
         return card;
     }
 
+    /**
+     * Suspend/unsuspend a card (toggle)
+     * Suspended cards are skipped during study
+     */
+    _handleSuspendCard(payload) {
+        const { deckId, cardId, cardIndex, suspended } = payload;
+        const deck = this.getDeckById(deckId);
+        if (!deck) throw new Error('Deck not found');
+
+        let idx = cardIndex;
+        if (idx === undefined && cardId) {
+            idx = deck.cards.findIndex(c => c.id === cardId);
+        }
+        if (idx === undefined || idx < 0) throw new Error('Card not found');
+
+        const card = deck.cards[idx];
+        const isSuspended = suspended !== undefined ? suspended : !card.suspended;
+
+        return this._handleUpdateCard({
+            deckId,
+            cardIndex: idx,
+            updates: { suspended: isSuspended }
+        });
+    }
+
+    /**
+     * Batch add cards (optimized: single state update)
+     */
+    _handleBatchAddCards(payload) {
+        const { deckId, cards } = payload;
+        const deck = this.getDeckById(deckId);
+        if (!deck) throw new Error('Deck not found');
+
+        const newCards = cards.map(c => ({
+            id: this._generateId(),
+            term: (c.term || '').trim(),
+            def: (c.def || '').trim(),
+            tags: Array.isArray(c.tags) ? c.tags : [],
+            reviewData: null,
+            suspended: false,
+            createdAt: new Date().toISOString()
+        }));
+
+        const newDecks = this.state.decks.map(d => {
+            if (d.id === deckId) {
+                return { ...d, cards: [...newCards, ...d.cards] };
+            }
+            return d;
+        });
+
+        this.setState({ decks: newDecks });
+        return newCards;
+    }
+
     // ===== OTHER ACTIONS =====
 
     _handleSetSearch(payload) {
         const query = typeof payload === 'string' ? payload : (payload?.query ?? '');
-        this.setState({ searchQuery: query });
+        this.setState({ searchQuery: query }, true); // skip history
         return true;
     }
 
@@ -563,7 +645,7 @@ class Store {
         if (!validViews.includes(view)) {
             throw new Error('Invalid view: ' + view);
         }
-        this.setState({ activeView: view });
+        this.setState({ activeView: view }, true); // skip history
         return true;
     }
 
@@ -573,14 +655,17 @@ class Store {
         if (!validThemes.includes(theme)) {
             throw new Error('Invalid theme: ' + theme);
         }
-        this.setState({ theme });
+        this.setState({ theme }, true); // skip history
         return true;
     }
 
     // ===== UTILITY =====
 
     _generateId() {
-        return Math.random().toString(36).substr(2, 9);
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        return Date.now().toString(36) + Math.random().toString(36).substr(2, 12);
     }
 
     /**

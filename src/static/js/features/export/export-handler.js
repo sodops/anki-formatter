@@ -35,6 +35,8 @@ export async function executeExport() {
             exportToTxt(deck, filename);
         } else if (format === 'md') {
             exportToMd(deck, filename);
+        } else if (format === 'csv') {
+            exportToCsv(deck, filename);
         }
     } catch(e) {
         console.error(e);
@@ -54,7 +56,7 @@ async function exportToApkg(deck, filename) {
         tags: c.tags || []
     }));
 
-    const response = await fetch('/generate_apkg', {
+    const response = await fetch('/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,8 +66,16 @@ async function exportToApkg(deck, filename) {
         })
     });
 
-    if (response.ok) {
-        const blob = await response.blob();
+    if (!response.ok) {
+        throw new Error("Backend export failed");
+    }
+
+    const data = await response.json();
+    if (data.success && data.download_url) {
+        // Download via the URL returned by backend
+        const downloadResponse = await fetch(data.download_url);
+        if (!downloadResponse.ok) throw new Error('Download failed');
+        const blob = await downloadResponse.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -73,22 +83,46 @@ async function exportToApkg(deck, filename) {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
         showToast('Export successful (.apkg)');
     } else {
-        throw new Error("Backend export failed");
+        throw new Error(data.error || 'Export failed');
     }
 }
 
 function exportToTxt(deck, filename) {
-    const content = deck.cards.map(c => `${c.term} - ${c.def}`).join('\n');
+    const content = deck.cards.map(c => `${c.term}\t${c.def}`).join('\n');
     downloadFile(content, `${filename}.txt`, 'text/plain');
     showToast('Export successful (.txt)');
 }
 
 function exportToMd(deck, filename) {
-    const content = `# ${deck.name}\n\n` + deck.cards.map(c => `## ${c.term}\n${c.def}\n`).join('\n');
+    const lines = deck.cards.map(c => {
+        const safeTerm = (c.term || '').replace(/^#+/, '\\$&');
+        const safeDef = (c.def || '').replace(/^#+/, '\\$&');
+        return `## ${safeTerm}\n${safeDef}\n`;
+    });
+    const content = `# ${deck.name}\n\n` + lines.join('\n');
     downloadFile(content, `${filename}.md`, 'text/markdown');
     showToast('Export successful (.md)');
+}
+
+function exportToCsv(deck, filename) {
+    const escapeCsv = (val) => {
+        if (!val) return '';
+        if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+            return '"' + val.replace(/"/g, '""') + '"';
+        }
+        return val;
+    };
+    const header = 'Term,Definition,Tags';
+    const rows = deck.cards.map(c => {
+        const tags = (c.tags || []).join(';');
+        return `${escapeCsv(c.term)},${escapeCsv(c.def)},${escapeCsv(tags)}`;
+    });
+    const content = [header, ...rows].join('\n');
+    downloadFile(content, `${filename}.csv`, 'text/csv');
+    showToast('Export successful (.csv)');
 }
 
 function downloadFile(content, filename, type) {

@@ -9,7 +9,7 @@
     <meta property="og:description" content="Smart flashcard study platform with spaced repetition" />
     <title>AnkiFlow</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-    <link rel="stylesheet" href="/static/style.css?v=5.0" />
+    <link rel="stylesheet" href="/static/style.css?v=6.0" />
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
@@ -26,6 +26,11 @@
     ></script>
   </head>
   <body>
+    <noscript>
+      <div style="display:flex;justify-content:center;align-items:center;height:100vh;font-size:18px;color:#888;text-align:center;padding:20px;">
+        AnkiFlow requires JavaScript to run. Please enable JavaScript in your browser.
+      </div>
+    </noscript>
     <!-- Subtle Background (Minimal) -->
     <div class="app-background"></div>
 
@@ -376,6 +381,24 @@
                 <div id="tabStatMaturity" class="stats-card"></div>
               </div>
               
+              <!-- Review Heatmap -->
+              <div class="stats-section-block">
+                <h3 class="section-title">Review Activity</h3>
+                <div id="tabStatHeatmap" class="stats-card"></div>
+              </div>
+              
+              <!-- Review Forecast -->
+              <div class="stats-section-block">
+                <h3 class="section-title">Upcoming Reviews</h3>
+                <div id="tabStatForecast" class="stats-card"></div>
+              </div>
+              
+              <!-- Per-Deck Stats -->
+              <div class="stats-section-block">
+                <h3 class="section-title">Per-Deck Breakdown</h3>
+                <div id="tabStatPerDeck" class="stats-card"></div>
+              </div>
+              
               <!-- Top Tags -->
               <div class="stats-section-block">
                 <h3 class="section-title">Top Tags</h3>
@@ -554,10 +577,10 @@
     </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="toast hidden">Action Successful</div>
+    <div id="toast" class="toast hidden" role="alert" aria-live="polite">Action Successful</div>
 
     <!-- EXPORT MODAL (Hidden by default) -->
-    <div id="exportModal" class="modal-overlay hidden">
+    <div id="exportModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-glass">
             <h2>Export Deck</h2>
             <div class="form-group">
@@ -579,6 +602,10 @@
                     <label class="radio-option">
                         <input type="radio" name="exportFormat" value="md">
                         <span>Markdown (.md)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="exportFormat" value="csv">
+                        <span>CSV (.csv)</span>
                     </label>
                 </div>
             </div>
@@ -637,7 +664,7 @@
     </div>
 
     <!-- KEYBOARD SHORTCUTS MODAL -->
-    <div id="shortcutsModal" class="modal-overlay hidden">
+    <div id="shortcutsModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
       <div class="modal-glass">
         <h2>Keyboard Shortcuts</h2>
         <div class="shortcuts-table">
@@ -664,7 +691,7 @@
               <span class="shortcut-desc">Undo last action</span>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></span>
+              <span class="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></span>
               <span class="shortcut-desc">Redo action</span>
             </div>
             <div class="shortcut-row">
@@ -756,7 +783,7 @@
     </div>
 
     <!-- GENERIC CUSTOM MODAL -->
-    <div id="customModal" class="modal-overlay hidden">
+    <div id="customModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="customModalTitle">
       <div class="modal-glass">
         <h2 id="customModalTitle">Title</h2>
         <div id="customModalContent" class="modal-content"></div>
@@ -812,7 +839,7 @@
 
 
     <!-- FIND & REPLACE MODAL -->
-    <div id="findReplaceModal" class="modal-overlay hidden">
+    <div id="findReplaceModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
       <div class="modal-glass" style="max-width: 500px;">
         <h2><ion-icon name="search-outline"></ion-icon> Find & Replace</h2>
         <div class="form-group">
@@ -847,6 +874,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     
     <!-- Application Logic -->
-    <script type="module" src="/static/js/main.js?v=5.0"></script>
+    <script type="module" src="/static/js/main.js?v=6.0"></script>
   </body>
 </html>

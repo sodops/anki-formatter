@@ -14,9 +14,9 @@ import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './core
 import { dom, verifyDomElements } from './utils/dom-helpers.js';
 import { ui } from './ui/components/ui.js'; // Default export object
 import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './features/library/deck-manager.js';
-import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection, findAndReplace, moveCard, copyCard, setTagFilter } from './features/library/card-manager.js';
+import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection, findAndReplace, moveCard, copyCard, setTagFilter, suspendCard } from './features/library/card-manager.js';
 import { setupDragDrop, handleDrop } from './ui/interactions/drag-drop.js';
-import { setupMarked, insertMarkdown } from './utils/markdown-parser.js';
+import { setupMarked, insertMarkdown, renderMarkdown } from './utils/markdown-parser.js';
 import { executeExport, showExportPreview, closeExportPreview } from './features/export/export-handler.js';
 import { handleFileUpload, showImportPreview, updateImportPreview, confirmImport, closeImportPreview, handleGoogleDocImport } from './features/import/import-handler.js';
 import { undo, redo } from './core/history/history-manager.js';
@@ -205,6 +205,7 @@ function setupGlobalExports() {
     window.moveCard = moveCard;
     window.copyCard = copyCard;
     window.setTagFilter = setTagFilter;
+    window.suspendCard = suspendCard;
     
     // Statistics refresh
     window.refreshStats = calculateAndRenderStats;
@@ -309,6 +310,7 @@ function setupEventListeners() {
                 if(format === 'apkg') dom.btnConfirmExport.textContent = 'Download .apkg';
                 else if(format === 'txt') dom.btnConfirmExport.textContent = 'Download .txt';
                 else if(format === 'md') dom.btnConfirmExport.textContent = 'Download .md';
+                else if(format === 'csv') dom.btnConfirmExport.textContent = 'Download .csv';
             }
         });
     });
@@ -437,12 +439,17 @@ function setupEventListeners() {
             openCommandPalette();
         }
         
-        // Undo/Redo (Ctrl+Z, Ctrl+Y)
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        // Undo/Redo (Ctrl+Z, Ctrl+Y) — skip inside inputs
+        const isInputFocused = document.activeElement && 
+            (document.activeElement.tagName === 'INPUT' || 
+             document.activeElement.tagName === 'TEXTAREA' || 
+             document.activeElement.isContentEditable);
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !isInputFocused) {
             e.preventDefault();
-            undo(); // Call local function
+            undo();
         }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y' && !isInputFocused) {
             e.preventDefault();
             redo();
         }
@@ -890,7 +897,7 @@ function showAutoSaveIndicator() {
 }
 
 // --- Omnibar Markdown Preview ---
-import { renderMarkdown } from './utils/markdown-parser.js';
+// renderMarkdown already imported at top via markdown-parser.js
 
 function updateOmnibarPreview(text) {
     const preview = document.getElementById('omnibarPreview');

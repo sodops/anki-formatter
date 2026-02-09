@@ -84,7 +84,8 @@ export function renderWorkspace() {
             const originalIndex = allCards.indexOf(card); // Get original index for editing
             
             // Check validity
-            if (!card.term || !card.def) tr.className = 'row-error';
+            if (card.suspended) tr.className = 'row-suspended';
+            else if (!card.term || !card.def) tr.className = 'row-error';
             else if (!card.term.trim() || !card.def.trim()) tr.className = 'row-warning';
             
             // Ensure tags array exists
@@ -222,6 +223,20 @@ export function renderWorkspace() {
             // Actions Cell
             const actionTd = document.createElement('td');
             actionTd.className = 'card-actions-cell';
+            
+            // Suspend/unsuspend button
+            const suspendBtn = document.createElement('button');
+            suspendBtn.className = `action-btn secondary${card.suspended ? ' active' : ''}`;
+            suspendBtn.style.padding = '4px';
+            suspendBtn.innerHTML = card.suspended 
+                ? '<ion-icon name="eye-off-outline"></ion-icon>'
+                : '<ion-icon name="pause-outline"></ion-icon>';
+            suspendBtn.title = card.suspended ? 'Unsuspend card' : 'Suspend card (skip in study)';
+            suspendBtn.onclick = (e) => {
+                e.stopPropagation();
+                suspendCard(originalIndex);
+            };
+            actionTd.appendChild(suspendBtn);
             
             // Move/Copy button
             const moveBtn = document.createElement('button');
@@ -767,6 +782,25 @@ function renderTagFilterBar(deck) {
             setTagFilter(tag || null);
         };
     });
+}
+
+/**
+ * Suspend/unsuspend a card
+ * @param {number} cardIndex
+ */
+export function suspendCard(cardIndex) {
+    const deck = getActiveDeck();
+    if (!deck) return;
+    const card = deck.cards[cardIndex];
+    if (!card) return;
+    
+    store.dispatch('CARD_SUSPEND', {
+        deckId: deck.id,
+        cardId: card.id
+    });
+    
+    renderWorkspace();
+    showToast(card.suspended ? 'Card unsuspended' : 'Card suspended');
 }
 
 /**

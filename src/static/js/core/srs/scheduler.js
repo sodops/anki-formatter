@@ -153,10 +153,12 @@ export function calculateNextReview(card, quality) {
         }
     }
 
-    // Update ease factor (SM-2 formula)
-    // EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
-    easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-    easeFactor = Math.max(1.3, easeFactor);
+    // Update ease factor (SM-2 formula) — only for graduated review cards
+    // Learning-phase cards should not have their ease factor modified
+    if (!isLearning) {
+        easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+        easeFactor = Math.max(1.3, easeFactor);
+    }
 
     // Add to review history
     const reviewHistory = reviewData.reviewHistory || [];
@@ -197,6 +199,9 @@ export function getDueCards(deck, options = {}) {
     
     // Separate new, learning, and due cards
     deck.cards.forEach(card => {
+        // Skip suspended cards
+        if (card.suspended) return;
+        
         if (!card.reviewData || !card.reviewData.nextReview) {
             // New card (never reviewed)
             newCards.push(card);
