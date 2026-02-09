@@ -4,6 +4,43 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 
 ---
 
+## v8.0 — 2026-02-09
+
+> Supabase autentifikatsiya, cloud sync, va login sahifa dizayni
+
+**Autentifikatsiya:**
+
+- Supabase Auth integratsiyasi — email/parol, Google OAuth, GitHub OAuth
+- AuthProvider komponenti — graceful degradation (Supabase sozlanmagan bo'lsa guest rejim)
+- Login sahifasi — zamonaviy split-layout dizayn, animated orbs, responsive
+- OAuth callback route — `/auth/callback` kod almashish
+- Client-side auth redirect — login bo'lmagan foydalanuvchilar `/login`'ga yo'naltiriladi
+- Login bo'lgan foydalanuvchilar `/login`'dan `/`'ga qaytariladi
+
+**Cloud Sync:**
+
+- Supabase PostgreSQL bilan cloud ma'lumotlar saqlash (JSONB)
+- Debounced auto-sync — 2 soniya kechikish bilan cloudga saqlash
+- Cloud-first yuklash — avval clouddan, keyin localStorage fallback
+- Sync API route'lari — `GET/POST /api/sync`
+- Sync indikatori — syncing/synced/error holatlari vizual ko'rsatish
+- Database schema — `user_data` va `profiles` jadvallari, RLS siyosatlari
+
+**UI yaxshilanishlar:**
+
+- Foydalanuvchi profili sidebar'da — avatar, ism, email, logout tugmasi
+- Login sahifa butunlay qayta dizayn qilindi — split layout, animated background
+- Loading spinner va skeleton yaxshilandi
+
+**Texnik:**
+
+- Middleware Edge Runtime muammosi hal qilindi (soddalashtirilgan pass-through)
+- `.next` cache tozalash muammosi aniqlandi va tuzatildi
+- React ↔ Vanilla JS ko'prigi — `window.__ankiflow_auth`, CustomEvents
+- `@supabase/ssr@0.8.0` va `@supabase/supabase-js@2.95.3` qo'shildi
+
+---
+
 ## v7.0 — 2026-02-09
 
 > Next.js migratsiyasi, mobil versiya tuzatish, accessibility yaxshilash

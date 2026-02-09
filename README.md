@@ -1,23 +1,41 @@
 # ⚡ AnkiFlow — Aqlli Flashcard Platformasi
 
-Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algoritmi bilan. Next.js + Vanilla JS yordamida yaratilgan.
+**[anki.sodops.uz](https://anki.sodops.uz)** — Zamonaviy flashcard o'rganish platformasi. **SM-2 Spaced Repetition** algoritmi, cloud sync va ko'p qurilma sinxronizatsiyasi bilan.
 
 ---
 
 ## 📖 Loyiha haqida
 
-**AnkiFlow** — bu lug'at va bilimlarga oid ma'lumotlarni samarali yodlash uchun mo'ljallangan zamonaviy flashcard platformasi. Platforma **SM-2 Spaced Repetition** algoritmidan foydalanib, takrorlash rejasini optimal tarzda boshqaradi va o'rganish jarayonini iloji boricha samarali qiladi.
+**AnkiFlow** — lug'at va bilimlarga oid ma'lumotlarni samarali yodlash uchun mo'ljallangan full-stack flashcard platformasi. SM-2 algoritmidan foydalanib takrorlash rejasini optimal boshqaradi. Supabase orqali foydalanuvchi autentifikatsiyasi va cloud sync imkoniyatini taqdim etadi.
 
 ### Texnologiyalar:
 
-- **Frontend Framework**: Next.js 16 (React 19)
-- **UI**: Vanilla JavaScript, HTML, CSS
-- **Ma'lumotlar bazasi**: localStorage (client-side)
-- **Algoritm**: SM-2 Spaced Repetition
+| Qatlam | Texnologiya |
+| --- | --- |
+| **Framework** | Next.js 16.1 (React 19, Turbopack) |
+| **UI** | Vanilla JavaScript ES6 modullari |
+| **Auth** | Supabase Auth (Email, Google, GitHub OAuth) |
+| **Ma'lumotlar bazasi** | Supabase PostgreSQL (JSONB) + localStorage fallback |
+| **Deploy** | Vercel (auto-deploy `nextjs` branch) |
+| **Algoritm** | SM-2 Spaced Repetition |
+
+---
+
+## 🌐 Demo
+
+**Production**: [anki.sodops.uz](https://anki.sodops.uz)
 
 ---
 
 ## ✨ Asosiy imkoniyatlar
+
+### 🔐 Autentifikatsiya va Cloud
+
+- **Supabase Auth** — email/parol, Google OAuth, GitHub OAuth
+- **Cloud Sync** — barcha qurilmalarda ma'lumotlar sinxronlanadi
+- **Debounced auto-save** — 2s kechikish bilan cloudga saqlash
+- **Offline fallback** — internet yo'q bo'lsa localStorage'dan ishlaydi
+- **Sync indikatori** — syncing / synced / error holatlari
 
 ### 📚 Kartalar va Decklar
 
@@ -68,9 +86,9 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 
 ### 🛡️ Xavfsizlik
 
+- **Supabase RLS** — foydalanuvchilar faqat o'z ma'lumotlarini ko'radi
 - **XSS himoya** — Markdown chiqishi sanitize qilinadi
 - **Path traversal himoya** — fayl yuklab olish himoyalangan
-- **Request timeout** — tashqi so'rovlar chegaralangan
 - **localStorage kvota** — xotira to'lganda xatolik boshqaruvi
 
 ---
@@ -80,33 +98,45 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 ### Talablar
 
 - Node.js 18+
-- npm yoki yarn
+- npm
+- Supabase loyihasi (bepul: [supabase.com](https://supabase.com))
 
-### O'rnatish va ishga tushirish
+### 1. Klonlash va o'rnatish
 
 ```bash
-# Repositoriyani klonlash
 git clone https://github.com/sodops/anki-formatter.git
 cd anki-formatter
-
-# Kerakli paketlarni o'rnatish
+git checkout nextjs
 npm install
+```
 
-# Development rejimda ishga tushirish
+### 2. Supabase sozlash
+
+`.env.local` faylini yarating:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+```
+
+Supabase Dashboard → **SQL Editor** → `supabase/schema.sql` ni ishga tushiring.
+
+### 3. OAuth sozlash (ixtiyoriy)
+
+Supabase Dashboard → **Authentication** → **Providers**:
+
+- **Google**: Google Cloud Console'dan Client ID va Secret oling
+- **GitHub**: GitHub Developer Settings'dan OAuth App yarating
+
+Ikkala provider uchun redirect URL: `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
+
+### 4. Ishga tushirish
+
+```bash
 npm run dev
 ```
 
-Brauzeringizda quyidagi manzilga o'ting:
-
-```
-http://localhost:3000
-```
-
-### Docker bilan
-
-```bash
-docker-compose up --build
-```
+Brauzeringizda oching: `http://localhost:3000`
 
 ---
 
@@ -114,103 +144,87 @@ docker-compose up --build
 
 ```
 anki-formatter/
-├── src/
-│   ├── app.py                       # Flask backend (API endpoints)
-│   ├── parser.py                    # Matn → flashcard parser (SM-2 algoritmi)
-│   ├── anki_generator.py            # .apkg fayl generatori
-│   ├── file_handler.py              # Fayl o'qish (TXT, CSV)
-│   ├── main.py                      # CLI interfeysi (ixtiyoriy)
-│   ├── templates/
-│   │   └── index.html               # SPA sahifa (asosiy interfeys)
-│   └── static/
-│       ├── style.css                # Barcha stillar (dark/light mode)
-│       └── js/
-│           ├── main.js              # Asosiy entry point
-│           ├── core/
-│           │   ├── store.js         # Redux-uslubidagi state boshqaruvi
-│           │   ├── events.js        # EventBus (komponentlar o'rtasida aloqa)
-│           │   └── srs/
-│           │       └── scheduler.js # SM-2 algoritmi implementatsiyasi
-│           ├── features/
-│           │   ├── library/         # Karta va deck boshqaruvi
-│           │   ├── study/           # O'rganish sessiyasi
-│           │   ├── import/          # Fayl import
-│           │   ├── export/          # Eksport (APKG/TXT/MD/CSV)
-│           │   └── stats/           # Statistika, heatmap, prognoz
-│           ├── ui/                  # Toast, modal, drag-drop, tema
-│           └── utils/               # DOM helpers, Markdown parser
-├── requirements.txt                 # Python dependencies
-├── docker-compose.yml               # Docker konfiguratsiyasi
+├── app/
+│   ├── layout.tsx                   # Root layout (AuthProvider)
+│   ├── page.tsx                     # Asosiy sahifa (SPA)
+│   ├── login/
+│   │   └── page.tsx                 # Login sahifasi
+│   ├── auth/
+│   │   └── callback/
+│   │       └── route.ts             # OAuth callback handler
+│   └── api/
+│       ├── parse/route.ts           # Matn parser API
+│       ├── generate/route.ts        # APKG generator API
+│       └── sync/route.ts            # Cloud sync API (GET/POST)
+├── components/
+│   └── AuthProvider.tsx             # React auth context
+├── lib/
+│   └── supabase/
+│       ├── client.ts                # Browser Supabase client
+│       ├── server.ts                # Server Supabase client
+│       └── middleware.ts            # Session refresh
+├── middleware.ts                     # Next.js middleware
+├── public/
+│   ├── style.css                    # Barcha stillar
+│   └── js/
+│       ├── main.js                  # Entry point
+│       ├── core/
+│       │   ├── store.js             # State management + cloud sync
+│       │   └── srs/
+│       │       └── scheduler.js     # SM-2 algoritmi
+│       ├── features/
+│       │   ├── library/             # Karta va deck boshqaruvi
+│       │   ├── study/               # O'rganish sessiyasi
+│       │   ├── import/              # Fayl import
+│       │   ├── export/              # Eksport (APKG/TXT/MD/CSV)
+│       │   └── stats/               # Statistika, heatmap
+│       ├── ui/                      # Toast, modal, drag-drop, tema
+│       └── utils/                   # DOM helpers, Markdown parser
+├── supabase/
+│   └── schema.sql                   # Database schema + RLS
+├── .env.local.example               # Environment variables namunasi
+├── package.json
 └── README.md
 ```
-
-### Asosiy komponentlar:
-
-#### Backend (Python/Flask):
-
-- **`app.py`**: Flask serverini ishga tushiradi, API endpointlari (`/parse`, `/` va boshqalar)
-- **`parser.py`**: Matndan flashcard juftliklarini ajratib oladi (adaptiv separator detection)
-- **`anki_generator.py`**: Anki .apkg formatida eksport qiladi
-- **`file_handler.py`**: TXT, CSV, DOCX va Google Docs'dan ma'lumot o'qiydi
-
-#### Frontend (Vanilla JS):
-
-- **`main.js`**: Entry point, barcha modullarni bog'laydi
-- **`store.js`**: Global state management (Redux pattern)
-- **`scheduler.js`**: SM-2 spaced repetition algoritmi
-- **`library/`**: Kartalar jadvalini ko'rsatish va tahrirlash
-- **`study/`**: Flashcard sessiyasi (flip animatsiya, rating)
-- **`stats/`**: Statistika va heatmap
 
 ---
 
 ## ⌨️ Klaviatura shortcutlari
 
-| Tugma                 | Amal                                |
-| --------------------- | ----------------------------------- |
-| `F1`                  | Command palette                     |
-| `Ctrl+Z`              | Undo (bekor qilish)                 |
-| `Ctrl+Y`              | Redo (qaytarish)                    |
-| `Ctrl+F`              | Qidiruv                             |
-| `Ctrl+/`              | Shortcutlar ro'yxati                |
-| `Space`               | Javobni ko'rsatish (study mode)     |
-| `1` / `2` / `3` / `4` | Again / Hard / Good / Easy (rating) |
-| `Esc`                 | Modalni yopish / Sessiyani tugatish |
+| Tugma | Amal |
+| --- | --- |
+| `F1` | Command palette |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+F` | Qidiruv |
+| `Ctrl+/` | Shortcutlar ro'yxati |
+| `Space` | Javobni ko'rsatish (study mode) |
+| `1` / `2` / `3` / `4` | Again / Hard / Good / Easy |
+| `Esc` | Modalni yopish / Sessiyani tugatish |
 
 ---
 
 ## 🧠 SM-2 Algoritmi
 
-AnkiFlow **SuperMemo 2 (SM-2)** algoritmidan foydalanadi. Bu algoritm har bir kartaning qiyinlik darajasiga qarab keyingi takrorlash vaqtini belgilaydi:
+AnkiFlow **SuperMemo 2 (SM-2)** algoritmidan foydalanadi:
 
 - **New** → Yangi kartalar
-- **Learning** → O'rganish jarayonida
-- **Review** → Muntazam takrorlash
-- **Young/Mature** → Karta yetuklik darajasi
+- **Learning** → O'rganish jarayonida (1min → 10min)
+- **Review** → Muntazam takrorlash (1d → 3d → 7d → ...)
+- **Young/Mature** → 21+ kundan keyin karta "mature" hisoblanadi
 
-Har bir rating (Again, Hard, Good, Easy) kartaning keyingi ko'rinish vaqtini o'zgartiradi.
+Har bir rating (Again, Hard, Good, Easy) kartaning ease factor va intervalini o'zgartiradi.
 
 ---
 
-## 🛠️ Foydalanish
+## 🚢 Deploy (Vercel)
 
-### 1. Karta yaratish
-
-Kartalarni qo'lda qo'shish yoki fayl import qilish orqali yaratish mumkin:
-
-- **Qo'lda kiritish**: Library sahifasida "Add Card" tugmasini bosing
-- **Import**: TXT, CSV, DOCX yoki Google Docs URL'sini yuklang
-
-### 2. O'rganish sessiyasi
-
-"Study" sahifasiga o'tib, deckni tanlang. Har bir karta uchun:
-
-- `Space` tugmasini bosib javobni ko'ring
-- `1` (Again) / `2` (Hard) / `3` (Good) / `4` (Easy) bilan baholang
-
-### 3. Eksport
-
-Kartalaringizni Anki, TXT, CSV yoki Markdown formatida eksport qiling.
+1. GitHub repo'ni Vercel'ga ulang (`nextjs` branch)
+2. Environment Variables qo'shing:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Custom domain qo'shing (masalan: `anki.sodops.uz`)
+4. Auto-deploy — har bir push'da avtomatik yangilanadi
 
 ---
 
@@ -222,16 +236,17 @@ MIT © [sodops](https://github.com/sodops)
 
 ## 🤝 Hissa qo'shish
 
-Hissa qo'shmoqchi bo'lsangiz, pull request yuboring yoki issue oching!
-
 1. Fork qiling
-2. Feature branch yarating (`git checkout -b feature/AmazingFeature`)
-3. Commit qiling (`git commit -m 'Add some AmazingFeature'`)
-4. Push qiling (`git push origin feature/AmazingFeature`)
+2. Feature branch yarating (`git checkout -b feature/YangiImkoniyat`)
+3. Commit qiling (`git commit -m 'Add: yangi imkoniyat'`)
+4. Push qiling (`git push origin feature/YangiImkoniyat`)
 5. Pull Request oching
 
 ---
 
 ## 📞 Bog'lanish
 
-Savollaringiz yoki takliflaringiz bo'lsa, GitHub orqali murojaat qiling!
+- **Sayt**: [anki.sodops.uz](https://anki.sodops.uz)
+- **GitHub**: [sodops/anki-formatter](https://github.com/sodops/anki-formatter)
+
+Savollaringiz yoki takliflaringiz bo'lsa, GitHub issue oching!
