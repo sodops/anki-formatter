@@ -67,6 +67,21 @@ a ion-icon,
   pointer-events: none;
 }
 
+/* Eliminate 300ms tap delay on all interactive elements for mobile */
+button,
+a,
+input,
+select,
+textarea,
+.nav-tab,
+.deck-item,
+.action-btn,
+.icon-btn,
+.hamburger-btn,
+.sidebar-close-btn {
+  touch-action: manipulation;
+}
+
 /* Typography */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

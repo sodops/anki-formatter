@@ -281,18 +281,20 @@ function setupEventListeners() {
     // New Deck Button
     if(dom.btnNewDeck) dom.btnNewDeck.addEventListener('click', window.createDeck);
     
-    // Study Button
-    if(dom.btnStudyDeck) dom.btnStudyDeck.addEventListener('click', () => startStudySession());
+    // Study Button — use getElementById as fallback for reliability
+    const studyBtn = dom.btnStudyDeck || document.getElementById('btnStudyDeck');
+    if(studyBtn) studyBtn.addEventListener('click', () => startStudySession());
+    else console.warn('[INIT] btnStudyDeck not found');
 
     // Stats Button
     if(dom.btnOpenStats) dom.btnOpenStats.addEventListener('click', openStats);
-    // if(dom.btnCloseStats) dom.btnCloseStats.addEventListener('click', closeStats);
     
     // Import Button (opens file picker)
     const btnImport = document.getElementById('btnImportCards');
     if(btnImport) btnImport.addEventListener('click', () => {
         if(dom.fileInput) dom.fileInput.click();
     });
+    else console.warn('[INIT] btnImportCards not found');
     
     // Export Button (opens export modal)
     const btnExport = document.getElementById('btnExportDeck');

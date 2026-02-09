@@ -61,7 +61,11 @@ export function switchDeck(id) {
         // Reset inputs
         if (dom.omnibarInput) {
             dom.omnibarInput.value = '';
-            dom.omnibarInput.focus();
+            // Only auto-focus on desktop — on mobile it opens the keyboard
+            // which blocks other buttons and causes poor UX
+            if (window.innerWidth > 768) {
+                dom.omnibarInput.focus();
+            }
         }
         
         appLogger.info(`Switched to deck: ${id}`);
