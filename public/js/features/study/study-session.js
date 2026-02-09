@@ -295,6 +295,12 @@ function renderStudyCard() {
     
     // Reset answer shown
     isAnswerShown = false;
+    
+    // Reset flip instantly (no animation) to prevent showing answer of next card
+    const inner = dom.flashcard?.querySelector('.flashcard-inner');
+    if (inner) {
+        inner.style.transition = 'none';
+    }
     if (dom.flashcard) dom.flashcard.classList.remove('flipped');
     
     // Render Front/Back (swap if reverse mode)
@@ -302,6 +308,11 @@ function renderStudyCard() {
     const backText = reverseMode ? (card.term || '') : (card.def || '');
     if (dom.studyFront) dom.studyFront.innerHTML = renderMarkdown(frontText);
     if (dom.studyBack) dom.studyBack.innerHTML = renderMarkdown(backText);
+    
+    // Re-enable transition after a frame so the "Show Answer" flip animates normally
+    requestAnimationFrame(() => {
+        if (inner) inner.style.transition = '';
+    });
     
     // Update Progress
     if (dom.studyIndex) dom.studyIndex.textContent = currentIndex + 1;
