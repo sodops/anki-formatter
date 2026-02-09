@@ -128,6 +128,10 @@ export function renderWorkspace() {
  */
 function createCardRow(card, originalIndex) {
     const tr = document.createElement('tr');
+    
+    // Helper: always read the current index from the DOM attribute
+    // This ensures correctness after other rows are deleted/inserted
+    const getCurrentIndex = () => parseInt(tr.dataset.cardIndex);
             
             // Check validity
             if (card.suspended) tr.className = 'row-suspended';
@@ -150,7 +154,7 @@ function createCardRow(card, originalIndex) {
             checkbox.setAttribute('aria-label', `Select card ${originalIndex + 1}`);
             checkbox.onclick = (e) => {
                 e.stopPropagation();
-                toggleRowSelection(originalIndex);
+                toggleRowSelection(getCurrentIndex());
             };
             
             // Drag Icon
@@ -189,7 +193,7 @@ function createCardRow(card, originalIndex) {
             
             const saveTerm = () => {
                 const val = termInput.value;
-                updateCard(originalIndex, 'term', val);
+                updateCard(getCurrentIndex(), 'term', val);
                 termView.innerHTML = renderMarkdown(val);
                 termInput.classList.add('hidden');
                 termView.classList.remove('hidden');
@@ -230,7 +234,7 @@ function createCardRow(card, originalIndex) {
 
             const saveDef = () => {
                 const val = defInput.value;
-                updateCard(originalIndex, 'def', val);
+                updateCard(getCurrentIndex(), 'def', val);
                 defView.innerHTML = renderMarkdown(val);
                 defInput.classList.add('hidden');
                 defView.classList.remove('hidden');
@@ -256,7 +260,7 @@ function createCardRow(card, originalIndex) {
                 const tagSpan = document.createElement('span');
                 tagSpan.className = 'tag-badge';
                 tagSpan.innerHTML = `${escapeHtml(tag)} <button class="tag-remove">&times;</button>`;
-                tagSpan.querySelector('.tag-remove').onclick = () => removeTag(originalIndex, tag);
+                tagSpan.querySelector('.tag-remove').onclick = () => removeTag(getCurrentIndex(), tag);
                 tagsContainer.appendChild(tagSpan);
             });
 
@@ -265,7 +269,7 @@ function createCardRow(card, originalIndex) {
             tagInput.className = 'tag-input';
             tagInput.placeholder = 'Add tag...';
             tagInput.setAttribute('aria-label', 'Add tag');
-            tagInput.onkeydown = (e) => handleTagInput(e, originalIndex);
+            tagInput.onkeydown = (e) => handleTagInput(e, getCurrentIndex());
             tagsContainer.appendChild(tagInput);
             
             tagsTd.appendChild(tagsContainer);
@@ -284,7 +288,7 @@ function createCardRow(card, originalIndex) {
             suspendBtn.title = card.suspended ? 'Unsuspend card' : 'Suspend card (skip in study)';
             suspendBtn.onclick = (e) => {
                 e.stopPropagation();
-                suspendCard(originalIndex);
+                suspendCard(getCurrentIndex());
             };
             actionTd.appendChild(suspendBtn);
             
@@ -296,7 +300,7 @@ function createCardRow(card, originalIndex) {
             moveBtn.title = 'Move/Copy to deck';
             moveBtn.onclick = (e) => {
                 e.stopPropagation();
-                showMoveMenu(originalIndex, moveBtn);
+                showMoveMenu(getCurrentIndex(), moveBtn);
             };
             actionTd.appendChild(moveBtn);
             
@@ -318,7 +322,7 @@ function createCardRow(card, originalIndex) {
             deleteBtn.innerHTML = '<ion-icon name="close"></ion-icon>';
             deleteBtn.title = 'Delete card';
             deleteBtn.setAttribute('aria-label', 'Delete card');
-            deleteBtn.onclick = () => removeCard(originalIndex);
+            deleteBtn.onclick = () => removeCard(getCurrentIndex());
             actionTd.appendChild(deleteBtn);
 
             // Assemble Row
@@ -665,6 +669,10 @@ export function addCard(term, def) {
 export function removeCard(index) {
     try {
         const deck = getActiveDeck();
+        if (!deck || !deck.cards[index]) {
+            appLogger.warn(`removeCard: invalid index ${index}, deck has ${deck?.cards?.length} cards`);
+            return;
+        }
         const card = deck.cards[index];
         const deletedCard = {...card}; // Copy before deleting
         
@@ -685,6 +693,13 @@ export function removeCard(index) {
         // Targeted DOM removal — find and remove just this row
         const row = dom.tableBody.querySelector(`tr[data-card-index="${index}"]`);
         if (row) {
+            // Mark as deleting to prevent double-click issues
+            if (row.dataset.deleting) return;
+            row.dataset.deleting = 'true';
+            
+            // Disable buttons in this row immediately
+            row.querySelectorAll('button').forEach(btn => btn.disabled = true);
+            
             row.style.transition = 'opacity 0.15s, transform 0.15s';
             row.style.opacity = '0';
             row.style.transform = 'translateX(-20px)';
