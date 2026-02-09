@@ -79,9 +79,55 @@ export function renderWorkspace() {
         }
     } else {
         dom.emptyState.classList.add('hidden');
-        filteredCards.forEach((card) => {
-            const tr = document.createElement('tr');
-            const originalIndex = allCards.indexOf(card); // Get original index for editing
+        
+        // Chunked rendering: render in batches to prevent UI freeze
+        const CHUNK_SIZE = 100;
+        const totalCards = filteredCards.length;
+        let renderedCount = 0;
+        
+        // Show loading for very large decks
+        if (totalCards > CHUNK_SIZE) {
+            ui.showLoading(`Rendering ${totalCards} cards...`, `0 / ${totalCards}`);
+        }
+        
+        function renderChunk() {
+            const fragment = document.createDocumentFragment();
+            const end = Math.min(renderedCount + CHUNK_SIZE, totalCards);
+            
+            for (let i = renderedCount; i < end; i++) {
+                const card = filteredCards[i];
+                const originalIndex = allCards.indexOf(card);
+                fragment.appendChild(createCardRow(card, originalIndex));
+            }
+            
+            dom.tableBody.appendChild(fragment);
+            renderedCount = end;
+            
+            if (renderedCount < totalCards) {
+                // Update progress
+                const pct = Math.round((renderedCount / totalCards) * 100);
+                ui.updateLoading(`Rendering cards...`, pct, `${renderedCount} / ${totalCards}`);
+                
+                // Schedule next chunk — let browser breathe
+                requestAnimationFrame(renderChunk);
+            } else {
+                // All done
+                ui.hideLoading();
+            }
+        }
+        
+        renderChunk();
+    }
+}
+
+/**
+ * Create a single card table row
+ * @param {Object} card - Card data
+ * @param {number} originalIndex - Index in the deck's cards array
+ * @returns {HTMLTableRowElement}
+ */
+function createCardRow(card, originalIndex) {
+    const tr = document.createElement('tr');
             
             // Check validity
             if (card.suspended) tr.className = 'row-suspended';
@@ -288,9 +334,7 @@ export function renderWorkspace() {
             tr.addEventListener('drop', handleDrop);
             tr.addEventListener('dragend', handleDragEnd);
             
-            dom.tableBody.appendChild(tr);
-        });
-    }
+            return tr;
 }
 
 // --- Selection Logic ---
@@ -352,25 +396,34 @@ export function bulkDelete() {
         
         ui.confirm(`Delete ${selectedIndices.size} cards?`).then(confirmed => {
             if(confirmed) {
-                // Sort indices descending to splice correctly
-                const indices = Array.from(selectedIndices).sort((a,b) => b - a);
+                const count = selectedIndices.size;
                 
-                indices.forEach(idx => {
-                    const card = deck.cards[idx];
-                    store.dispatch('CARD_DELETE', {
-                        deckId: deck.id,
-                        cardId: card.id || idx
-                    });
+                // Show loading for large deletions
+                if (count > 50) {
+                    ui.showLoading(`Deleting ${count} cards...`, 'Please wait');
+                }
+                
+                // Use batch delete — single state update
+                const indices = Array.from(selectedIndices);
+                store.dispatch('CARD_BULK_DELETE', {
+                    deckId: deck.id,
+                    indices: indices
                 });
                 
                 selectedIndices.clear();
-                renderWorkspace();
-                showToast(`${indices.length} cards deleted`);
-                eventBus.emit(EVENTS.CARD_BULK_DELETED, { count: indices.length });
-                appLogger.info(`Bulk deleted ${indices.length} cards`);
+                
+                // Defer render to let UI breathe
+                requestAnimationFrame(() => {
+                    renderWorkspace();
+                    ui.hideLoading();
+                    showToast(`${count} cards deleted`);
+                    eventBus.emit(EVENTS.CARD_BULK_DELETED, { count });
+                    appLogger.info(`Bulk deleted ${count} cards`);
+                });
             }
         });
     } catch (error) {
+        ui.hideLoading();
         appLogger.error("Failed to bulk delete", error);
         showToast("Failed to delete cards");
     }
@@ -383,27 +436,32 @@ export function bulkTag() {
         ui.prompt("Enter tag name:", "").then(tag => {
             if(tag) {
                 const deck = getActiveDeck();
-                selectedIndices.forEach(idx => {
-                    const card = deck.cards[idx];
-                    if (!card.tags) card.tags = [];
-                    if (!card.tags.includes(tag)) {
-                        store.dispatch('CARD_TAG', {
-                            deckId: deck.id,
-                            cardId: card.id || idx,
-                            tag: tag.trim()
-                        });
-                    }
+                const count = selectedIndices.size;
+                
+                if (count > 50) {
+                    ui.showLoading(`Tagging ${count} cards...`, 'Please wait');
+                }
+                
+                // Single batch dispatch
+                store.dispatch('CARD_BULK_TAG', {
+                    deckId: deck.id,
+                    indices: Array.from(selectedIndices),
+                    tag: tag.trim()
                 });
                 
-                renderWorkspace();
-                showToast(`Tag added to ${selectedIndices.size} cards`);
-                eventBus.emit(EVENTS.CARD_BULK_TAGGED, { count: selectedIndices.size, tag });
-                appLogger.info(`Bulk tagged ${selectedIndices.size} cards with "${tag}"`);
-                selectedIndices.clear();
-                updateBulkActionBar();
+                requestAnimationFrame(() => {
+                    renderWorkspace();
+                    ui.hideLoading();
+                    showToast(`Tag added to ${count} cards`);
+                    eventBus.emit(EVENTS.CARD_BULK_TAGGED, { count, tag });
+                    appLogger.info(`Bulk tagged ${count} cards with "${tag}"`);
+                    selectedIndices.clear();
+                    updateBulkActionBar();
+                });
             }
         });
     } catch (error) {
+        ui.hideLoading();
         appLogger.error("Failed to bulk tag", error);
         showToast("Failed to tag cards");
     }

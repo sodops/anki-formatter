@@ -431,7 +431,7 @@ function setupEventListeners() {
                     return;
                 }
                 
-                ui.showToast(`Parsing ${lines.length} lines...`, 'info');
+                ui.showLoading(`Parsing ${lines.length} lines...`, 'Sending to server for parsing');
                 
                 // Use server-side parse API for robust parsing
                 fetch('/api/parse', {
@@ -441,6 +441,7 @@ function setupEventListeners() {
                 })
                 .then(res => res.json())
                 .then(data => {
+                    ui.hideLoading();
                     if (data.cards && data.cards.length > 0) {
                         const cards = data.cards.map(c => ({
                             term: c.question,
@@ -473,6 +474,7 @@ function setupEventListeners() {
                     dom.omnibarInput.value = '';
                 })
                 .catch(() => {
+                    ui.hideLoading();
                     // Offline fallback: client-side batch add
                     const cards = [];
                     for (const line of lines) {

@@ -266,5 +266,80 @@ export const ui = {
     confirm,
     alert,
     colorPicker,
-    escapeHtml
+    escapeHtml,
+    showLoading,
+    hideLoading,
+    updateLoading
 };
+
+// ===== Loading Overlay =====
+
+let _loadingEl = null;
+
+/**
+ * Show a full-screen loading overlay with message and progress
+ * @param {string} message - Main message
+ * @param {string} [sub] - Sub-text (optional)
+ * @param {boolean} [indeterminate=true] - Show indeterminate progress bar
+ * @returns {HTMLElement} The overlay element
+ */
+export function showLoading(message, sub = '', indeterminate = true) {
+    hideLoading(); // Remove any existing
+
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.id = 'loadingOverlay';
+    overlay.innerHTML = `
+        <div class="loading-overlay-content">
+            <div class="loading-spinner-ring"></div>
+            <div class="loading-overlay-message">${escapeHtml(message)}</div>
+            ${sub ? `<div class="loading-overlay-sub">${escapeHtml(sub)}</div>` : '<div class="loading-overlay-sub"></div>'}
+            <div class="loading-progress-bar ${indeterminate ? 'loading-progress-indeterminate' : ''}">
+                <div class="loading-progress-fill"></div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    _loadingEl = overlay;
+    return overlay;
+}
+
+/**
+ * Update loading overlay message and/or progress
+ * @param {string} [message] - New message
+ * @param {number} [progress] - Progress 0-100 (removes indeterminate)
+ * @param {string} [sub] - Sub-text
+ */
+export function updateLoading(message, progress, sub) {
+    if (!_loadingEl) return;
+
+    if (message !== undefined) {
+        const msgEl = _loadingEl.querySelector('.loading-overlay-message');
+        if (msgEl) msgEl.textContent = message;
+    }
+
+    if (sub !== undefined) {
+        const subEl = _loadingEl.querySelector('.loading-overlay-sub');
+        if (subEl) subEl.textContent = sub;
+    }
+
+    if (progress !== undefined) {
+        const bar = _loadingEl.querySelector('.loading-progress-bar');
+        const fill = _loadingEl.querySelector('.loading-progress-fill');
+        if (bar) bar.classList.remove('loading-progress-indeterminate');
+        if (fill) fill.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    }
+}
+
+/**
+ * Hide and remove loading overlay
+ */
+export function hideLoading() {
+    if (_loadingEl) {
+        _loadingEl.remove();
+        _loadingEl = null;
+    }
+    // Also remove any orphaned overlays
+    document.querySelectorAll('#loadingOverlay').forEach(el => el.remove());
+}

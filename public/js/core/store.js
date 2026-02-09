@@ -151,6 +151,8 @@ class Store {
                     return this._handleSuspendCard(payload);
                 case 'CARD_BATCH_ADD':
                     return this._handleBatchAddCards(payload);
+                case 'CARD_BULK_TAG':
+                    return this._handleBulkTag(payload);
                 case 'SEARCH_SET':
                     return this._handleSetSearch(payload);
                 case 'VIEW_SET':
@@ -829,6 +831,35 @@ class Store {
 
         this.setState({ decks: newDecks });
         return newCards;
+    }
+
+    /**
+     * Bulk tag cards (optimized: single state update)
+     */
+    _handleBulkTag(payload) {
+        const { deckId, indices, tag } = payload;
+        const deck = this.getDeckById(deckId);
+        if (!deck) throw new Error('Deck not found');
+
+        const tagTrimmed = (tag || '').trim();
+        if (!tagTrimmed) throw new Error('Tag is required');
+
+        const indexSet = new Set(indices);
+        const newDecks = this.state.decks.map(d => {
+            if (d.id === deckId) {
+                const newCards = d.cards.map((card, idx) => {
+                    if (!indexSet.has(idx)) return card;
+                    const currentTags = Array.isArray(card.tags) ? card.tags : [];
+                    if (currentTags.includes(tagTrimmed)) return card;
+                    return { ...card, tags: [...currentTags, tagTrimmed] };
+                });
+                return { ...d, cards: newCards };
+            }
+            return d;
+        });
+
+        this.setState({ decks: newDecks });
+        return true;
     }
 
     // ===== OTHER ACTIONS =====

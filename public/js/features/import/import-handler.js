@@ -357,20 +357,27 @@ export function confirmImport() {
             return;
         }
         
+        closeImportPreview();
+        
+        // Show loading overlay for large imports
+        if (validCards.length > 50) {
+            ui.showLoading(`Importing ${validCards.length} cards...`, 'Adding to deck');
+        }
+        
         // Use batch add for better performance (single state update)
         const result = store.dispatch('CARD_BATCH_ADD', {
             deckId: deck.id,
             cards: validCards
         });
         
-        const addedCount = result ? validCards.length : 0;
-        
-        
-        renderWorkspace();
-        showToast(`Imported ${validCards.length} cards`);
-        eventBus.emit(EVENTS.CARD_ADDED, { count: validCards.length });
-        appLogger.info(`Imported ${validCards.length} cards`);
-        closeImportPreview();
+        // Defer heavy DOM rendering
+        requestAnimationFrame(() => {
+            renderWorkspace();
+            ui.hideLoading();
+            showToast(`Imported ${validCards.length} cards`);
+            eventBus.emit(EVENTS.CARD_ADDED, { count: validCards.length });
+            appLogger.info(`Imported ${validCards.length} cards`);
+        });
         
         if(dom.fileInput) dom.fileInput.value = '';
         if(dom.omnibarInput) dom.omnibarInput.value = '';
@@ -399,19 +406,21 @@ export async function handleGoogleDocImport(url) {
         return false;
     }
 
-    ui.showToast("Fetching from Google Cloud...", "info");
+    ui.showLoading('Fetching from Google Docs...', 'Downloading and parsing document');
 
     try {
         const formData = new FormData();
         formData.append('doc_url', url);
         formData.append('deck_id', STATE.activeDeckId);
 
+        ui.updateLoading('Parsing document...');
         const response = await fetch('/api/parse', {
             method: 'POST',
             body: formData
         });
         
         const data = await response.json();
+        ui.hideLoading();
 
         if (response.ok) {
             let cards = [];
@@ -449,6 +458,7 @@ export async function handleGoogleDocImport(url) {
         }
 
     } catch (e) {
+        ui.hideLoading();
         console.error(e);
         ui.alert("Import Failed: " + e.message);
         return false;
