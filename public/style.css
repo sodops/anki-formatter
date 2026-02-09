@@ -20,7 +20,7 @@
 
   /* Text */
   --text-primary: #ededef;
-  --text-secondary: #8b8b8d;
+  --text-secondary: #a8a8aa;
   --text-tertiary: #8a8a8c;
 
   /* Accent */
@@ -30,7 +30,7 @@
 
   /* Status */
   --danger: #ef4444;
-  --warning: #f59e0b;
+  --warning: #fbbf24;
   --success: #22c55e;
 
   /* Layout */
@@ -2577,7 +2577,7 @@ tr[draggable="true"]:active {
   display: none;
   position: fixed;
   top: 16px;
-  left: 16px;
+  left: 10px;
   z-index: 1100;
   width: 40px;
   height: 40px;
