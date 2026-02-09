@@ -1,6 +1,6 @@
 # ⚡ AnkiFlow — Aqlli Flashcard Platformasi
 
-Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algoritmi bilan. Flask + Vanilla JS yordamida yaratilgan.
+Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algoritmi bilan. Next.js + Vanilla JS yordamida yaratilgan.
 
 ---
 
@@ -9,8 +9,9 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 **AnkiFlow** — bu lug'at va bilimlarga oid ma'lumotlarni samarali yodlash uchun mo'ljallangan zamonaviy flashcard platformasi. Platforma **SM-2 Spaced Repetition** algoritmidan foydalanib, takrorlash rejasini optimal tarzda boshqaradi va o'rganish jarayonini iloji boricha samarali qiladi.
 
 ### Texnologiyalar:
-- **Backend**: Flask (Python)
-- **Frontend**: Vanilla JavaScript, HTML, CSS
+
+- **Frontend Framework**: Next.js 16 (React 19)
+- **UI**: Vanilla JavaScript, HTML, CSS
 - **Ma'lumotlar bazasi**: localStorage (client-side)
 - **Algoritm**: SM-2 Spaced Repetition
 
@@ -19,6 +20,7 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 ## ✨ Asosiy imkoniyatlar
 
 ### 📚 Kartalar va Decklar
+
 - **SM-2 Spaced Repetition** — aqlli takrorlash rejasi (new → learning → review)
 - **Ko'p deckli boshqaruv** — yaratish, nomini o'zgartirish, rang tanlash, tartibni o'zgartirish
 - **Inline tahrirlash** — jadvalda to'g'ridan-to'g'ri kartani tahrirlash
@@ -31,6 +33,7 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 - **Kartalarni ko'chirish** — decklar orasida move/copy
 
 ### 📖 O'rganish
+
 - **Aqlli sessiyalar** — faqat muddati kelgan kartalar (new + learning + review)
 - **Flashcard animatsiya** — flip effekti, klaviatura bilan boshqarish
 - **Ovozli effektlar** — ixtiyoriy audio feedback
@@ -38,6 +41,7 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 - **Sessiya xulosasi** — aniqlik halqasi, reytinglar bo'linmasi, confetti
 
 ### 📊 Statistika
+
 - **Umumiy ko'rsatkichlar** — kartalar, decklar, streak, aniqlik
 - **Deck taqsimoti** — gorizontal diagramma
 - **Karta yetuklik darajasi** — New / Learning / Young / Mature
@@ -47,12 +51,14 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 - **Top teglar** — teg buluti
 
 ### 📥 Import / Eksport
+
 - **Import**: TXT, CSV (ustun xaritalash bilan), DOCX, Google Docs URL
 - **Eksport**: .apkg (Anki), .txt, .md, .csv
 - **Import preview** — birinchi 10 karta + dublikat aniqlash
 - **To'liq backup** — JSON formatda barcha ma'lumotlar
 
 ### 🎨 Interfeys
+
 - **Qorong'u va yorug' mavzu** — auto (tizim sozlamasi) ham bor
 - **Command palette** — `F1` yoki omnibar'da `>`
 - **Klaviatura shortcutlari** — Ctrl+Z, Ctrl+F, Space, 1-4
@@ -61,6 +67,7 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 - **Undo / Redo** — barcha amallarni qaytarish
 
 ### 🛡️ Xavfsizlik
+
 - **XSS himoya** — Markdown chiqishi sanitize qilinadi
 - **Path traversal himoya** — fayl yuklab olish himoyalangan
 - **Request timeout** — tashqi so'rovlar chegaralangan
@@ -71,8 +78,9 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 ## 🚀 Ishga tushirish
 
 ### Talablar
-- Python 3.7+
-- pip (Python package manager)
+
+- Node.js 18+
+- npm yoki yarn
 
 ### O'rnatish va ishga tushirish
 
@@ -81,25 +89,21 @@ Zamonaviy flashcard o'rganish platformasi — **Spaced Repetition (SM-2)** algor
 git clone https://github.com/sodops/anki-formatter.git
 cd anki-formatter
 
-# Virtual muhit yaratish (tavsiya etiladi)
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# yoki
-venv\Scripts\activate  # Windows
+# Kerakli paketlarni o'rnatish
+npm install
 
-# Kerakli kutubxonalarni o'rnatish
-pip install -r requirements.txt
-
-# Ilovani ishga tushirish
-python src/app.py
+# Development rejimda ishga tushirish
+npm run dev
 ```
 
 Brauzeringizda quyidagi manzilga o'ting:
+
 ```
-http://localhost:5000
+http://localhost:3000
 ```
 
 ### Docker bilan
+
 ```bash
 docker-compose up --build
 ```
@@ -143,12 +147,14 @@ anki-formatter/
 ### Asosiy komponentlar:
 
 #### Backend (Python/Flask):
+
 - **`app.py`**: Flask serverini ishga tushiradi, API endpointlari (`/parse`, `/` va boshqalar)
 - **`parser.py`**: Matndan flashcard juftliklarini ajratib oladi (adaptiv separator detection)
 - **`anki_generator.py`**: Anki .apkg formatida eksport qiladi
 - **`file_handler.py`**: TXT, CSV, DOCX va Google Docs'dan ma'lumot o'qiydi
 
 #### Frontend (Vanilla JS):
+
 - **`main.js`**: Entry point, barcha modullarni bog'laydi
 - **`store.js`**: Global state management (Redux pattern)
 - **`scheduler.js`**: SM-2 spaced repetition algoritmi
@@ -160,16 +166,16 @@ anki-formatter/
 
 ## ⌨️ Klaviatura shortcutlari
 
-| Tugma | Amal |
-|-------|------|
-| `F1` | Command palette |
-| `Ctrl+Z` | Undo (bekor qilish) |
-| `Ctrl+Y` | Redo (qaytarish) |
-| `Ctrl+F` | Qidiruv |
-| `Ctrl+/` | Shortcutlar ro'yxati |
-| `Space` | Javobni ko'rsatish (study mode) |
+| Tugma                 | Amal                                |
+| --------------------- | ----------------------------------- |
+| `F1`                  | Command palette                     |
+| `Ctrl+Z`              | Undo (bekor qilish)                 |
+| `Ctrl+Y`              | Redo (qaytarish)                    |
+| `Ctrl+F`              | Qidiruv                             |
+| `Ctrl+/`              | Shortcutlar ro'yxati                |
+| `Space`               | Javobni ko'rsatish (study mode)     |
 | `1` / `2` / `3` / `4` | Again / Hard / Good / Easy (rating) |
-| `Esc` | Modalni yopish / Sessiyani tugatish |
+| `Esc`                 | Modalni yopish / Sessiyani tugatish |
 
 ---
 
@@ -189,16 +195,21 @@ Har bir rating (Again, Hard, Good, Easy) kartaning keyingi ko'rinish vaqtini o'z
 ## 🛠️ Foydalanish
 
 ### 1. Karta yaratish
+
 Kartalarni qo'lda qo'shish yoki fayl import qilish orqali yaratish mumkin:
+
 - **Qo'lda kiritish**: Library sahifasida "Add Card" tugmasini bosing
 - **Import**: TXT, CSV, DOCX yoki Google Docs URL'sini yuklang
 
 ### 2. O'rganish sessiyasi
+
 "Study" sahifasiga o'tib, deckni tanlang. Har bir karta uchun:
+
 - `Space` tugmasini bosib javobni ko'ring
 - `1` (Again) / `2` (Hard) / `3` (Good) / `4` (Easy) bilan baholang
 
 ### 3. Eksport
+
 Kartalaringizni Anki, TXT, CSV yoki Markdown formatida eksport qiling.
 
 ---

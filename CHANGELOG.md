@@ -4,10 +4,56 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 
 ---
 
+## v7.0 — 2026-02-09
+
+> Next.js migratsiyasi, mobil versiya tuzatish, accessibility yaxshilash
+
+**Arxitektura:**
+
+- Flask → Next.js 16 migratsiyasi (React 19)
+- Client-side rendering (CSR) yondashuvi
+- Turbopack dev server (tezroq build)
+- ES6 modullar saqlanib qoldi
+
+**Mobil versiya tuzatishlari:**
+
+- Viewport meta tag qo'shildi (width=device-width, initial-scale=1)
+- Sidebar overlay `pointer-events` muammosi tuzatildi
+- Mobil rejimda tugmalar `auto-focus` muammosi tuzatildi
+- Hamburger tugma pozitsiyasi sozlandi (left: 10px)
+- Tab navigation markazga joylashtirildi (mobil uchun)
+- Touch-action manipulation qo'shildi
+- Ion-icon pointer-events tuzatildi
+
+**Accessibility (WCAG 2 AA):**
+
+- Color contrast yaxshilandi:
+  - `--text-secondary`: #8b8b8d → #a8a8aa
+  - `--warning`: #f59e0b → #fbbf24
+- Active nav-tab va primary button'lar uchun contrast oshirildi
+- Aria-label'lar qo'shildi (button, input, checkbox)
+- Accessibility muammolar butunlay hal qilindi
+
+**UI yaxshilanishlar:**
+
+- Statistics tugmasi sidebar'dan olib tashlandi
+- Tab navigation mobil versiyada markazlashtirildi
+- Responsive dizayn yaxshilandi
+
+**Bug tuzatishlar:**
+
+- `ReferenceError: i is not defined` in card-manager.js tuzatildi
+- Mobile button tap issues tuzatildi
+- getElementById fallback qo'shildi
+
+---
+
 ## v6.0 — 2026-02-09
+
 > Kritik bug tuzatishlar, xavfsizlik mustahkamlash va 8 ta yangi funksiya
 
 **Kritik tuzatishlar:**
+
 - APKG eksport tuzatildi (noto'g'ri endpoint `/generate_apkg` → `/generate`)
 - XSS zaiflik tuzatildi — Markdown chiqishiga HTML sanitizer qo'shildi (tag whitelist + attribute filtrlash)
 - Flask path traversal zaiflik tuzatildi — `secure_filename()` qo'shildi
@@ -15,6 +61,7 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 - Drag-drop karta tartiblash tuzatildi — store dispatch orqali, to'g'ri index hisoblash
 
 **Yangi funksiyalar:**
+
 - Kartani to'xtatish (suspend/bury) — kartalarni vaqtincha o'rganishdan chiqarish
 - CSV eksport — .csv formatda Term, Definition, Tags ustunlari bilan
 - Review heatmap — 90 kunlik GitHub-uslubidagi faollik kalendari
@@ -25,6 +72,7 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 - Yaxshilangan ID generatsiya — `crypto.randomUUID()` fallback bilan
 
 **Yaxshilanishlar:**
+
 - SM-2 ease factor faqat graduated review kartalar uchun o'zgaradi
 - TXT eksport tab separator ishlatadi (reimport-friendly)
 - MD eksport `#` belgisini escape qiladi
@@ -39,9 +87,11 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 ---
 
 ## v5.0 — 2026-02-09
+
 > 9 ta yangi funksiya + 9 ta bug tuzatish
 
 **Yangi funksiyalar:**
+
 - Teskari karta rejimi (definition → term)
 - Find & Replace — ommaviy matn tahrirlash (case/whole-word/field)
 - Kartalarni ko'chirish — decklar orasida move/copy
@@ -53,6 +103,7 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 - Confetti animatsiya — sessiya yakunida
 
 **Bug tuzatishlar:**
+
 - CSS dark theme o'zgaruvchilari to'ldirildi
 - Import duplicate detection tuzatildi
 - Eksport fayl nomlari tozalandi
@@ -66,14 +117,17 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 ---
 
 ## v4.0 — 2026-02-07
+
 > Modular arxitektura, SRS, ko'p ko'rinish tizimi
 
 **Arxitektura:**
+
 - To'liq modular qayta yozish — Redux-uslubidagi store, EventBus, ES6 modullar
 - 10+ alohida modul: store, scheduler, card-manager, deck-manager, study-session, va boshqalar
 - Konsol ogohlantirishlari olib tashlandi
 
 **Yangi funksiyalar:**
+
 - SM-2 Spaced Repetition System (SRS) — aqlli takrorlash algoritmi
 - Due cards badge — muddati kelgan kartalar hisoblagichi
 - Kengaytirilgan statistika dashboard
@@ -83,6 +137,7 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 - Professional dizayn — emoji olib tashlandi
 
 **Tuzatishlar:**
+
 - Study va Statistics ko'rinishlari funksionalligi tuzatildi
 - View cache busting va import tozalash
 - Session summary HTML rendering tuzatildi
@@ -90,15 +145,18 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 ---
 
 ## v3.0 — 2026-02-04
+
 > Google Import, Study Mode, Docker
 
 **Yangi funksiyalar:**
+
 - Google Docs import — URL orqali kartalar olish
 - Study Mode — flashcard o'rganish sessiyasi flip animatsiya bilan
 - Statistika paneli — umumiy ko'rsatkichlar
 - Animatsiyalar va o'tishlar
 
 **Infratuzilma:**
+
 - Docker qo'llab-quvvatlash (Dockerfile + docker-compose.yml)
 - UI tozalash va notifications tuzatish
 - Deploy uchun tayyor
@@ -106,9 +164,11 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 ---
 
 ## v2.0 — 2026-02-04
+
 > Qidiruv, teglar, Markdown, drag-drop
 
 **Yangi funksiyalar:**
+
 - Qidiruv filtri — term va definition bo'yicha
 - Undo/Redo tizimi
 - Klaviatura shortcutlari (Ctrl+Z, Ctrl+/, Ctrl+F)
@@ -121,21 +181,25 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 - Import preview (CSV ustun xaritalash bilan)
 
 **Tuzatishlar:**
+
 - Shortcut Ctrl+? → Ctrl+/ ga o'zgartirildi
 - Toast xabarnomalar pastga-o'ngga ko'chirildi
 - Orphaned event listener olib tashlandi
 - Import Preview CSS va event listenerlar tuzatildi
 
 **Arxitektura:**
+
 - Monolitik script.js → 10 ta ES6 modul
 - Modal CSS to'qnashuvlari tuzatildi
 
 ---
 
 ## v1.0 — 2026-02-03
+
 > Dastlabki versiya
 
 **Asosiy funksiyalar:**
+
 - Flashcard yaratish va tahrirlash
 - Deck boshqaruvi (yaratish, o'chirish)
 - Smart Omnibar — Google Docs va fayl import
@@ -146,6 +210,7 @@ Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 - Reading Mode
 
 **Tuzatishlar:**
+
 - UI glitchlar tuzatildi
 - Command Palette z-index/blur muammosi tuzatildi
 - Eksport tugmasi dinamik matni tuzatildi
