@@ -11,6 +11,46 @@ import { ui, showToast, escapeHtml } from '../../ui/components/ui.js';
 import { renderWorkspace } from '../library/card-manager.js';
 import { dom } from '../../utils/dom-helpers.js';
 
+// Separators for client-side text parsing (mirrors server logic)
+const SEPARATORS = [
+    ' == ', '==',
+    ' -> ', '->',
+    ' => ', '=>',
+    ' ⇒ ', '⇒', ' → ', '→',
+    ' - ', ' – ', ' — ',
+    ' : ',
+    ' = ',
+    '\t',
+];
+
+function parseTextLines(lines) {
+    const cards = [];
+    for (const line of lines) {
+        const cleaned = line.replace(/^[\s]*((?:\d+\.)|[•\-–—>→⇒●*]+)[\s]*/, '').trim();
+        if (!cleaned) continue;
+        
+        let found = false;
+        for (const sep of SEPARATORS) {
+            if (cleaned.includes(sep)) {
+                const idx = cleaned.indexOf(sep);
+                const term = cleaned.substring(0, idx).trim();
+                const def = cleaned.substring(idx + sep.length).trim();
+                if (term && def) {
+                    cards.push({ term, def, tags: [] });
+                } else {
+                    cards.push({ term: cleaned, def: '', tags: [] });
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            cards.push({ term: cleaned, def: '', tags: [] });
+        }
+    }
+    return cards;
+}
+
 // Module state for pending import
 let pendingImport = {
     cards: [],
@@ -59,6 +99,20 @@ export async function handleFileUpload(file) {
         return;
     }
 
+    // TXT: Client-side parsing (no server needed)
+    if (fileExt === 'txt') {
+        try {
+            const text = await file.text();
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            const cards = parseTextLines(lines);
+            showImportPreview(cards, fileExt);
+        } catch(e) {
+            console.error(e);
+            ui.alert("Failed to read file");
+        }
+        return;
+    }
+
     // Other formats: Use Backend
     const formData = new FormData();
     formData.append('file', file);
@@ -92,8 +146,8 @@ export async function handleFileUpload(file) {
         }
 
     } catch(e) {
-        console.error(e);
-        ui.alert("Upload failed");
+        console.error('Import fetch error:', e);
+        ui.alert("Upload failed. Make sure the server is running.");
     }
 }
 
