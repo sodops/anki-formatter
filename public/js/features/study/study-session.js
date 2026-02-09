@@ -113,6 +113,9 @@ function updateDailyGoal(card) {
     stored.reviewed = (stored.reviewed || 0) + 1;
     localStorage.setItem('ankiflow_daily', JSON.stringify(stored));
     
+    // Trigger cloud sync for daily progress
+    try { store._scheduleSyncToCloud(); } catch (e) { /* ignore if store not ready */ }
+    
     // Update sidebar widget
     renderDailyGoalWidget(stored.reviewed);
 }

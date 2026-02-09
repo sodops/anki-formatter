@@ -168,6 +168,19 @@ function initAnkiFlow() {
             renderWorkspace();
         });
         
+        // Cloud sync: re-render everything when cloud data loads
+        window.addEventListener('ankiflow:state-loaded', () => {
+            appLogger.info('Cloud state loaded, refreshing UI');
+            try {
+                renderSidebar();
+                renderWorkspace();
+                loadDailyGoal();
+                initSettings();
+            } catch (e) {
+                console.error('[SYNC] UI refresh after cloud load failed:', e);
+            }
+        });
+        
         appLogger.info("AnkiFlow Ready");
     } catch (error) {
         appLogger.error("Initialization failed", error);
@@ -737,6 +750,9 @@ function initSettings() {
             const current = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
             current[config.key] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.type === 'range' ? Number(el.value) : el.value);
             localStorage.setItem('ankiflow_settings', JSON.stringify(current));
+            
+            // Trigger cloud sync for settings
+            store._scheduleSyncToCloud();
             
             // Apply font size immediately
             if (config.key === 'fontSize') {

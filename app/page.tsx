@@ -1,9 +1,24 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function Home() {
+  const { user, session, loading, signOut } = useAuth();
+  const router = useRouter();
+
+  // Redirect to login if not authenticated
   useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) return; // Don't initialize app if not logged in
+
     // Hide skeleton, show app after JS modules load
     const skeleton = document.getElementById("appSkeleton");
     const container = document.getElementById("appContainer");
@@ -13,6 +28,19 @@ export default function Home() {
       container.style.position = "static";
       container.removeAttribute('aria-hidden');
     }
+
+    // Expose auth info to vanilla JS modules via window
+    (window as any).__ankiflow_auth = {
+      user: user ? { id: user.id, email: user.email, name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User', avatar: user.user_metadata?.avatar_url || null } : null,
+      accessToken: session?.access_token || null,
+    };
+
+    // Fire auth event so store.js can pick it up
+    window.dispatchEvent(
+      new CustomEvent("ankiflow:auth-ready", {
+        detail: (window as any).__ankiflow_auth,
+      })
+    );
 
     // Load Ionicons dynamically (avoids hydration mismatch from class="hydrated")
     const ionModule = document.createElement("script");
@@ -27,11 +55,45 @@ export default function Home() {
 
     // Load main.js as ES6 module via DOM injection
     // (Next.js strips <script> tags from JSX, so we do it programmatically)
-    const script = document.createElement("script");
-    script.type = "module";
-    script.src = "/js/main.js";
-    document.body.appendChild(script);
-  }, []);
+    // Prevent duplicate loading in React Strict Mode (dev mode runs useEffect twice)
+    if (!document.querySelector('script[src="/js/main.js"]')) {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "/js/main.js";
+      document.body.appendChild(script);
+    }
+  }, [user, session, loading]);
+
+  // Expose signOut to vanilla JS
+  useEffect(() => {
+    (window as any).__ankiflow_signOut = signOut;
+    return () => { delete (window as any).__ankiflow_signOut; };
+  }, [signOut]);
+
+  if (loading || !user) {
+    return (
+      <main id="app-main">
+        <div className="app-background"></div>
+        <div id="appSkeleton" className="app-skeleton">
+          <div className="skeleton-sidebar">
+            <div className="skeleton-line w60"></div>
+            <div className="skeleton-line w80"></div>
+            <div className="skeleton-line w40"></div>
+            <div className="skeleton-line w70"></div>
+          </div>
+          <div className="skeleton-main">
+            <div className="skeleton-topbar"></div>
+            <div className="skeleton-content">
+              <div className="skeleton-line w50"></div>
+              <div className="skeleton-rect"></div>
+              <div className="skeleton-line w80"></div>
+              <div className="skeleton-line w60"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main id="app-main">
@@ -104,6 +166,36 @@ export default function Home() {
           </div>
 
           <div className="sidebar-footer">
+            {/* User Account — only show when authenticated */}
+            {user && (
+              <div className="user-account" id="userAccount">
+                <div className="user-avatar" id="userAvatar">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="" className="avatar-img" />
+                  ) : (
+                    <span className="avatar-initial">
+                      {(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || "U").charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="user-info">
+                  <span className="user-name">{user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}</span>
+                  <span className="user-email">{user?.email || ''}</span>
+                </div>
+                <button className="user-logout-btn" id="btnLogout" onClick={signOut} title="Chiqish" aria-label="Sign out">
+                  <ion-icon name="log-out-outline"></ion-icon>
+                </button>
+              </div>
+            )}
+
+            {/* Sync Status — only show when authenticated */}
+            {user && (
+              <div className="sync-indicator" id="syncIndicator">
+                <span className="sync-dot" id="syncDot"></span>
+                <span className="sync-text" id="syncText">Synced</span>
+              </div>
+            )}
+
             <div className="daily-goal-widget" id="dailyGoalWidget">
               <div className="goal-progress">
                 <div className="goal-progress-bar" id="goalProgressBar" style={{ width: "0%" }}></div>

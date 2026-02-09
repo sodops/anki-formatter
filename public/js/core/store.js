@@ -2,6 +2,7 @@
  * Centralized State Store
  * Single source of truth for application state
  * Redux-inspired pattern with validation
+ * Cloud sync via /api/sync when authenticated
  */
 
 // Default state structure
@@ -24,6 +25,52 @@ class Store {
         this.history = [];
         this.historyIndex = -1;
         this.maxHistory = 50;
+
+        // Cloud sync state
+        this._syncTimer = null;
+        this._syncDelay = 2000; // 2 second debounce
+        this._isSyncing = false;
+        this._authUser = null;
+        this._accessToken = null;
+
+        // Listen for auth events from React AuthProvider
+        this._setupAuthListeners();
+    }
+
+    /**
+     * Setup listeners for auth events from React layer
+     */
+    _setupAuthListeners() {
+        // When auth is ready on page load
+        window.addEventListener('ankiflow:auth-ready', (e) => {
+            const detail = e.detail || {};
+            this._authUser = detail.user || null;
+            this._accessToken = detail.accessToken || null;
+            if (this._authUser) {
+                console.log('[STORE] Auth ready, user:', this._authUser.email);
+                // Load from cloud if authenticated
+                this._loadFromCloud();
+            }
+        });
+
+        // When auth changes (login/logout)
+        window.addEventListener('ankiflow:auth-change', (e) => {
+            const detail = e.detail || {};
+            this._authUser = detail.user || null;
+            this._accessToken = detail.accessToken || null;
+            if (this._authUser) {
+                console.log('[STORE] Auth changed, loading cloud data');
+                this._loadFromCloud();
+            } else {
+                console.log('[STORE] User logged out');
+            }
+        });
+
+        // Check if auth was already set before store loaded
+        if (window.__ankiflow_auth) {
+            this._authUser = window.__ankiflow_auth.user || null;
+            this._accessToken = window.__ankiflow_auth.accessToken || null;
+        }
     }
 
     /**
@@ -169,7 +216,7 @@ class Store {
     }
 
     /**
-     * Persist state to localStorage
+     * Persist state to localStorage + schedule cloud sync
      */
     persist() {
         try {
@@ -183,10 +230,8 @@ class Store {
         } catch (error) {
             if (error.name === 'QuotaExceededError' || error.code === 22) {
                 console.error('[STORE] localStorage quota exceeded! Data NOT saved. Export your data immediately.');
-                // Trim undo history to free space
                 this.history = this.history.slice(-5);
                 this.historyIndex = Math.min(this.historyIndex, this.history.length - 1);
-                // Try again without history
                 try {
                     localStorage.setItem('ankiState', JSON.stringify(this.state));
                 } catch (e) {
@@ -195,6 +240,171 @@ class Store {
             } else {
                 console.error('Storage error:', error);
             }
+        }
+
+        // Schedule cloud sync (debounced)
+        this._scheduleSyncToCloud();
+    }
+
+    /**
+     * Debounced cloud sync — waits 2s after last change before syncing
+     */
+    _scheduleSyncToCloud() {
+        if (!this._authUser) return; // Not logged in, skip cloud sync
+
+        if (this._syncTimer) clearTimeout(this._syncTimer);
+
+        // Update sync indicator to "syncing"
+        this._updateSyncUI('syncing');
+
+        this._syncTimer = setTimeout(() => {
+            this._syncToCloud();
+        }, this._syncDelay);
+    }
+
+    /**
+     * Sync state + settings + daily_progress to cloud
+     */
+    async _syncToCloud() {
+        if (!this._authUser || this._isSyncing) return;
+        this._isSyncing = true;
+        this._updateSyncUI('syncing');
+
+        try {
+            // Gather all data to sync
+            const settings = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+            const daily = JSON.parse(localStorage.getItem('ankiflow_daily') || '{}');
+
+            // Strip undo history from state to reduce payload size
+            const stateToSync = { ...this.state };
+            delete stateToSync.history;
+
+            const res = await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    state: stateToSync,
+                    settings: settings,
+                    daily_progress: daily,
+                }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || `HTTP ${res.status}`);
+            }
+
+            console.log('[STORE] Cloud sync OK');
+            this._updateSyncUI('synced');
+        } catch (error) {
+            console.error('[STORE] Cloud sync failed:', error.message);
+            this._updateSyncUI('error');
+        } finally {
+            this._isSyncing = false;
+        }
+    }
+
+    /**
+     * Load state from cloud, fallback to localStorage
+     */
+    async _loadFromCloud() {
+        if (!this._authUser) return;
+
+        this._updateSyncUI('syncing');
+
+        try {
+            const res = await fetch('/api/sync');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            const data = await res.json();
+
+            if (data.state && data.state.decks && data.state.decks.length > 0) {
+                console.log('[STORE] Loaded state from cloud');
+                // Merge with defaults
+                this.state = { ...DEFAULT_STATE, ...data.state };
+                this._normalizeDecks();
+
+                // Also restore settings + daily progress from cloud
+                if (data.settings && Object.keys(data.settings).length > 0) {
+                    localStorage.setItem('ankiflow_settings', JSON.stringify(data.settings));
+                }
+                if (data.daily_progress && Object.keys(data.daily_progress).length > 0) {
+                    localStorage.setItem('ankiflow_daily', JSON.stringify(data.daily_progress));
+                }
+
+                // Save to localStorage as cache
+                localStorage.setItem('ankiState', JSON.stringify(this.state));
+
+                // Notify all listeners to re-render
+                this._notifyListeners();
+
+                // Re-render UI
+                this._triggerUIRefresh();
+
+                this._updateSyncUI('synced');
+                return;
+            } else {
+                console.log('[STORE] No cloud data yet, uploading local data');
+                // First login — push local data to cloud
+                this._syncToCloud();
+            }
+        } catch (error) {
+            console.error('[STORE] Cloud load failed, using localStorage:', error.message);
+            this._updateSyncUI('error');
+        }
+    }
+
+    /**
+     * Normalize decks array (ensure IDs, cards arrays, etc.)
+     */
+    _normalizeDecks() {
+        if (this.state.decks) {
+            this.state.decks = this.state.decks.map(deck => ({
+                ...deck,
+                id: deck.id || this._generateId(),
+                cards: Array.isArray(deck.cards) ? deck.cards.map(card => ({
+                    ...card,
+                    id: card.id || this._generateId(),
+                    tags: Array.isArray(card.tags) ? card.tags : [],
+                    reviewData: card.reviewData || null,
+                    suspended: card.suspended || false
+                })) : [],
+                isDeleted: deck.isDeleted || false
+            }));
+        }
+    }
+
+    /**
+     * Trigger UI refresh after cloud load
+     */
+    _triggerUIRefresh() {
+        // Dispatch a custom event so main.js can re-render
+        window.dispatchEvent(new CustomEvent('ankiflow:state-loaded'));
+    }
+
+    /**
+     * Update sync indicator UI
+     * @param {'syncing'|'synced'|'error'} status
+     */
+    _updateSyncUI(status) {
+        const dot = document.getElementById('syncDot');
+        const text = document.getElementById('syncText');
+        if (!dot || !text) return;
+
+        dot.className = 'sync-dot'; // reset
+        switch (status) {
+            case 'syncing':
+                dot.classList.add('syncing');
+                text.textContent = 'Syncing...';
+                break;
+            case 'synced':
+                dot.classList.add('synced');
+                text.textContent = 'Synced';
+                break;
+            case 'error':
+                dot.classList.add('sync-error');
+                text.textContent = 'Sync error';
+                break;
         }
     }
 
@@ -208,23 +418,7 @@ class Store {
                 const parsed = JSON.parse(saved);
                 // Merge with defaults to ensure all fields exist
                 this.state = { ...DEFAULT_STATE, ...parsed };
-                
-                // Ensure decks array has cards arrays and cards have IDs
-                if (this.state.decks) {
-                    this.state.decks = this.state.decks.map(deck => ({
-                        ...deck,
-                        id: deck.id || this._generateId(),
-                        cards: Array.isArray(deck.cards) ? deck.cards.map(card => ({
-                            ...card,
-                            id: card.id || this._generateId(),
-                            tags: Array.isArray(card.tags) ? card.tags : [],
-                            reviewData: card.reviewData || null,
-                            suspended: card.suspended || false
-                        })) : [],
-                        isDeleted: deck.isDeleted || false
-                    }));
-                }
-                
+                this._normalizeDecks();
                 return true;
             }
         } catch (error) {
