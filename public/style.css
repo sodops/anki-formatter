@@ -24,8 +24,8 @@
   --text-tertiary: #8A8A8C;
   
   /* Accent */
-  --accent: #6366F1; /* Indigo */
-  --accent-hover: #818CF8;
+  --accent: #818CF8; /* Indigo - AA accessible on dark bg */
+  --accent-hover: #A5B4FC;
   --accent-glow: rgba(99, 102, 241, 0.3);
   
   /* Status */
@@ -705,7 +705,7 @@ body {
 }
 
 .action-btn.primary {
-  background: var(--accent);
+  background: #6366F1;
   color: white;
 }
 
