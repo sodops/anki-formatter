@@ -21,7 +21,7 @@
   /* Text */
   --text-primary: #EDEDEF;
   --text-secondary: #8B8B8D;
-  --text-tertiary: #5C5C5E;
+  --text-tertiary: #8A8A8C;
   
   /* Accent */
   --accent: #6366F1; /* Indigo */
@@ -1026,8 +1026,8 @@ kbd {
   --border-color: rgba(0, 0, 0, 0.1);
   
   --text-primary: #171717;
-  --text-secondary: #737373;
-  --text-tertiary: #A3A3A3;
+  --text-secondary: #525252;
+  --text-tertiary: #737373;
   
   --accent: #6366F1;
   --accent-hover: #4F46E5;

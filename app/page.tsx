@@ -79,7 +79,7 @@ export default function Home() {
         <div className="sidebar-overlay" id="sidebarOverlay"></div>
 
         {/* SIDEBAR */}
-        <div className="sidebar" id="sidebar">
+        <nav className="sidebar" id="sidebar" aria-label="Main navigation">
           <div className="brand">
             <ion-icon name="flash"></ion-icon>
             <span>AnkiFlow</span>
@@ -113,10 +113,10 @@ export default function Home() {
               <span className="dot"></span> <span id="autoSaveText">System Ready</span>
             </div>
           </div>
-        </div>
+        </nav>
 
         {/* MAIN WORKSPACE */}
-        <div className="main-content">
+        <main className="main-content" role="main">
           {/* TOP BAR */}
           <div className="top-bar">
             <div className="omnibar-container" id="omnibarContainer">
@@ -524,7 +524,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* TOAST */}
