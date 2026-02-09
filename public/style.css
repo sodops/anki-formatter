@@ -52,6 +52,21 @@
   padding: 0;
 }
 
+/* Prevent ion-icon from intercepting touch/click events inside interactive elements */
+button ion-icon,
+a ion-icon,
+.deck-item ion-icon,
+.nav-tab ion-icon,
+.icon-btn ion-icon,
+.action-btn ion-icon,
+.hamburger-btn ion-icon,
+.sidebar-close-btn ion-icon,
+.sidebar-trash-btn ion-icon,
+.rating-btn ion-icon,
+.md-btn ion-icon {
+  pointer-events: none;
+}
+
 /* Typography */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
