@@ -99,6 +99,26 @@ export async function handleFileUpload(file) {
         return;
     }
 
+    // DOCX: Client-side parsing via mammoth.js
+    if (fileExt === 'docx') {
+        try {
+            showToast("Processing DOCX...", "info");
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            const lines = result.value.split('\n').map(l => l.trim()).filter(Boolean);
+            const cards = parseTextLines(lines);
+            if (cards.length === 0) {
+                ui.alert("No cards found in DOCX file. Make sure each line has a separator (-, :, =, tab, etc.)");
+                return;
+            }
+            showImportPreview(cards, fileExt);
+        } catch(e) {
+            console.error('DOCX parse error:', e);
+            ui.alert("Failed to parse DOCX file: " + e.message);
+        }
+        return;
+    }
+
     // TXT: Client-side parsing (no server needed)
     if (fileExt === 'txt') {
         try {
