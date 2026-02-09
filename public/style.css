@@ -4368,6 +4368,18 @@ noscript {
     100% { transform: translateX(350%); }
 }
 
+/* Card row animations */
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Light theme */
 [data-theme="light"] .loading-overlay {
     background: rgba(255, 255, 255, 0.85);

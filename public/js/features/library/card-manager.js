@@ -337,6 +337,37 @@ function createCardRow(card, originalIndex) {
             return tr;
 }
 
+/**
+ * Update card counts in the header without full re-render
+ */
+function updateCardCounts() {
+    const deck = getActiveDeck();
+    if (!deck) return;
+    const allCards = deck.cards;
+    const filteredCards = getFilteredCards(allCards);
+    dom.countTotal.textContent = STATE.searchQuery
+        ? `${filteredCards.length} / ${allCards.length}`
+        : allCards.length;
+    const issues = allCards.filter(c => !c.term || !c.def).length;
+    dom.countIssues.textContent = `${issues} Issues`;
+    dom.countIssues.classList.toggle('hidden', issues === 0);
+}
+
+/**
+ * Re-index all rows' data-card-index after DOM insert/remove
+ */
+function reindexRows() {
+    const rows = dom.tableBody.querySelectorAll('tr');
+    rows.forEach((row) => {
+        const cb = row.querySelector('.row-checkbox');
+        if (cb) {
+            // Update checkbox index to match the new card index
+            const idx = parseInt(row.dataset.cardIndex);
+            cb.dataset.index = idx;
+        }
+    });
+}
+
 // --- Selection Logic ---
 
 function toggleRowSelection(index) {
@@ -598,7 +629,28 @@ export function addCard(term, def) {
         }
         
         eventBus.emit(EVENTS.CARD_ADDED, { term, def });
-        renderWorkspace();
+        
+        // Targeted DOM insert — add row at top instead of full re-render
+        const updatedDeck = store.getActiveDeck() || getActiveDeck();
+        if (updatedDeck && updatedDeck.cards.length > 0) {
+            dom.emptyState.classList.add('hidden');
+            // Re-index existing rows (shift by +1)
+            const existingRows = dom.tableBody.querySelectorAll('tr');
+            existingRows.forEach((r) => {
+                const oldIdx = parseInt(r.dataset.cardIndex);
+                r.dataset.cardIndex = oldIdx + 1;
+                const cb = r.querySelector('.row-checkbox');
+                if (cb) cb.dataset.index = oldIdx + 1;
+            });
+            // Insert new card at position 0
+            const newRow = createCardRow(updatedDeck.cards[0], 0);
+            newRow.style.animation = 'fadeSlideIn 0.2s ease';
+            dom.tableBody.insertBefore(newRow, dom.tableBody.firstChild);
+            updateCardCounts();
+        } else {
+            renderWorkspace();
+        }
+        
         appLogger.info(`Card added: ${term} -> ${def}`);
     } catch (error) {
         appLogger.error("Failed to add card", error);
@@ -629,7 +681,37 @@ export function removeCard(index) {
         });
         
         eventBus.emit(EVENTS.CARD_DELETED, { index, card: deletedCard });
-        renderWorkspace();
+        
+        // Targeted DOM removal — find and remove just this row
+        const row = dom.tableBody.querySelector(`tr[data-card-index="${index}"]`);
+        if (row) {
+            row.style.transition = 'opacity 0.15s, transform 0.15s';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-20px)';
+            setTimeout(() => {
+                row.remove();
+                // Re-index remaining rows to match new card indices
+                const rows = dom.tableBody.querySelectorAll('tr');
+                rows.forEach((r) => {
+                    const oldIdx = parseInt(r.dataset.cardIndex);
+                    if (oldIdx > index) {
+                        r.dataset.cardIndex = oldIdx - 1;
+                        const cb = r.querySelector('.row-checkbox');
+                        if (cb) cb.dataset.index = oldIdx - 1;
+                    }
+                });
+                updateCardCounts();
+                // Show empty state if no cards left
+                if (dom.tableBody.children.length === 0) {
+                    dom.emptyState.classList.remove('hidden');
+                    dom.emptyState.querySelector('p').textContent = 'No cards yet. Type "word - definition" above to add your first card!';
+                }
+            }, 150);
+        } else {
+            // Fallback: full re-render if row not found
+            renderWorkspace();
+        }
+        
         showToast('Card deleted');
         appLogger.info(`Card deleted at index ${index}`);
     } catch (error) {
@@ -858,13 +940,32 @@ export function suspendCard(cardIndex) {
     const card = deck.cards[cardIndex];
     if (!card) return;
     
+    const wasSuspended = card.suspended;
+    
     store.dispatch('CARD_SUSPEND', {
         deckId: deck.id,
         cardId: card.id
     });
     
-    renderWorkspace();
-    showToast(card.suspended ? 'Card unsuspended' : 'Card suspended');
+    // Targeted DOM update — just toggle the row class and button
+    const row = dom.tableBody.querySelector(`tr[data-card-index="${cardIndex}"]`);
+    if (row) {
+        const nowSuspended = !wasSuspended;
+        row.className = nowSuspended ? 'row-suspended' : '';
+        // Update suspend button icon
+        const suspendBtn = row.querySelector('.card-actions-cell .action-btn.secondary');
+        if (suspendBtn) {
+            suspendBtn.classList.toggle('active', nowSuspended);
+            suspendBtn.innerHTML = nowSuspended
+                ? '<ion-icon name="eye-off-outline"></ion-icon>'
+                : '<ion-icon name="pause-outline"></ion-icon>';
+            suspendBtn.title = nowSuspended ? 'Unsuspend card' : 'Suspend card (skip in study)';
+        }
+    } else {
+        renderWorkspace();
+    }
+    
+    showToast(wasSuspended ? 'Card unsuspended' : 'Card suspended');
 }
 
 /**
