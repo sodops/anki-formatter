@@ -73,7 +73,7 @@ export default function Home() {
 
       <div className="app-container" id="appContainer" style={{ display: "none" }}>
         {/* Mobile Hamburger */}
-        <button className="hamburger-btn" id="hamburgerBtn">
+        <button className="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
           <ion-icon name="menu-outline"></ion-icon>
         </button>
         <div className="sidebar-overlay" id="sidebarOverlay"></div>
@@ -83,7 +83,7 @@ export default function Home() {
           <div className="brand">
             <ion-icon name="flash"></ion-icon>
             <span>AnkiFlow</span>
-            <button className="sidebar-close-btn" id="sidebarCloseBtn">
+            <button className="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
               <ion-icon name="close-outline"></ion-icon>
             </button>
           </div>
@@ -170,8 +170,8 @@ export default function Home() {
                 <h1 id="currentDeckTitle">My Vocabulary</h1>
                 <div className="search-container">
                   <ion-icon name="search-outline" className="search-icon"></ion-icon>
-                  <input type="text" id="searchInput" placeholder="Search cards..." autoComplete="off" />
-                  <button className="search-clear hidden" id="btnClearSearch">
+                  <input type="text" id="searchInput" placeholder="Search cards..." autoComplete="off" aria-label="Search cards" />
+                  <button className="search-clear hidden" id="btnClearSearch" aria-label="Clear search">
                     <ion-icon name="close-outline"></ion-icon>
                   </button>
                 </div>
@@ -200,7 +200,7 @@ export default function Home() {
                   <thead>
                     <tr>
                       <th style={{ width: "40px" }}>
-                        <input type="checkbox" id="selectAllCheckbox" />
+                        <input type="checkbox" id="selectAllCheckbox" aria-label="Select all cards" />
                       </th>
                       <th>Term</th>
                       <th>Definition</th>
@@ -519,7 +519,7 @@ export default function Home() {
               <button className="action-btn danger small" id="btnBulkDelete">
                 <ion-icon name="trash-outline"></ion-icon> Delete
               </button>
-              <button className="icon-btn" id="btnBulkCancel">
+              <button className="icon-btn" id="btnBulkCancel" aria-label="Cancel selection">
                 <ion-icon name="close"></ion-icon>
               </button>
             </div>

@@ -101,6 +101,7 @@ export function renderWorkspace() {
             checkbox.className = 'row-checkbox';
             checkbox.style.marginRight = '8px';
             checkbox.dataset.index = originalIndex;
+            checkbox.setAttribute('aria-label', `Select card ${i + 1}`);
             checkbox.onclick = (e) => {
                 e.stopPropagation();
                 toggleRowSelection(originalIndex);
@@ -131,6 +132,7 @@ export function renderWorkspace() {
             termInput.className = 'editable-cell hidden';
             termInput.style.width = '100%';
             termInput.value = card.term;
+            termInput.setAttribute('aria-label', 'Edit term');
             
             // Toggle Logic
             termView.onclick = () => {
@@ -171,6 +173,7 @@ export function renderWorkspace() {
             defInput.className = 'editable-cell hidden';
             defInput.style.width = '100%';
             defInput.value = card.def;
+            defInput.setAttribute('aria-label', 'Edit definition');
             
             // Toggle Logic
             defView.onclick = () => {
@@ -215,6 +218,7 @@ export function renderWorkspace() {
             tagInput.type = 'text';
             tagInput.className = 'tag-input';
             tagInput.placeholder = 'Add tag...';
+            tagInput.setAttribute('aria-label', 'Add tag');
             tagInput.onkeydown = (e) => handleTagInput(e, originalIndex);
             tagsContainer.appendChild(tagInput);
             
@@ -266,6 +270,8 @@ export function renderWorkspace() {
             deleteBtn.className = 'action-btn secondary';
             deleteBtn.style.padding = '4px';
             deleteBtn.innerHTML = '<ion-icon name="close"></ion-icon>';
+            deleteBtn.title = 'Delete card';
+            deleteBtn.setAttribute('aria-label', 'Delete card');
             deleteBtn.onclick = () => removeCard(originalIndex);
             actionTd.appendChild(deleteBtn);
 

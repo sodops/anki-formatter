@@ -410,6 +410,8 @@ export function renderSidebar() {
             const renameBtn = document.createElement('button');
             renameBtn.className = 'icon-btn';
             renameBtn.innerHTML = '<ion-icon name="pencil-outline"></ion-icon>';
+            renameBtn.title = 'Rename deck';
+            renameBtn.setAttribute('aria-label', 'Rename deck');
             renameBtn.onclick = (e) => renameDeck(deck.id, e);
             btnsDiv.appendChild(renameBtn);
             
@@ -417,6 +419,8 @@ export function renderSidebar() {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'icon-btn delete-btn';
             deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+            deleteBtn.title = 'Delete deck';
+            deleteBtn.setAttribute('aria-label', 'Delete deck');
             deleteBtn.onclick = (e) => deleteDeck(deck.id, e);
             btnsDiv.appendChild(deleteBtn);
             
