@@ -1,6 +1,0 @@
-genanki
-python-docx
-pandas
-flask
-requests
-gunicorn

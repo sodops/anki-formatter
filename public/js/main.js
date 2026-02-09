@@ -43,7 +43,7 @@ let filteredCommands = [];
 
 // --- Initialization ---
 
-document.addEventListener('DOMContentLoaded', () => {
+function initAnkiFlow() {
     appLogger.info("AnkiFlow Initializing...");
     
     try {
@@ -169,7 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
         appLogger.error("Initialization failed", error);
         uiLogger.error("Failed to initialize app", error);
     }
-});
+}
+
+// Support both: normal page load and Next.js dynamic script injection
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnkiFlow);
+} else {
+    initAnkiFlow();
+}
 
 function setupGlobalExports() {
     window.createDeck = () => {

@@ -67,7 +67,7 @@ export async function handleFileUpload(file) {
     showToast("Processing File...", "info");
 
     try {
-        const response = await fetch('/parse', {
+        const response = await fetch('/api/parse', {
             method: 'POST',
             body: formData
         });
@@ -332,7 +332,7 @@ export async function handleGoogleDocImport(url) {
         formData.append('doc_url', url);
         formData.append('deck_id', STATE.activeDeckId);
 
-        const response = await fetch('/parse', {
+        const response = await fetch('/api/parse', {
             method: 'POST',
             body: formData
         });

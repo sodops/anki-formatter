@@ -1,0 +1,33 @@
+{
+  "name": "anki-flow",
+  "version": "7.0.0",
+  "private": true,
+  "description": "AnkiFlow — Smart flashcard study platform with spaced repetition",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sodops/anki-formatter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sodops/anki-formatter/issues"
+  },
+  "homepage": "https://github.com/sodops/anki-formatter#readme",
+  "dependencies": {
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.2",
+    "@types/react": "^19.2.13",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  }
+}

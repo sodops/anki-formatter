@@ -1,8 +1,10 @@
-.venv/
-__pycache__/
-*.pyc
-*.apkg
-*.log
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
 .DS_Store
-google_doc_*.txt
-src/static/uploads/
+*.log
+.env
+.env.local
+.env.production

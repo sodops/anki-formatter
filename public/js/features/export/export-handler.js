@@ -49,14 +49,13 @@ export async function executeExport() {
 }
 
 async function exportToApkg(deck, filename) {
-    // Format cards for backend
+    // Generate TSV for Anki import (since genanki requires Python)
     const cards = deck.cards.map(c => ({
         question: c.term,
-        answer: c.def,
-        tags: c.tags || []
+        answer: c.def
     }));
 
-    const response = await fetch('/generate', {
+    const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,20 +70,9 @@ async function exportToApkg(deck, filename) {
     }
 
     const data = await response.json();
-    if (data.success && data.download_url) {
-        // Download via the URL returned by backend
-        const downloadResponse = await fetch(data.download_url);
-        if (!downloadResponse.ok) throw new Error('Download failed');
-        const blob = await downloadResponse.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${filename}.apkg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        showToast('Export successful (.apkg)');
+    if (data.success && data.content) {
+        downloadFile(data.content, `${filename}.txt`, 'text/tab-separated-values');
+        showToast(`Exported ${data.totalCards} cards as TSV. Import into Anki via File > Import.`);
     } else {
         throw new Error(data.error || 'Export failed');
     }
