@@ -305,12 +305,14 @@ export async function editDeckSettings(id, event) {
     });
 }
 
+// Module-level UI state (not persisted to cloud)
+let _showingTrash = false;
+
 /**
  * Toggle trash view
  */
 export function toggleTrash() {
-    const state = store.getState();
-    state.showingTrash = !state.showingTrash;
+    _showingTrash = !_showingTrash;
     renderSidebar();
 }
 
@@ -322,7 +324,7 @@ export function renderSidebar() {
     
     const currentState = store.getState();
     const filteredDecks = currentState.decks.filter(d => 
-        currentState.showingTrash ? d.isDeleted : !d.isDeleted
+        _showingTrash ? d.isDeleted : !d.isDeleted
     );
 
     filteredDecks.forEach(deck => {
@@ -340,7 +342,7 @@ export function renderSidebar() {
 
         // Action Buttons
         let actionBtn = '';
-        if (currentState.showingTrash) {
+        if (_showingTrash) {
              // Restore Button (we'll render as HTML string then attach listeners via delegation or onclick for now)
              // Using data-attributes for event delegation would be cleaner, but keeping explicit onclick requires global scope.
              // We will Attach listeners to the created elements.
@@ -351,7 +353,7 @@ export function renderSidebar() {
         contentDiv.style.cssText = "display:flex; align-items:center; gap:8px; flex:1";
         
         const icon = document.createElement('ion-icon');
-        icon.name = currentState.showingTrash ? 'trash-outline' : 'folder-open-outline';
+        icon.name = _showingTrash ? 'trash-outline' : 'folder-open-outline';
         contentDiv.appendChild(icon);
         
         const nameSpan = document.createElement('span');
@@ -359,7 +361,7 @@ export function renderSidebar() {
         contentDiv.appendChild(nameSpan);
         
         // Due cards badge
-        if (!currentState.showingTrash) {
+        if (!_showingTrash) {
             const stats = getDeckReviewStats(deck);
             const dueCount = stats.newCards + stats.dueCards;
             
@@ -378,8 +380,7 @@ export function renderSidebar() {
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'deck-actions';
         
-        if (!currentState.showingTrash) {
-            // Color Picker Button
+        if (!_showingTrash) {
             const colorBtn = document.createElement('button');
             colorBtn.className = 'icon-btn color-picker-btn';
             colorBtn.innerHTML = '<ion-icon name="color-palette-outline"></ion-icon>';
@@ -446,7 +447,7 @@ export function renderSidebar() {
         li.onclick = (e) => {
             // Check if we clicked an action button
             if (!e.target.closest('button')) {
-                if(!currentState.showingTrash) switchDeck(deck.id);
+                if(!_showingTrash) switchDeck(deck.id);
             }
         };
         
@@ -470,14 +471,14 @@ export function renderSidebar() {
     // If we rely on index.html having it, we should use that.
     
     const trashBtnHtml = `
-        <button class="sidebar-trash-btn ${currentState.showingTrash ? 'active' : ''}" id="btnToggleTrash">
-            <ion-icon name="${currentState.showingTrash ? 'arrow-back-outline' : 'trash-bin-outline'}"></ion-icon>
-            ${currentState.showingTrash ? 'Back to Decks' : 'Trash'}
+        <button class="sidebar-trash-btn ${_showingTrash ? 'active' : ''}" id="btnToggleTrash">
+            <ion-icon name="${_showingTrash ? 'arrow-back-outline' : 'trash-bin-outline'}"></ion-icon>
+            ${_showingTrash ? 'Back to Decks' : 'Trash'}
         </button>
     `;
     
     let emptyTrashHtml = '';
-    if (currentState.showingTrash) {
+    if (_showingTrash) {
         emptyTrashHtml = `
             <button class="empty-trash-btn" id="btnEmptyTrash" style="margin-top: 8px; width: 100%; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <ion-icon name="ban-outline"></ion-icon> Empty Trash

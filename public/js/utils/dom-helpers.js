@@ -130,3 +130,33 @@ export function verifyDomElements() {
     
     return missing.length === 0;
 }
+
+/**
+ * Animate a count-up effect on an element
+ * @param {string} elementId - DOM element ID
+ * @param {number} target - Target number
+ * @param {number} duration - Animation duration in ms
+ */
+export function animateCountUp(elementId, target, duration = 500) {
+    const el = document.getElementById(elementId);
+    if (!el || target === 0) { if(el) el.textContent = target; return; }
+    
+    const start = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        const current = Math.round(start + (target - start) * eased);
+        el.textContent = current;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            el.textContent = target;
+        }
+    }
+    
+    requestAnimationFrame(update);
+}

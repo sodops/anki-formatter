@@ -985,30 +985,7 @@ function applyKeyboardHints(show) {
 }
 
 // --- Count-up Animation Utility ---
-
-export function animateCountUp(elementId, target, duration = 500) {
-    const el = document.getElementById(elementId);
-    if (!el || target === 0) { if(el) el.textContent = target; return; }
-    
-    const start = 0;
-    const startTime = performance.now();
-    
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-        const current = Math.round(start + (target - start) * eased);
-        el.textContent = current;
-        
-        if (progress < 1) {
-            requestAnimationFrame(update);
-        } else {
-            el.textContent = target;
-        }
-    }
-    
-    requestAnimationFrame(update);
-}
+// Moved to utils/dom-helpers.js to avoid circular imports
 
 
 function preventDefaults(e) {

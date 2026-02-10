@@ -12,7 +12,7 @@ import { renderMarkdown } from '../../utils/markdown-parser.js';
 import { getDueCards, updateCardAfterReview, getIntervalPreview } from '../../core/srs/scheduler.js';
 
 import { switchView, VIEWS } from '../../ui/navigation/view-manager.js';
-import { animateCountUp } from '../../main.js';
+import { animateCountUp } from '../../utils/dom-helpers.js';
 
 let sessionCards = [];
 let currentIndex = 0;
