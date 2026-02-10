@@ -50,8 +50,11 @@ function initAnkiFlow() {
         verifyDomElements();
         setupMarked();
         
-        // Load state from localStorage into store
-        loadState();
+        // Load state: if user is authenticated, auth events handle cloud + scoped localStorage.
+        // Only call loadState() for guest mode (no user).
+        if (!store._authUser) {
+            loadState();
+        }
         
         // Default Deck if none exists
         const currentState = store.getState();

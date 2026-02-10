@@ -50,8 +50,12 @@ class Store {
             this._authUser = detail.user || null;
             this._accessToken = detail.accessToken || null;
             if (this._authUser) {
+                // Skip if already loaded from pre-loaded auth (window.__ankiflow_auth)
+                if (this._cloudLoaded || this._isLoadingCloud) {
+                    console.log('[STORE] Auth ready, already loading/loaded — skipping');
+                    return;
+                }
                 console.log('[STORE] Auth ready, user:', this._authUser.email);
-                // Load user-scoped localStorage first, then cloud
                 this._loadUserLocalState();
                 this._loadFromCloud();
             }
@@ -83,13 +87,19 @@ class Store {
                 // Reset to defaults on logout so next user doesn't see stale data
                 this.state = { ...DEFAULT_STATE };
                 this._cloudLoaded = false;
+                this._notifyListeners();
+                this._triggerUIRefresh();
             }
         });
 
         // Check if auth was already set before store loaded
-        if (window.__ankiflow_auth) {
-            this._authUser = window.__ankiflow_auth.user || null;
+        // (auth-ready event may have fired before this script loaded)
+        if (window.__ankiflow_auth && window.__ankiflow_auth.user) {
+            this._authUser = window.__ankiflow_auth.user;
             this._accessToken = window.__ankiflow_auth.accessToken || null;
+            console.log('[STORE] Auth already available (pre-loaded), user:', this._authUser.email);
+            this._loadUserLocalState();
+            this._loadFromCloud();
         }
     }
 
@@ -509,11 +519,19 @@ class Store {
             let saved = localStorage.getItem(key);
             
             // Fallback: migrate from legacy unscoped key
+            // Only if this is truly the first login (no other user-scoped keys exist)
             if (!saved && key !== 'ankiState') {
-                saved = localStorage.getItem('ankiState');
-                if (saved) {
-                    console.log('[STORE] Migrating legacy ankiState to user-scoped key');
-                    localStorage.setItem(key, saved);
+                const hasOtherUsers = Object.keys(localStorage).some(
+                    k => k.startsWith('ankiState_') && k !== key
+                );
+                if (!hasOtherUsers) {
+                    saved = localStorage.getItem('ankiState');
+                    if (saved) {
+                        console.log('[STORE] Migrating legacy ankiState to user-scoped key');
+                        localStorage.setItem(key, saved);
+                        // Remove legacy key after migration to prevent leaking to other users
+                        localStorage.removeItem('ankiState');
+                    }
                 }
             }
             if (saved) {
