@@ -10,8 +10,10 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error("[SYNC GET] Auth failed:", authError);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    console.log("[SYNC GET] User:", user.id);
 
     const { data, error } = await supabase
       .from("user_data")
@@ -53,10 +55,12 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error("[SYNC POST] Auth failed:", authError);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
+    console.log("[SYNC POST] User:", user.id, "Payload keys:", Object.keys(body || {}));
 
     if (!body || typeof body !== 'object') {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
@@ -75,11 +79,16 @@ export async function POST(request: NextRequest) {
     if (settings !== undefined) updateData.settings = settings;
     if (daily_progress !== undefined) updateData.daily_progress = daily_progress;
 
-    const { error } = await supabase
+    const { data: upsertData, error } = await supabase
       .from("user_data")
-      .upsert(updateData, { onConflict: "user_id" });
+      .upsert(updateData, { onConflict: "user_id" })
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error("[SYNC POST] Database error:", error);
+      throw error;
+    }
+    console.log("[SYNC POST] Success. Rows returned:", upsertData?.length);
 
     return NextResponse.json({
       success: true,
