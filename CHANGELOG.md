@@ -1,5 +1,7 @@
 # 📋 CHANGELOG
 
+> **English version available**: See [CHANGELOG_EN.md](./CHANGELOG_EN.md) for English documentation.
+
 Barcha muhim o'zgarishlar shu faylda qayd etilgan.
 
 ---

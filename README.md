@@ -1,5 +1,7 @@
 # ⚡ AnkiFlow — Aqlli Flashcard Platformasi
 
+> **English version available**: See [README_EN.md](./README_EN.md) for English documentation.
+
 **[anki.sodops.uz](https://anki.sodops.uz)** — Zamonaviy flashcard o'rganish platformasi. **SM-2 Spaced Repetition** algoritmi, cloud sync va ko'p qurilma sinxronizatsiyasi bilan.
 
 ---
