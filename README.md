@@ -1,23 +1,23 @@
-# ⚡ AnkiFlow — Aqlli Flashcard Platformasi
+# ⚡ AnkiFlow — Smart Flashcard Platform
 
-**[anki.sodops.uz](https://anki.sodops.uz)** — Zamonaviy flashcard o'rganish platformasi. **SM-2 Spaced Repetition** algoritmi, cloud sync va ko'p qurilma sinxronizatsiyasi bilan.
+**[anki.sodops.uz](https://anki.sodops.uz)** — A modern flashcard learning platform. Powered by the **SM-2 Spaced Repetition** algorithm, cloud sync, and multi-device synchronization.
 
 ---
 
-## 📖 Loyiha haqida
+## 📖 About
 
-**AnkiFlow** — lug'at va bilimlarga oid ma'lumotlarni samarali yodlash uchun mo'ljallangan full-stack flashcard platformasi. SM-2 algoritmidan foydalanib takrorlash rejasini optimal boshqaradi. Supabase orqali foydalanuvchi autentifikatsiyasi va cloud sync imkoniyatini taqdim etadi.
+**AnkiFlow** is a full-stack flashcard platform designed for efficiently memorizing vocabulary and knowledge. It uses the SM-2 algorithm to optimally manage review schedules. Provides user authentication and cloud sync via Supabase.
 
-### Texnologiyalar:
+### Tech Stack
 
-| Qatlam | Texnologiya |
+| Layer | Technology |
 | --- | --- |
 | **Framework** | Next.js 16.1 (React 19, Turbopack) |
-| **UI** | Vanilla JavaScript ES6 modullari |
+| **UI** | Vanilla JavaScript ES6 Modules |
 | **Auth** | Supabase Auth (Email, Google, GitHub OAuth) |
-| **Ma'lumotlar bazasi** | Supabase PostgreSQL (JSONB) + localStorage fallback |
-| **Deploy** | Vercel (auto-deploy `main` branch) |
-| **Algoritm** | SM-2 Spaced Repetition |
+| **Database** | Supabase PostgreSQL (JSONB) + localStorage fallback |
+| **Deploy** | Vercel (auto-deploy from `main` branch) |
+| **Algorithm** | SM-2 Spaced Repetition |
 
 ---
 
@@ -27,81 +27,81 @@
 
 ---
 
-## ✨ Asosiy imkoniyatlar
+## ✨ Key Features
 
-### 🔐 Autentifikatsiya va Cloud
+### 🔐 Authentication & Cloud
 
-- **Supabase Auth** — email/parol, Google OAuth, GitHub OAuth
-- **Cloud Sync** — barcha qurilmalarda ma'lumotlar sinxronlanadi
-- **Debounced auto-save** — 2s kechikish bilan cloudga saqlash
-- **Offline fallback** — internet yo'q bo'lsa localStorage'dan ishlaydi
-- **Sync indikatori** — syncing / synced / error holatlari
+- **Supabase Auth** — email/password, Google OAuth, GitHub OAuth
+- **Cloud Sync** — data syncs across all devices
+- **Debounced auto-save** — saves to cloud with 2s debounce
+- **Offline fallback** — works from localStorage when offline
+- **Sync indicator** — visual syncing / synced / error states
 
-### 📚 Kartalar va Decklar
+### 📚 Cards & Decks
 
-- **SM-2 Spaced Repetition** — aqlli takrorlash rejasi (new → learning → review)
-- **Ko'p deckli boshqaruv** — yaratish, nomini o'zgartirish, rang tanlash, tartibni o'zgartirish
-- **Inline tahrirlash** — jadvalda to'g'ridan-to'g'ri kartani tahrirlash
-- **Markdown qo'llab-quvvatlash** — bold, italic, code, linklar
-- **Tag tizimi** — kartalarni teglash, teglar bo'yicha filtrlash
-- **Qidiruv** — term va definitionlar bo'yicha tezkor qidiruv
-- **Teskari rejim** — definition → term yo'nalishda o'rganish
-- **Kartani to'xtatish** — vaqtincha o'rganishdan chiqarish (suspend)
-- **Find & Replace** — ommaviy matn tahrirlash
-- **Kartalarni ko'chirish** — decklar orasida move/copy
+- **SM-2 Spaced Repetition** — smart review scheduling (new → learning → review)
+- **Multi-deck management** — create, rename, color-pick, reorder
+- **Inline editing** — edit cards directly in the table
+- **Markdown support** — bold, italic, code, links
+- **Tag system** — tag cards and filter by tags
+- **Search** — fast search across terms and definitions
+- **Reverse mode** — study in definition → term direction
+- **Card suspension** — temporarily exclude cards from study
+- **Find & Replace** — bulk text editing
+- **Card transfer** — move/copy cards between decks
 
-### 📖 O'rganish
+### 📖 Study
 
-- **Aqlli sessiyalar** — faqat muddati kelgan kartalar (new + learning + review)
-- **Flashcard animatsiya** — flip effekti, klaviatura bilan boshqarish
-- **Ovozli effektlar** — ixtiyoriy audio feedback
-- **Kunlik maqsad** — progress bar va streak hisoblagich
-- **Sessiya xulosasi** — aniqlik halqasi, reytinglar bo'linmasi, confetti
+- **Smart sessions** — only due cards (new + learning + review)
+- **Flashcard animation** — flip effect, keyboard controls
+- **Sound effects** — optional audio feedback
+- **Daily goal** — progress bar and streak counter
+- **Session summary** — accuracy ring, rating breakdown, confetti
 
-### 📊 Statistika
+### 📊 Statistics
 
-- **Umumiy ko'rsatkichlar** — kartalar, decklar, streak, aniqlik
-- **Deck taqsimoti** — gorizontal diagramma
-- **Karta yetuklik darajasi** — New / Learning / Young / Mature
-- **Review heatmap** — 90 kunlik GitHub-uslubidagi faollik kalendari
-- **Review prognoz** — 14 kunlik kelgusi kartalar diagrammasi
-- **Har bir deck statistikasi** — jadval: New/Learning/Review/Suspended/Accuracy
-- **Top teglar** — teg buluti
+- **Overview metrics** — cards, decks, streak, accuracy
+- **Deck distribution** — horizontal bar chart
+- **Card maturity levels** — New / Learning / Young / Mature
+- **Review heatmap** — 90-day GitHub-style activity calendar
+- **Review forecast** — 14-day upcoming cards chart
+- **Per-deck statistics** — table: New/Learning/Review/Suspended/Accuracy
+- **Top tags** — tag cloud
 
-### 📥 Import / Eksport
+### 📥 Import / Export
 
-- **Import**: TXT, CSV (ustun xaritalash bilan), DOCX, Google Docs URL
-- **Eksport**: .apkg (Anki), .txt, .md, .csv
-- **Import preview** — birinchi 10 karta + dublikat aniqlash
-- **To'liq backup** — JSON formatda barcha ma'lumotlar
+- **Import**: TXT, CSV (with column mapping), DOCX, Google Docs URL
+- **Export**: .apkg (Anki), .txt, .md, .csv
+- **Import preview** — first 10 cards + duplicate detection
+- **Full backup** — all data in JSON format
 
-### 🎨 Interfeys
+### 🎨 Interface
 
-- **Qorong'u va yorug' mavzu** — auto (tizim sozlamasi) ham bor
-- **Command palette** — `F1` yoki omnibar'da `>`
-- **Klaviatura shortcutlari** — Ctrl+Z, Ctrl+F, Space, 1-4
-- **Responsive dizayn** — mobil uchun hamburger menyu
-- **Drag & drop** — kartalarni tartibini o'zgartirish
-- **Undo / Redo** — barcha amallarni qaytarish
+- **Dark and light theme** — auto (system preference) available
+- **Command palette** — `F1` or `>` in the omnibar
+- **Keyboard shortcuts** — Ctrl+Z, Ctrl+F, Space, 1-4
+- **Responsive design** — hamburger menu for mobile
+- **Drag & drop** — reorder cards
+- **Undo / Redo** — revert any action
 
-### 🛡️ Xavfsizlik
+### 🛡️ Security
 
-- **Supabase RLS** — foydalanuvchilar faqat o'z ma'lumotlarini ko'radi
-- **XSS himoya** — Markdown chiqishi sanitize qilinadi
-- **Path traversal himoya** — fayl yuklab olish himoyalangan
-- **localStorage kvota** — xotira to'lganda xatolik boshqaruvi
+- **Supabase RLS** — users can only see their own data
+- **XSS protection** — Markdown output is sanitized
+- **Path traversal protection** — file downloads are secured
+- **localStorage quota** — error handling when storage is full
 
 ---
 
-## 🚀 Ishga tushirish
+## 🚀 Getting Started
 
-### Talablar
+### Requirements
 
 - Node.js 18+
 - npm
-- Supabase loyihasi (bepul: [supabase.com](https://supabase.com))
+- Supabase project (free: [supabase.com](https://supabase.com))
 
-### 1. Klonlash va o'rnatish
+### 1. Clone and Install
 
 ```bash
 git clone https://github.com/sodops/anki-formatter.git
@@ -109,50 +109,50 @@ cd anki-formatter
 npm install
 ```
 
-### 2. Supabase sozlash
+### 2. Supabase Setup
 
-`.env.local` faylini yarating:
+Create a `.env.local` file:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 ```
 
-Supabase Dashboard → **SQL Editor** → `supabase/schema.sql` ni ishga tushiring.
+Go to Supabase Dashboard → **SQL Editor** → run `supabase/schema.sql`.
 
-### 3. OAuth sozlash (ixtiyoriy)
+### 3. OAuth Setup (optional)
 
 Supabase Dashboard → **Authentication** → **Providers**:
 
-- **Google**: Google Cloud Console'dan Client ID va Secret oling
-- **GitHub**: GitHub Developer Settings'dan OAuth App yarating
+- **Google**: Get Client ID and Secret from Google Cloud Console
+- **GitHub**: Create an OAuth App in GitHub Developer Settings
 
-Ikkala provider uchun redirect URL: `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
+Redirect URL for both providers: `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
 
-### 4. Ishga tushirish
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-Brauzeringizda oching: `http://localhost:3000`
+Open in your browser: `http://localhost:3000`
 
 ---
 
-## 📁 Loyiha tuzilishi
+## 📁 Project Structure
 
 ```
 anki-formatter/
 ├── app/
 │   ├── layout.tsx                   # Root layout (AuthProvider)
-│   ├── page.tsx                     # Asosiy sahifa (SPA)
+│   ├── page.tsx                     # Main page (SPA)
 │   ├── login/
-│   │   └── page.tsx                 # Login sahifasi
+│   │   └── page.tsx                 # Login page
 │   ├── auth/
 │   │   └── callback/
 │   │       └── route.ts             # OAuth callback handler
 │   └── api/
-│       ├── parse/route.ts           # Matn parser API
+│       ├── parse/route.ts           # Text parser API
 │       ├── generate/route.ts        # APKG generator API
 │       └── sync/route.ts            # Cloud sync API (GET/POST)
 ├── components/
@@ -164,88 +164,88 @@ anki-formatter/
 │       └── middleware.ts            # Session refresh
 ├── middleware.ts                     # Next.js middleware
 ├── public/
-│   ├── style.css                    # Barcha stillar
+│   ├── style.css                    # All styles
 │   └── js/
 │       ├── main.js                  # Entry point
 │       ├── core/
 │       │   ├── store.js             # State management + cloud sync
 │       │   └── srs/
-│       │       └── scheduler.js     # SM-2 algoritmi
+│       │       └── scheduler.js     # SM-2 algorithm
 │       ├── features/
-│       │   ├── library/             # Karta va deck boshqaruvi
-│       │   ├── study/               # O'rganish sessiyasi
-│       │   ├── import/              # Fayl import
-│       │   ├── export/              # Eksport (APKG/TXT/MD/CSV)
-│       │   └── stats/               # Statistika, heatmap
-│       ├── ui/                      # Toast, modal, drag-drop, tema
+│       │   ├── library/             # Card and deck management
+│       │   ├── study/               # Study session
+│       │   ├── import/              # File import
+│       │   ├── export/              # Export (APKG/TXT/MD/CSV)
+│       │   └── stats/               # Statistics, heatmap
+│       ├── ui/                      # Toast, modal, drag-drop, theme
 │       └── utils/                   # DOM helpers, Markdown parser
 ├── supabase/
 │   └── schema.sql                   # Database schema + RLS
-├── .env.local.example               # Environment variables namunasi
+├── .env.local.example               # Environment variables example
 ├── package.json
 └── README.md
 ```
 
 ---
 
-## ⌨️ Klaviatura shortcutlari
+## ⌨️ Keyboard Shortcuts
 
-| Tugma | Amal |
+| Key | Action |
 | --- | --- |
 | `F1` | Command palette |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
-| `Ctrl+F` | Qidiruv |
-| `Ctrl+/` | Shortcutlar ro'yxati |
-| `Space` | Javobni ko'rsatish (study mode) |
+| `Ctrl+F` | Search |
+| `Ctrl+/` | Shortcuts list |
+| `Space` | Show answer (study mode) |
 | `1` / `2` / `3` / `4` | Again / Hard / Good / Easy |
-| `Esc` | Modalni yopish / Sessiyani tugatish |
+| `Esc` | Close modal / End session |
 
 ---
 
-## 🧠 SM-2 Algoritmi
+## 🧠 SM-2 Algorithm
 
-AnkiFlow **SuperMemo 2 (SM-2)** algoritmidan foydalanadi:
+AnkiFlow uses the **SuperMemo 2 (SM-2)** algorithm:
 
-- **New** → Yangi kartalar
-- **Learning** → O'rganish jarayonida (1min → 10min)
-- **Review** → Muntazam takrorlash (1d → 3d → 7d → ...)
-- **Young/Mature** → 21+ kundan keyin karta "mature" hisoblanadi
+- **New** → Brand new cards
+- **Learning** → In the learning phase (1min → 10min)
+- **Review** → Regular review (1d → 3d → 7d → ...)
+- **Young/Mature** → After 21+ days a card is considered "mature"
 
-Har bir rating (Again, Hard, Good, Easy) kartaning ease factor va intervalini o'zgartiradi.
+Each rating (Again, Hard, Good, Easy) adjusts the card's ease factor and interval.
 
 ---
 
 ## 🚢 Deploy (Vercel)
 
-1. GitHub repo'ni Vercel'ga ulang (`main` branch)
-2. Environment Variables qo'shing:
+1. Connect your GitHub repo to Vercel (`main` branch)
+2. Add Environment Variables:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Custom domain qo'shing (masalan: `anki.sodops.uz`)
-4. Auto-deploy — har bir push'da avtomatik yangilanadi
+3. Add a custom domain (e.g., `anki.sodops.uz`)
+4. Auto-deploy — updates automatically on every push
 
 ---
 
-## 📄 Litsenziya
+## 📄 License
 
 MIT © [sodops](https://github.com/sodops)
 
 ---
 
-## 🤝 Hissa qo'shish
+## 🤝 Contributing
 
-1. Fork qiling
-2. Feature branch yarating (`git checkout -b feature/YangiImkoniyat`)
-3. Commit qiling (`git commit -m 'Add: yangi imkoniyat'`)
-4. Push qiling (`git push origin feature/YangiImkoniyat`)
-5. Pull Request oching
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/NewFeature`)
+3. Commit your changes (`git commit -m 'Add: new feature'`)
+4. Push to the branch (`git push origin feature/NewFeature`)
+5. Open a Pull Request
 
 ---
 
-## 📞 Bog'lanish
+## 📞 Contact
 
-- **Sayt**: [anki.sodops.uz](https://anki.sodops.uz)
+- **Website**: [anki.sodops.uz](https://anki.sodops.uz)
 - **GitHub**: [sodops/anki-formatter](https://github.com/sodops/anki-formatter)
 
-Savollaringiz yoki takliflaringiz bo'lsa, GitHub issue oching!
+Have questions or suggestions? Open a GitHub issue!
