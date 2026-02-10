@@ -4,13 +4,16 @@
  * Enhanced with learning steps for vocabulary memorization
  */
 
+import { store } from '../store.js';
+
 /**
  * Get user settings from localStorage
  * @returns {Object} Settings with defaults
  */
 function getSettings() {
     try {
-        const saved = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+        const key = store.getScopedKey('ankiflow_settings');
+        const saved = JSON.parse(localStorage.getItem(key) || '{}');
         return {
             intervalMod: (saved.intervalMod || 100) / 100, // Convert % to multiplier
             learningSteps: parseLearningSteps(saved.learningSteps || '1, 10'),
@@ -268,88 +271,32 @@ export function updateCardAfterReview(card, quality) {
  * @returns {string} Human-readable interval (e.g., "1m", "10m", "1d", "6d")
  */
 export function getIntervalPreview(card, quality) {
-    const settings = getSettings();
-    const learningSteps = settings.learningSteps;
-    const intervalMod = settings.intervalMod;
+    // Delegate to calculateNextReview to avoid duplicating SM-2 logic
+    const result = calculateNextReview(card, quality);
+    const now = new Date();
     
-    const reviewData = card.reviewData || {
-        interval: 0,
-        easeFactor: 2.5,
-        repetitions: 0,
-        step: 0,
-        isLearning: true
-    };
-
-    let { easeFactor, interval, repetitions } = reviewData;
-    let step = reviewData.step !== undefined ? reviewData.step : 0;
-    let isLearning = reviewData.isLearning !== undefined ? reviewData.isLearning : true;
-
-    let previewInterval; // In days
-    let previewMinutes = 0; // In minutes (for learning phase)
-
-    if (isLearning) {
-        if (quality === 0) {
-            // Again: back to first step
-            previewMinutes = learningSteps[0] || 1;
-        } else if (quality >= 3) {
-            const nextStep = step + 1;
-            if (nextStep >= learningSteps.length) {
-                // Would graduate
-                previewInterval = quality === 5 ? 4 : 1;
-            } else {
-                previewMinutes = learningSteps[nextStep] || 10;
-            }
-        } else {
-            // Hard: half current step
-            previewMinutes = Math.max(1, Math.round((learningSteps[step] || 1) * 0.5));
-        }
+    if (!result.nextReview) return '1m';
+    
+    const diffMs = new Date(result.nextReview).getTime() - now.getTime();
+    const diffMinutes = Math.max(1, Math.round(diffMs / (60 * 1000)));
+    
+    if (diffMinutes < 60) {
+        return `${diffMinutes}m`;
+    }
+    
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) {
+        return `${diffHours}h`;
+    }
+    
+    const diffDays = Math.round(diffMinutes / (60 * 24));
+    if (diffDays < 30) {
+        return `${diffDays}d`;
+    } else if (diffDays < 365) {
+        return `${Math.round(diffDays / 30)}mo`;
     } else {
-        // Review phase
-        if (quality >= 3) {
-            if (repetitions === 0) {
-                previewInterval = 1;
-            } else if (repetitions === 1) {
-                previewInterval = 6;
-            } else {
-                previewInterval = Math.round(interval * easeFactor * intervalMod);
-            }
-            if (quality === 5) previewInterval = Math.round(previewInterval * 1.3);
-        } else if (quality === 0) {
-            // Again: relearning, first step
-            previewMinutes = learningSteps[0] || 1;
-        } else {
-            // Hard
-            previewMinutes = Math.max(1, Math.round((learningSteps[0] || 1) * 0.5));
-        }
+        return `${Math.round(diffDays / 365)}y`;
     }
-
-    // Format output
-    if (previewMinutes > 0) {
-        if (previewMinutes < 60) {
-            return `${previewMinutes}m`;
-        } else {
-            const hours = Math.round(previewMinutes / 60);
-            return `${hours}h`;
-        }
-    }
-    
-    if (previewInterval !== undefined) {
-        if (previewInterval < 1) {
-            return '10m';
-        } else if (previewInterval === 1) {
-            return '1d';
-        } else if (previewInterval < 30) {
-            return `${previewInterval}d`;
-        } else if (previewInterval < 365) {
-            const months = Math.round(previewInterval / 30);
-            return `${months}mo`;
-        } else {
-            const years = Math.round(previewInterval / 365);
-            return `${years}y`;
-        }
-    }
-
-    return '1m';
 }
 
 /**

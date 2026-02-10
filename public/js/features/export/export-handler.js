@@ -5,7 +5,6 @@
 
 import { store } from '../../core/store.js';
 import { appLogger } from '../../core/logger.js';
-import { getActiveDeck } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
@@ -15,7 +14,7 @@ import { escapeHtml } from '../../ui/components/ui.js';
  * Execute export of the current deck
  */
 export async function executeExport() {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     
     // Get options
@@ -128,7 +127,7 @@ function downloadFile(content, filename, type) {
  * Show export preview modal
  */
 export function showExportPreview() {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     
     // Check if elements exist (might not be in DOM yet if using old HTML)

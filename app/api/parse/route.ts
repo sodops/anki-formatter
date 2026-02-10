@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 // Separator list (same as Python parser)
 const SEPARATORS = [
@@ -104,6 +105,13 @@ async function fetchGoogleDoc(url: string): Promise<string[]> {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth check
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const contentType = request.headers.get("content-type") || "";
 
     let lines: string[] = [];

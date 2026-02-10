@@ -6,7 +6,6 @@
 import { store } from '../../core/store.js';
 import { eventBus, EVENTS } from '../../core/events.js';
 import { appLogger } from '../../core/logger.js';
-import { STATE, saveState, getActiveDeck } from '../../core/storage/storage.js';
 import { ui, showToast, escapeHtml } from '../../ui/components/ui.js';
 import { renderWorkspace } from '../library/card-manager.js';
 import { dom } from '../../utils/dom-helpers.js';
@@ -136,7 +135,7 @@ export async function handleFileUpload(file) {
     // Other formats: Use Backend
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('deck_id', STATE.activeDeckId); 
+    formData.append('deck_id', store.getState().activeDeckId); 
 
     showToast("Processing File...", "info");
 
@@ -251,7 +250,7 @@ function renderImportPreviewList(cards) {
     const previewList = document.getElementById('importPreviewList');
     previewList.innerHTML = '';
     
-    const activeDeck = getActiveDeck();
+    const activeDeck = store.getActiveDeck();
     const existingTerms = new Set(
         activeDeck ? activeDeck.cards.map(c => (c.term || '').toLowerCase()) : []
     );
@@ -331,7 +330,7 @@ export function updateImportPreview() {
  */
 export function confirmImport() {
     try {
-        let deck = getActiveDeck();
+        let deck = store.getActiveDeck();
         
         // Auto-select first deck if none active
         if (!deck) {
@@ -411,7 +410,7 @@ export async function handleGoogleDocImport(url) {
     try {
         const formData = new FormData();
         formData.append('doc_url', url);
-        formData.append('deck_id', STATE.activeDeckId);
+        formData.append('deck_id', store.getState().activeDeckId);
 
         ui.updateLoading('Parsing document...');
         const response = await fetch('/api/parse', {

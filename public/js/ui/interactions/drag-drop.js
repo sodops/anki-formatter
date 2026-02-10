@@ -4,7 +4,6 @@
  */
 
 import { store } from '../../core/store.js';
-import { getActiveDeck, saveState } from '../../core/storage/storage.js';
 import { renderWorkspace } from '../../features/library/card-manager.js';
 import { showToast } from '../components/ui.js';
 
@@ -70,7 +69,7 @@ export function handleDrop(e) {
         const targetIndex = parseInt(targetRow.dataset.cardIndex);
         
         // Reorder cards in deck via store
-        const deck = getActiveDeck();
+        const deck = store.getActiveDeck();
         if (deck && draggedIndex !== null && !isNaN(targetIndex) && draggedIndex !== targetIndex) {
             const newCards = [...deck.cards];
             const [movedCard] = newCards.splice(draggedIndex, 1);

@@ -6,7 +6,7 @@
 class Logger {
     constructor(name = 'App') {
         this.name = name;
-        this.isDev = true; // Can be set from environment
+        this.isDev = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
         this.logs = []; // Keep last 100 logs
         this.maxLogs = 100;
     }

@@ -810,7 +810,11 @@ function setupHamburgerMenu() {
 // --- Settings Management ---
 
 function initSettings() {
-    const settings = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+    // Read from cloud-synced settings first, fallback to local
+    const cloudSettings = store.getState()?.settings || {};
+    const key = store.getScopedKey('ankiflow_settings');
+    const localSettings = JSON.parse(localStorage.getItem(key) || '{}');
+    const settings = { ...localSettings, ...cloudSettings };
     
     // Populate settings fields
     const fields = {
@@ -839,9 +843,10 @@ function initSettings() {
         
         // Save setting helper
         const saveSetting = () => {
-            const current = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+            const key = store.getScopedKey('ankiflow_settings');
+            const current = JSON.parse(localStorage.getItem(key) || '{}');
             current[config.key] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.type === 'range' ? Number(el.value) : el.value);
-            localStorage.setItem('ankiflow_settings', JSON.stringify(current));
+            localStorage.setItem(key, JSON.stringify(current));
             
             // Trigger cloud sync for settings
             store._scheduleSyncToCloud();
@@ -928,7 +933,8 @@ function initSettings() {
                     `Import ${data.decks.length} decks from backup?\n\nThis will REPLACE all current data.`
                 );
                 if (confirmed) {
-                    localStorage.setItem('ankiState', JSON.stringify(data));
+                    const stateKey = store._getStateKey ? store._getStateKey() : 'ankiState';
+                    localStorage.setItem(stateKey, JSON.stringify(data));
                     window.location.reload();
                 }
             } catch (err) {
@@ -944,7 +950,20 @@ function initSettings() {
         btnResetAll.addEventListener('click', () => {
             ui.confirm('Are you sure you want to delete ALL data? This cannot be undone!').then(confirmed => {
                 if (confirmed) {
-                    localStorage.clear();
+                    // Only remove AnkiFlow-specific keys (preserve other apps' data)
+                    const stateKey = store._getStateKey ? store._getStateKey() : 'ankiState';
+                    const settingsKey = store.getScopedKey('ankiflow_settings');
+                    const dailyKey = store.getScopedKey('ankiflow_daily');
+                    
+                    // Clear both scoped (current user) and legacy keys
+                    const keysToClear = [
+                        stateKey, 'ankiState', 
+                        settingsKey, 'ankiflow_settings', 
+                        dailyKey, 'ankiflow_daily'
+                    ];
+                    
+                    keysToClear.forEach(key => localStorage.removeItem(key));
+                    
                     window.location.reload();
                 }
             });
@@ -1102,6 +1121,8 @@ function openFindReplaceModal() {
     const cleanup = () => {
         btnExecute?.removeEventListener('click', execute);
         btnCancel?.removeEventListener('click', cancel);
+        findInput?.removeEventListener('keydown', keyHandler);
+        replaceInput?.removeEventListener('keydown', keyHandler);
     };
     
     btnExecute?.addEventListener('click', execute);

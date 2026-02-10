@@ -6,7 +6,6 @@
 import { store } from '../../core/store.js';
 import { eventBus, EVENTS } from '../../core/events.js';
 import { appLogger } from '../../core/logger.js';
-import { STATE } from '../../core/storage/storage.js';
 
 // View definitions
 export const VIEWS = {
@@ -27,7 +26,7 @@ const viewChangeListeners = [];
  */
 export function initViewManager() {
     // Set initial view from state or default
-    currentView = STATE.activeView || VIEWS.LIBRARY;
+    currentView = store.getState().activeView || VIEWS.LIBRARY;
     
     // Setup keyboard shortcuts
     setupKeyboardShortcuts();

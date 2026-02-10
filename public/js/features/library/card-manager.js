@@ -6,7 +6,7 @@
 import { store } from '../../core/store.js';
 import { eventBus, EVENTS } from '../../core/events.js';
 import { appLogger } from '../../core/logger.js';
-import { STATE, saveState, getActiveDeck } from '../../core/storage/storage.js';
+
 import { dom } from '../../utils/dom-helpers.js';
 import { ui, escapeHtml, showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
@@ -23,7 +23,7 @@ let _renderGeneration = 0; // incremented on each renderWorkspace call to cancel
  */
 export function renderWorkspace() {
     _renderGeneration++; // cancel any in-progress chunked render
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     
     // Update Select All Checkbox state
     if (dom.selectAllCheckbox) {
@@ -60,7 +60,8 @@ export function renderWorkspace() {
     const filteredCards = getFilteredCards(allCards);
     
     // Update counts
-    dom.countTotal.textContent = STATE.searchQuery 
+    const searchQuery = store.getState().searchQuery;
+    dom.countTotal.textContent = searchQuery 
         ? `${filteredCards.length} / ${allCards.length}` 
         : allCards.length;
     
@@ -74,7 +75,7 @@ export function renderWorkspace() {
     if (filteredCards.length === 0) {
         dom.emptyState.classList.remove('hidden');
         // Update empty state message if searching
-        if (STATE.searchQuery) {
+        if (searchQuery) {
             dom.emptyState.querySelector('p').textContent = 'No cards match your search.';
         } else {
             dom.emptyState.querySelector('p').textContent = 'No cards yet. Type "word - definition" above to add your first card!';
@@ -355,11 +356,11 @@ function createCardRow(card, originalIndex) {
  * Update card counts in the header without full re-render
  */
 function updateCardCounts() {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     const allCards = deck.cards;
     const filteredCards = getFilteredCards(allCards);
-    dom.countTotal.textContent = STATE.searchQuery
+    dom.countTotal.textContent = store.getState().searchQuery
         ? `${filteredCards.length} / ${allCards.length}`
         : allCards.length;
     const issues = allCards.filter(c => !c.term || !c.def).length;
@@ -394,7 +395,7 @@ function toggleRowSelection(index) {
 }
 
 function toggleSelectAll() {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     
     // If all currently visible are selected, deselect all. Otherwise select all.
@@ -436,7 +437,7 @@ function updateBulkActionBar() {
 
 export function bulkDelete() {
     try {
-        const deck = getActiveDeck();
+        const deck = store.getActiveDeck();
         if (selectedIndices.size === 0) return;
         
         ui.confirm(`Delete ${selectedIndices.size} cards?`).then(confirmed => {
@@ -480,7 +481,7 @@ export function bulkTag() {
         
         ui.prompt("Enter tag name:", "").then(tag => {
             if(tag) {
-                const deck = getActiveDeck();
+                const deck = store.getActiveDeck();
                 const count = selectedIndices.size;
                 
                 if (count > 50) {
@@ -536,8 +537,9 @@ export function getFilteredCards(cards) {
     }
     
     // Search query filter
-    if (STATE.searchQuery) {
-        const query = STATE.searchQuery.toLowerCase();
+    const _sq = store.getState().searchQuery;
+    if (_sq) {
+        const query = _sq.toLowerCase();
         filtered = filtered.filter(card => 
             (card.term || '').toLowerCase().includes(query) || 
             (card.def || '').toLowerCase().includes(query)
@@ -571,7 +573,7 @@ export function getActiveTagFilter() {
  */
 export function updateCard(index, field, value) {
     try {
-        const deck = getActiveDeck();
+        const deck = store.getActiveDeck();
         
         // Use store to update card (store.dispatch handles undo history)
         const card = deck.cards[index];
@@ -597,7 +599,7 @@ export function updateCard(index, field, value) {
  */
 export function addCard(term, def) {
     try {
-        let deck = getActiveDeck();
+        let deck = store.getActiveDeck();
         
         // Auto-select first deck if none active
         if (!deck) {
@@ -631,7 +633,7 @@ export function addCard(term, def) {
         eventBus.emit(EVENTS.CARD_ADDED, { term, def });
         
         // Targeted DOM insert — add row at top instead of full re-render
-        const updatedDeck = store.getActiveDeck() || getActiveDeck();
+        const updatedDeck = store.getActiveDeck();
         if (updatedDeck && updatedDeck.cards.length > 0) {
             dom.emptyState.classList.add('hidden');
             // Re-index existing rows (shift by +1)
@@ -664,7 +666,7 @@ export function addCard(term, def) {
  */
 export function removeCard(index) {
     try {
-        const deck = getActiveDeck();
+        const deck = store.getActiveDeck();
         if (!deck) {
             appLogger.warn(`removeCard: no active deck`);
             return;
@@ -753,7 +755,7 @@ export function handleTagInput(event, index) {
         const tag = input.value.trim().replace(/^#/, '');
         
         if (tag) {
-            const deck = getActiveDeck();
+            const deck = store.getActiveDeck();
             if (!deck || !deck.cards[index]) return;
             
             const card = deck.cards[index];
@@ -782,7 +784,7 @@ export function handleTagInput(event, index) {
  */
 export function removeTag(index, tag) {
     try {
-        const deck = getActiveDeck();
+        const deck = store.getActiveDeck();
         const card = deck.cards[index];
         
         if (card.tags && card.tags.includes(tag)) {
@@ -811,7 +813,7 @@ function showMoveMenu(cardIndex, anchorEl) {
     const existing = document.getElementById('moveCardMenu');
     if (existing) existing.remove();
     
-    const currentDeck = getActiveDeck();
+    const currentDeck = store.getActiveDeck();
     if (!currentDeck) return;
     
     const state = store.getState();
@@ -956,7 +958,7 @@ function renderTagFilterBar(deck) {
  * @param {number} cardIndex
  */
 export function suspendCard(cardIndex) {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     const card = deck.cards[cardIndex];
     if (!card) return;
@@ -995,7 +997,7 @@ export function suspendCard(cardIndex) {
  * @param {string} targetDeckId
  */
 export function moveCard(cardIndex, targetDeckId) {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     const card = deck.cards[cardIndex];
     if (!card) return;
@@ -1016,7 +1018,7 @@ export function moveCard(cardIndex, targetDeckId) {
  * @param {string} targetDeckId
  */
 export function copyCard(cardIndex, targetDeckId) {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return;
     const card = deck.cards[cardIndex];
     if (!card) return;
@@ -1040,7 +1042,7 @@ export function copyCard(cardIndex, targetDeckId) {
  */
 export function findAndReplace(find, replace, options = {}) {
     if (!find) return 0;
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) return 0;
     
     const { caseSensitive = false, wholeWord = false, field = 'both' } = options;

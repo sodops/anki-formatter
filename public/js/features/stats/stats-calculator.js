@@ -6,7 +6,6 @@
 import { store } from '../../core/store.js';
 import { eventBus, EVENTS } from '../../core/events.js';
 import { appLogger } from '../../core/logger.js';
-import { STATE } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { escapeHtml } from '../../ui/components/ui.js';
 

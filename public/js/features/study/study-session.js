@@ -6,13 +6,13 @@
 import { store } from '../../core/store.js';
 import { eventBus, EVENTS } from '../../core/events.js';
 import { appLogger } from '../../core/logger.js';
-import { getActiveDeck, saveState } from '../../core/storage/storage.js';
 import { dom } from '../../utils/dom-helpers.js';
 import { ui, showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
 import { getDueCards, updateCardAfterReview, getIntervalPreview } from '../../core/srs/scheduler.js';
 
 import { switchView, VIEWS } from '../../ui/navigation/view-manager.js';
+import { animateCountUp } from '../../main.js';
 
 let sessionCards = [];
 let currentIndex = 0;
@@ -33,7 +33,8 @@ const countedCardKeys = new Set();
  */
 function getSettings() {
     try {
-        return JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+        const key = store.getScopedKey('ankiflow_settings');
+        return JSON.parse(localStorage.getItem(key) || '{}');
     } catch { return {}; }
 }
 
@@ -103,7 +104,8 @@ function updateDailyGoal(card) {
     if (cardKey) countedCardKeys.add(cardKey);
     
     const today = new Date().toISOString().split('T')[0];
-    const stored = JSON.parse(localStorage.getItem('ankiflow_daily') || '{}');
+    const key = store.getScopedKey('ankiflow_daily');
+    const stored = JSON.parse(localStorage.getItem(key) || '{}');
     
     if (stored.date !== today) {
         stored.date = today;
@@ -111,7 +113,7 @@ function updateDailyGoal(card) {
     }
     
     stored.reviewed = (stored.reviewed || 0) + 1;
-    localStorage.setItem('ankiflow_daily', JSON.stringify(stored));
+    localStorage.setItem(key, JSON.stringify(stored));
     
     // Trigger cloud sync for daily progress
     try { store._scheduleSyncToCloud(); } catch (e) { /* ignore if store not ready */ }
@@ -124,7 +126,8 @@ function updateDailyGoal(card) {
  * Render the daily goal widget with given reviewed count
  */
 function renderDailyGoalWidget(reviewed) {
-    const settings = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
+    const key = store.getScopedKey('ankiflow_settings');
+    const settings = JSON.parse(localStorage.getItem(key) || '{}');
     const goal = settings.dailyGoal || 20;
     const percent = Math.min(100, Math.round((reviewed / goal) * 100));
     const completed = reviewed >= goal;
@@ -147,12 +150,13 @@ function renderDailyGoalWidget(reviewed) {
  */
 export function loadDailyGoal() {
     const today = new Date().toISOString().split('T')[0];
-    const stored = JSON.parse(localStorage.getItem('ankiflow_daily') || '{}');
+    const key = store.getScopedKey('ankiflow_daily');
+    const stored = JSON.parse(localStorage.getItem(key) || '{}');
     
     if (stored.date !== today) {
         stored.date = today;
         stored.reviewed = 0;
-        localStorage.setItem('ankiflow_daily', JSON.stringify(stored));
+        localStorage.setItem(key, JSON.stringify(stored));
     }
     
     const reviewed = stored.reviewed || 0;
@@ -224,7 +228,7 @@ function updateProgressBar() {
  * @param {boolean} skipViewSwitch - If true, don't switch view (already in study view)
  */
 export function startStudySession(skipViewSwitch = false) {
-    const deck = getActiveDeck();
+    const deck = store.getActiveDeck();
     if (!deck) {
         ui.alert('Please select a deck first! / Avval deck tanlang!');
         return;
@@ -398,7 +402,7 @@ export function showAnswer() {
  */
 export function rateCard(quality) {
     try {
-        const deck = getActiveDeck();
+        const deck = store.getActiveDeck();
         const card = sessionCards[currentIndex];
         
         // Find card in deck by ID (reliable) with term/def fallback
@@ -448,7 +452,7 @@ export function rateCard(quality) {
             // This mimics Anki's learning queue: failed cards reappear within the session
             if (quality === 0) {
                 // Get fresh copy of the card from deck (with updated reviewData)
-                const freshDeck = getActiveDeck();
+                const freshDeck = store.getActiveDeck();
                 const freshCard = freshDeck.cards[deckCardIndex];
                 
                 // Insert the card 3-8 positions ahead (random for variety)
@@ -601,26 +605,7 @@ function launchConfetti() {
     requestAnimationFrame(animate);
 }
 
-/**
- * Animate a count-up effect on an element
- */
-function animateCountUp(elementId, target) {
-    const el = document.getElementById(elementId);
-    if (!el || target === 0) return;
-    
-    let current = 0;
-    const step = Math.max(1, Math.ceil(target / 20));
-    const interval = setInterval(() => {
-        current += step;
-        if (current >= target) {
-            current = target;
-            clearInterval(interval);
-            el.classList.add('count-animate');
-            setTimeout(() => el.classList.remove('count-animate'), 300);
-        }
-        el.textContent = current;
-    }, 30);
-}
+
 
 /**
  * Close Session

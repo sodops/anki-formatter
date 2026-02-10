@@ -57,6 +57,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
     const { state, settings, daily_progress } = body;
 
     // Validate payload

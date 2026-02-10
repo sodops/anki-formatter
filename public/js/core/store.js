@@ -51,6 +51,8 @@ class Store {
             this._accessToken = detail.accessToken || null;
             if (this._authUser) {
                 console.log('[STORE] Auth ready, user:', this._authUser.email);
+                // Load user-scoped localStorage first, then cloud
+                this._loadUserLocalState();
                 this._loadFromCloud();
             }
         });
@@ -61,16 +63,25 @@ class Store {
             const prevUser = this._authUser;
             this._authUser = detail.user || null;
             this._accessToken = detail.accessToken || null;
+
             if (this._authUser) {
-                // Only load from cloud if this is a NEW login (not initial page load)
-                if (this._cloudLoaded) {
-                    console.log('[STORE] Auth changed, cloud already loaded — skipping');
-                } else {
+                // If switching to a DIFFERENT user, always reload
+                const userChanged = !prevUser || prevUser.id !== this._authUser.id;
+                if (userChanged) {
+                    console.log('[STORE] User changed, loading cloud data for:', this._authUser.email);
+                    this._cloudLoaded = false;
+                    this._loadUserLocalState();
+                    this._loadFromCloud();
+                } else if (!this._cloudLoaded) {
                     console.log('[STORE] Auth changed, loading cloud data');
                     this._loadFromCloud();
+                } else {
+                    console.log('[STORE] Auth changed, cloud already loaded — skipping');
                 }
             } else {
                 console.log('[STORE] User logged out');
+                // Reset to defaults on logout so next user doesn't see stale data
+                this.state = { ...DEFAULT_STATE };
                 this._cloudLoaded = false;
             }
         });
@@ -233,6 +244,48 @@ class Store {
     }
 
     /**
+     * Get user-scoped localStorage key for any prefix
+     * @param {string} prefix - Key prefix (e.g. 'ankiflow_settings')
+     */
+    getScopedKey(prefix) {
+        if (this._authUser && this._authUser.id) {
+            return `${prefix}_${this._authUser.id}`;
+        }
+        return prefix;
+    }
+
+    /**
+     * Get user-scoped state key
+     * @deprecated Use getScopedKey('ankiState')
+     */
+    _getStateKey() {
+        return this.getScopedKey('ankiState');
+    }
+
+    /**
+     * Load state from user-scoped localStorage
+     */
+    _loadUserLocalState() {
+        try {
+            const key = this._getStateKey();
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                this.state = { ...DEFAULT_STATE, ...parsed };
+                this._normalizeDecks();
+                console.log(`[STORE] Loaded local state from ${key}`);
+            } else {
+                // No local data for this user, start fresh
+                this.state = { ...DEFAULT_STATE };
+                console.log(`[STORE] No local state for ${key}, using defaults`);
+            }
+        } catch (e) {
+            console.error('[STORE] Failed to load local state:', e);
+            this.state = { ...DEFAULT_STATE };
+        }
+    }
+
+    /**
      * Persist state to localStorage + schedule cloud sync
      */
     persist() {
@@ -243,14 +296,16 @@ class Store {
             if (sizeKB > 4500) {
                 console.warn(`[STORE] State size ${sizeKB}KB approaching localStorage limit (5MB). Consider exporting data.`);
             }
-            localStorage.setItem('ankiState', data);
+            const key = this._getStateKey();
+            localStorage.setItem(key, data);
         } catch (error) {
             if (error.name === 'QuotaExceededError' || error.code === 22) {
                 console.error('[STORE] localStorage quota exceeded! Data NOT saved. Export your data immediately.');
                 this.history = this.history.slice(-5);
                 this.historyIndex = Math.min(this.historyIndex, this.history.length - 1);
                 try {
-                    localStorage.setItem('ankiState', JSON.stringify(this.state));
+                    const key = this._getStateKey();
+                    localStorage.setItem(key, JSON.stringify(this.state));
                 } catch (e) {
                     console.error('[STORE] Still over quota after trimming history');
                 }
@@ -289,8 +344,9 @@ class Store {
 
         try {
             // Gather all data to sync
-            const settings = JSON.parse(localStorage.getItem('ankiflow_settings') || '{}');
-            const daily = JSON.parse(localStorage.getItem('ankiflow_daily') || '{}');
+            const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
+            const settings = JSON.parse(localStorage.getItem(`ankiflow_settings${userSuffix}`) || '{}');
+            const daily = JSON.parse(localStorage.getItem(`ankiflow_daily${userSuffix}`) || '{}');
 
             // Strip undo history from state to reduce payload size
             const stateToSync = { ...this.state };
@@ -345,15 +401,17 @@ class Store {
                 this._normalizeDecks();
 
                 // Also restore settings + daily progress from cloud
+                const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
                 if (data.settings && Object.keys(data.settings).length > 0) {
-                    localStorage.setItem('ankiflow_settings', JSON.stringify(data.settings));
+                    localStorage.setItem(`ankiflow_settings${userSuffix}`, JSON.stringify(data.settings));
                 }
                 if (data.daily_progress && Object.keys(data.daily_progress).length > 0) {
-                    localStorage.setItem('ankiflow_daily', JSON.stringify(data.daily_progress));
+                    localStorage.setItem(`ankiflow_daily${userSuffix}`, JSON.stringify(data.daily_progress));
                 }
 
-                // Save to localStorage as cache
-                localStorage.setItem('ankiState', JSON.stringify(this.state));
+                // Save to user-scoped localStorage as cache
+                const key = this._getStateKey();
+                localStorage.setItem(key, JSON.stringify(this.state));
 
                 // Notify all listeners to re-render
                 this._notifyListeners();
@@ -365,9 +423,20 @@ class Store {
                 this._updateSyncUI('synced');
                 return;
             } else {
-                console.log('[STORE] No cloud data yet, uploading local data');
-                // First login — push local data to cloud
-                this._syncToCloud();
+                // No cloud data — check if we have meaningful local data to push
+                // (e.g. correct migration or first device usage)
+                if (this.state.decks && this.state.decks.length > 0) {
+                    console.log('[STORE] Cloud empty, pushing existing local data');
+                    this._syncToCloud();
+                } else {
+                    console.log('[STORE] Cloud empty, starting with clean defaults');
+                    this.state = { ...DEFAULT_STATE };
+                    this._notifyListeners();
+                    this._triggerUIRefresh();
+                }
+                
+                this._cloudLoaded = true;
+                this._updateSyncUI('synced');
             }
         } catch (error) {
             console.error('[STORE] Cloud load failed, using localStorage:', error.message);
@@ -436,7 +505,17 @@ class Store {
      */
     load() {
         try {
-            const saved = localStorage.getItem('ankiState');
+            const key = this._getStateKey();
+            let saved = localStorage.getItem(key);
+            
+            // Fallback: migrate from legacy unscoped key
+            if (!saved && key !== 'ankiState') {
+                saved = localStorage.getItem('ankiState');
+                if (saved) {
+                    console.log('[STORE] Migrating legacy ankiState to user-scoped key');
+                    localStorage.setItem(key, saved);
+                }
+            }
             if (saved) {
                 const parsed = JSON.parse(saved);
                 // Merge with defaults to ensure all fields exist
