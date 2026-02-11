@@ -1148,6 +1148,15 @@ class Store {
 
         const myDeviceId = this.getDeviceId();
         const revoked = cloudSettings.revokedDevices || [];
+        const devices = cloudSettings.devices || {};
+        const deviceIds = Object.keys(devices);
+
+        console.log('[STORE] 🔍 Checking device revocation:', {
+            myDeviceId,
+            isRevoked: revoked.includes(myDeviceId),
+            deviceIds,
+            inDeviceList: !!devices[myDeviceId]
+        });
 
         if (revoked.includes(myDeviceId)) {
             console.log('[STORE] 🚫 This device was revoked! Logging out...');
@@ -1165,11 +1174,15 @@ class Store {
             return;
         }
 
-        // Also check: if devices list exists and this device is NOT in it
-        // (someone removed it but revoked list was cleared)
-        const devices = cloudSettings.devices || {};
-        const deviceIds = Object.keys(devices);
-        if (deviceIds.length > 0 && !devices[myDeviceId]) {
+        // GUARD: Don't logout if devices list is empty (brand new user, device not registered yet)
+        if (deviceIds.length === 0) {
+            console.log('[STORE] ✅ Device list is empty (new user), skipping revocation check');
+            return;
+        }
+
+        // Check: if devices list exists and this device is NOT in it
+        // (another device removed it but revocation didn't work or was cleared)
+        if (!devices[myDeviceId]) {
             console.log('[STORE] 🚫 This device not in devices list! Logging out...');
             this._clearLocalCache();
             localStorage.removeItem('ankiflow_device_id');
