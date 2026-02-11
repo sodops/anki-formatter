@@ -44,16 +44,18 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Redirect unauthenticated users away from protected routes
-  // But allow access to login, auth callback, public assets, and API routes
+  // But allow access to login, auth callback, and public assets
+  // API routes are NOT public — they need auth but shouldn't redirect (return 401 instead)
   const isPublicPath =
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/auth") ||
-    request.nextUrl.pathname.startsWith("/api") ||
     request.nextUrl.pathname.startsWith("/js") ||
     request.nextUrl.pathname.startsWith("/style.css") ||
     request.nextUrl.pathname === "/favicon.ico";
 
-  if (!user && !isPublicPath) {
+  const isApiPath = request.nextUrl.pathname.startsWith("/api");
+
+  if (!user && !isPublicPath && !isApiPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

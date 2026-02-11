@@ -375,6 +375,15 @@ class Store {
             });
 
             if (!res.ok) {
+                if (res.status === 401) {
+                    console.warn('[STORE] Session expired during sync. Redirecting to login...');
+                    if (window.__ankiflow_signOut) {
+                        window.__ankiflow_signOut();
+                    } else {
+                        window.location.href = '/login';
+                    }
+                    return;
+                }
                 const err = await res.json().catch(() => ({}));
                 throw new Error(err.error || `HTTP ${res.status}`);
             }
@@ -403,6 +412,18 @@ class Store {
 
         try {
             const res = await fetch('/api/sync');
+            if (res.status === 401) {
+                console.warn('[STORE] ☁️ Session expired (401). Redirecting to login...');
+                this._cloudLoaded = true;
+                this._updateSyncUI('error');
+                // Session expired — redirect to login
+                if (window.__ankiflow_signOut) {
+                    window.__ankiflow_signOut();
+                } else {
+                    window.location.href = '/login';
+                }
+                return;
+            }
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
             const data = await res.json();
