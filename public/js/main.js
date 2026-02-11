@@ -175,6 +175,21 @@ function initAnkiFlow() {
         window.addEventListener('ankiflow:state-loaded', () => {
             appLogger.info('Cloud state loaded, refreshing UI');
             try {
+                // Ensure at least one deck exists after cloud load
+                const s = store.getState();
+                if (!s.decks || s.decks.length === 0) {
+                    const newDeck = store.dispatch('DECK_CREATE', {
+                        name: "My First Deck",
+                        color: '#6366F1'
+                    });
+                    if (newDeck && newDeck.id) {
+                        store.dispatch('DECK_SELECT', newDeck.id);
+                    }
+                } else if (!s.activeDeckId) {
+                    const first = s.decks.find(d => !d.isDeleted);
+                    if (first) store.dispatch('DECK_SELECT', first.id);
+                }
+
                 renderSidebar();
                 renderWorkspace();
                 loadDailyGoal();
