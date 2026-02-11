@@ -1143,22 +1143,25 @@ class Store {
     /**
      * Check if this device has been revoked by another device.
      * If so, auto-logout.
+     * 
+     * IMPORTANT: We only check the revokedDevices array, NOT device list membership.
+     * Device list can be stale during registration on multiple devices.
+     * Revocation is explicit and reliable.
      */
     _checkDeviceRevocation(cloudSettings) {
         if (!cloudSettings) return;
 
         const myDeviceId = this.getDeviceId();
         const revoked = cloudSettings.revokedDevices || [];
-        const devices = cloudSettings.devices || {};
-        const deviceIds = Object.keys(devices);
 
         console.log('[STORE] 🔍 Checking device revocation:', {
             myDeviceId,
             isRevoked: revoked.includes(myDeviceId),
-            deviceIds,
-            inDeviceList: !!devices[myDeviceId]
+            revokedCount: revoked.length
         });
 
+        // ONLY check revoked list — this is explicit and reliable
+        // Device list can be stale during multi-device registration
         if (revoked.includes(myDeviceId)) {
             console.log('[STORE] 🚫 This device was revoked! Logging out...');
 
@@ -1167,26 +1170,6 @@ class Store {
             localStorage.removeItem('ankiflow_device_id');
 
             // Sign out via React AuthProvider
-            if (window.__ankiflow_signOut) {
-                window.__ankiflow_signOut();
-            } else {
-                window.location.href = '/login';
-            }
-            return;
-        }
-
-        // GUARD: Don't logout if devices list is empty (brand new user, device not registered yet)
-        if (deviceIds.length === 0) {
-            console.log('[STORE] ✅ Device list is empty (new user), skipping revocation check');
-            return;
-        }
-
-        // Check: if devices list exists and this device is NOT in it
-        // (another device removed it but revocation didn't work or was cleared)
-        if (!devices[myDeviceId]) {
-            console.log('[STORE] 🚫 This device not in devices list! Logging out...');
-            this._clearLocalCache();
-            localStorage.removeItem('ankiflow_device_id');
             if (window.__ankiflow_signOut) {
                 window.__ankiflow_signOut();
             } else {
