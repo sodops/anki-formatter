@@ -437,6 +437,9 @@ class Store {
             this._updateSyncUI('synced');
             this._notifyListeners();
             this._triggerUIRefresh();
+
+            // Check if this device was revoked by another device
+            this._checkDeviceRevocation(data.settings);
         } catch (error) {
             console.error('[STORE] ☁️ Cloud load failed, using cache:', error.message);
             // On network error, local cache (already loaded) remains active
@@ -1063,6 +1066,11 @@ class Store {
             userAgent: navigator.userAgent.substring(0, 120)
         };
 
+        // Remove self from revoked list if present
+        if (settings.revokedDevices) {
+            settings.revokedDevices = settings.revokedDevices.filter(id => id !== deviceId);
+        }
+
         settings.devices = devices;
         localStorage.setItem(key, JSON.stringify(settings));
 
@@ -1071,7 +1079,7 @@ class Store {
     }
 
     /**
-     * Remove a device from the devices list
+     * Remove a device from the devices list and mark it as revoked
      */
     removeDevice(deviceIdToRemove) {
         if (!this._authUser) return;
@@ -1081,9 +1089,59 @@ class Store {
         const devices = settings.devices || {};
 
         delete devices[deviceIdToRemove];
+
+        // Add to revoked list so the device knows to logout on next cloud load
+        const revoked = settings.revokedDevices || [];
+        if (!revoked.includes(deviceIdToRemove)) {
+            revoked.push(deviceIdToRemove);
+        }
+
         settings.devices = devices;
+        settings.revokedDevices = revoked;
         localStorage.setItem(key, JSON.stringify(settings));
         this._scheduleSyncToCloud();
+    }
+
+    /**
+     * Check if this device has been revoked by another device.
+     * If so, auto-logout.
+     */
+    _checkDeviceRevocation(cloudSettings) {
+        if (!cloudSettings) return;
+
+        const myDeviceId = this.getDeviceId();
+        const revoked = cloudSettings.revokedDevices || [];
+
+        if (revoked.includes(myDeviceId)) {
+            console.log('[STORE] 🚫 This device was revoked! Logging out...');
+
+            // Clean up local data
+            this._clearLocalCache();
+            localStorage.removeItem('ankiflow_device_id');
+
+            // Sign out via React AuthProvider
+            if (window.__ankiflow_signOut) {
+                window.__ankiflow_signOut();
+            } else {
+                window.location.href = '/login';
+            }
+            return;
+        }
+
+        // Also check: if devices list exists and this device is NOT in it
+        // (someone removed it but revoked list was cleared)
+        const devices = cloudSettings.devices || {};
+        const deviceIds = Object.keys(devices);
+        if (deviceIds.length > 0 && !devices[myDeviceId]) {
+            console.log('[STORE] 🚫 This device not in devices list! Logging out...');
+            this._clearLocalCache();
+            localStorage.removeItem('ankiflow_device_id');
+            if (window.__ankiflow_signOut) {
+                window.__ankiflow_signOut();
+            } else {
+                window.location.href = '/login';
+            }
+        }
     }
 
     /**
