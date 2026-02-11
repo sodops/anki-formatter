@@ -4545,3 +4545,19 @@ noscript {
   color: white;
   text-decoration: underline;
 }
+/* Signup Mode Differentiation */
+.btn-signup {
+  background: #10b981 !important; /* Emerald-500 */
+}
+
+.btn-signup:hover {
+  background: #059669 !important; /* Emerald-600 */
+}
+
+.border-signup {
+  border-top-color: #10b981 !important;
+}
+
+.text-signup {
+  color: #10b981 !important;
+}

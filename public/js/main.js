@@ -1003,7 +1003,16 @@ function initDevicesPanel() {
     // Re-render devices list when cloud state loads
     window.addEventListener('ankiflow:state-loaded', () => {
         if (store._authUser) {
+            // 1. Register this device FIRST
             store.registerDevice();
+            
+            // 2. Then check revocation (after device is registered)
+            if (store._lastCloudSettings) {
+                store._checkDeviceRevocation(store._lastCloudSettings);
+                store._lastCloudSettings = null; // Clear
+            }
+            
+            // 3. Finally render devices list
             renderDevicesList();
         }
     });

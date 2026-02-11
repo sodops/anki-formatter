@@ -472,11 +472,12 @@ class Store {
 
             this._cloudLoaded = true;
             this._updateSyncUI('synced');
+            
+            // Store cloud settings for later revocation check (after device registration)
+            this._lastCloudSettings = data.settings;
+            
             this._notifyListeners();
             this._triggerUIRefresh();
-
-            // Check if this device was revoked by another device
-            this._checkDeviceRevocation(data.settings);
         } catch (error) {
             console.error('[STORE] ☁️ Cloud load failed, using cache:', error.message);
             // On network error, local cache (already loaded) remains active

@@ -45,11 +45,11 @@ export default function LoginPage() {
         });
         if (error) {
           if (error.message.includes('User already registered')) {
-            throw new Error('Bu email allaqachon ro\'yxatdan o\'tgan. Tizimga kiring.');
+            throw new Error('This email is already registered. Please sign in.');
           }
           throw error;
         }
-        setMessage("Tasdiqlash havolasi emailingizga yuborildi! Iltimos, emailingizni tekshiring.");
+        setMessage("Confirmation link sent to your email! Please check your inbox.");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -57,14 +57,14 @@ export default function LoginPage() {
         });
         if (error) {
           if (error.status === 400 || error.message.includes('Invalid login credentials')) {
-            throw new Error('Email yoki parol noto\'g\'ri. Iltimos, tekshiring.');
+            throw new Error('Invalid email or password. Please try again.');
           }
           throw error;
         }
         window.location.href = "/";
       }
     } catch (err: any) {
-      setError(err.message || "Xatolik yuz berdi");
+      setError(err.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -109,27 +109,29 @@ export default function LoginPage() {
           <div className="login-hero-content">
             <div className="login-brand-mark">⚡</div>
             <h1>AnkiFlow</h1>
-            <p className="login-hero-tagline">Aqlli flashcard platformasi</p>
+            <p className="login-hero-tagline">
+              {mode === "signin" ? "Smart flashcard platform" : "Join thousands of learners today"}
+            </p>
             <div className="login-hero-features">
               <div className="login-hero-feature">
                 <span className="login-hero-feature-icon">🔄</span>
                 <div>
                   <strong>Cloud Sync</strong>
-                  <span>Barcha qurilmalarda sinxronlanadi</span>
+                  <span>Sync across all your devices</span>
                 </div>
               </div>
               <div className="login-hero-feature">
                 <span className="login-hero-feature-icon">📊</span>
                 <div>
-                  <strong>Statistika</strong>
-                  <span>Progressingizni real vaqtda kuzating</span>
+                  <strong>Statistics</strong>
+                  <span>Track your progress in real-time</span>
                 </div>
               </div>
               <div className="login-hero-feature">
                 <span className="login-hero-feature-icon">🧠</span>
                 <div>
                   <strong>Spaced Repetition</strong>
-                  <span>Ilmiy usulda samarali o&apos;rganing</span>
+                  <span>Learn efficiently with science-backed methods</span>
                 </div>
               </div>
             </div>
@@ -140,13 +142,15 @@ export default function LoginPage() {
         <div className="login-form-side">
           <div className="login-back-link" style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10 }}>
              <button onClick={() => router.push('/')} className="login-back-btn">
-               ← Bosh sahifaga
+               ← Back to Home
              </button>
           </div>
-          <div className="login-card">
+          <div className={`login-card ${mode === 'signup' ? 'border-signup' : ''}`}>
             <div className="login-card-header">
-              <h2>{mode === "signin" ? "Xush kelibsiz!" : "Hisob yarating"}</h2>
-              <p>{mode === "signin" ? "Davom etish uchun tizimga kiring" : "Bepul hisob oching va boshlang"}</p>
+              <h2 className={mode === 'signup' ? 'text-signup' : ''}>
+                {mode === "signin" ? "Welcome Back!" : "Create Account"}
+              </h2>
+              <p>{mode === "signin" ? "Sign in to continue to AnkiFlow" : "Get started for free"}</p>
             </div>
 
             {/* OAuth */}
@@ -178,7 +182,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="login-divider"><span>yoki</span></div>
+            <div className="login-divider"><span>or</span></div>
 
             {/* Form */}
             <form onSubmit={handleEmailAuth} className="login-form">
@@ -195,7 +199,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="login-field">
-                <label htmlFor="password">Parol</label>
+                <label htmlFor="password">Password</label>
                 <input
                   id="password"
                   type="password"
@@ -211,13 +215,17 @@ export default function LoginPage() {
               {error && <div className="login-alert login-alert-error">{error}</div>}
               {message && <div className="login-alert login-alert-success">{message}</div>}
 
-              <button type="submit" className="login-submit-btn" disabled={loading}>
+              <button 
+                type="submit" 
+                className={`login-submit-btn ${mode === 'signup' ? 'btn-signup' : ''}`} 
+                disabled={loading}
+              >
                 {loading ? (
                   <span className="login-btn-loading">
                     <span className="login-spinner-sm"></span>
-                    Yuklanmoqda...
+                    Loading...
                   </span>
-                ) : mode === "signin" ? "Kirish" : "Ro'yxatdan o'tish"}
+                ) : mode === "signin" ? "Sign In" : "Sign Up"}
               </button>
             </form>
 
@@ -225,16 +233,16 @@ export default function LoginPage() {
             <div className="login-mode-toggle">
               {mode === "signin" ? (
                 <span>
-                  Hisobingiz yo&apos;qmi?{" "}
+                  Don&apos;t have an account?{" "}
                   <button onClick={() => { setMode("signup"); setError(null); setMessage(null); }}>
-                    Ro&apos;yxatdan o&apos;ting
+                    Sign Up
                   </button>
                 </span>
               ) : (
                 <span>
-                  Hisobingiz bormi?{" "}
+                  Already have an account?{" "}
                   <button onClick={() => { setMode("signin"); setError(null); setMessage(null); }}>
-                    Tizimga kiring
+                    Sign In
                   </button>
                 </span>
               )}
