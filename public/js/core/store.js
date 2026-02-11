@@ -376,12 +376,25 @@ class Store {
 
             if (!res.ok) {
                 if (res.status === 401) {
-                    console.warn('[STORE] Session expired during sync. Redirecting to login...');
-                    if (window.__ankiflow_signOut) {
-                        window.__ankiflow_signOut();
-                    } else {
-                        window.location.href = '/login';
+                    // Retry once — session cookie may need refresh
+                    console.warn('[STORE] Sync got 401, retrying...');
+                    await new Promise(r => setTimeout(r, 1000));
+                    const retry = await fetch('/api/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            state: stateToSync,
+                            settings: settings,
+                            daily_progress: daily,
+                        }),
+                    });
+                    if (retry.ok) {
+                        console.log('[STORE] Cloud sync OK (after retry)');
+                        this._updateSyncUI('synced');
+                        return;
                     }
+                    console.warn('[STORE] Session expired during sync. Redirecting to login...');
+                    window.location.href = '/login';
                     return;
                 }
                 const err = await res.json().catch(() => ({}));
@@ -411,17 +424,20 @@ class Store {
         this._updateSyncUI('syncing');
 
         try {
-            const res = await fetch('/api/sync');
+            let res = await fetch('/api/sync');
+
+            // On 401, retry once (middleware may have just refreshed the session cookie)
             if (res.status === 401) {
-                console.warn('[STORE] ☁️ Session expired (401). Redirecting to login...');
+                console.warn('[STORE] ☁️ Got 401, retrying once...');
+                await new Promise(r => setTimeout(r, 1000));
+                res = await fetch('/api/sync');
+            }
+
+            if (res.status === 401) {
+                console.warn('[STORE] ☁️ Session expired (401 after retry). Redirecting to login...');
                 this._cloudLoaded = true;
                 this._updateSyncUI('error');
-                // Session expired — redirect to login
-                if (window.__ankiflow_signOut) {
-                    window.__ankiflow_signOut();
-                } else {
-                    window.location.href = '/login';
-                }
+                window.location.href = '/login';
                 return;
             }
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
