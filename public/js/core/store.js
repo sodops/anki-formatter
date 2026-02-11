@@ -433,17 +433,17 @@ class Store {
                 this._updateSyncUI('synced');
                 return;
             } else {
-                // No cloud data — check if we have meaningful local data to push
-                // (e.g. correct migration or first device usage)
-                if (this.state.decks && this.state.decks.length > 0) {
-                    console.log('[STORE] Cloud empty, pushing existing local data');
-                    this._syncToCloud();
-                } else {
-                    console.log('[STORE] Cloud empty, starting with clean defaults');
-                    this.state = { ...DEFAULT_STATE };
-                    this._notifyListeners();
-                    this._triggerUIRefresh();
-                }
+                // Cloud is empty — respect cloud as source of truth
+                // Clear local cache so stale data doesn't persist
+                console.log('[STORE] Cloud empty, clearing local cache to match');
+                this.state = { ...DEFAULT_STATE };
+                const key = this._getStateKey();
+                localStorage.removeItem(key);
+                const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
+                localStorage.removeItem(`ankiflow_settings${userSuffix}`);
+                localStorage.removeItem(`ankiflow_daily${userSuffix}`);
+                this._notifyListeners();
+                this._triggerUIRefresh();
                 
                 this._cloudLoaded = true;
                 this._updateSyncUI('synced');
