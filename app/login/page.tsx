@@ -138,6 +138,11 @@ export default function LoginPage() {
 
         {/* Right — Auth Form */}
         <div className="login-form-side">
+          <div className="login-back-link" style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10 }}>
+             <button onClick={() => router.push('/')} className="login-back-btn">
+               ← Bosh sahifaga
+             </button>
+          </div>
           <div className="login-card">
             <div className="login-card-header">
               <h2>{mode === "signin" ? "Xush kelibsiz!" : "Hisob yarating"}</h2>
