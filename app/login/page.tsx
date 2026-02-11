@@ -36,21 +36,31 @@ export default function LoginPage() {
       const supabase = getSupabase();
 
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('User already registered')) {
+            throw new Error('Bu email allaqachon ro\'yxatdan o\'tgan. Tizimga kiring.');
+          }
+          throw error;
+        }
         setMessage("Tasdiqlash havolasi emailingizga yuborildi! Iltimos, emailingizni tekshiring.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+        if (error) {
+          if (error.status === 400 || error.message.includes('Invalid login credentials')) {
+            throw new Error('Email yoki parol noto\'g\'ri. Iltimos, tekshiring.');
+          }
+          throw error;
+        }
         window.location.href = "/";
       }
     } catch (err: any) {
