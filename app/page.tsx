@@ -600,6 +600,22 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
+
+                  <h3 className="section-title" style={{ marginTop: "24px" }}>Devices</h3>
+                  <div className="settings-card">
+                    <p className="settings-desc">Devices connected to your account. This device is highlighted.</p>
+                    <div id="devicesListContainer" className="devices-list">
+                      <div className="devices-loading">
+                        <ion-icon name="sync-outline" className="spin"></ion-icon>
+                        <span>Loading devices...</span>
+                      </div>
+                    </div>
+                    <div className="devices-actions" style={{ marginTop: "12px" }}>
+                      <button className="action-btn danger small" id="btnLogoutAllDevices">
+                        <ion-icon name="log-out-outline"></ion-icon> Sign out all devices
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -985,6 +985,135 @@ function initSettings() {
             });
         });
     }
+
+    // --- Devices Management ---
+    initDevicesPanel();
+}
+
+/**
+ * Initialize devices management panel in settings
+ */
+function initDevicesPanel() {
+    // Register this device on cloud load
+    if (store._authUser) {
+        store.registerDevice();
+        renderDevicesList();
+    }
+
+    // Re-render devices list when cloud state loads
+    window.addEventListener('ankiflow:state-loaded', () => {
+        if (store._authUser) {
+            store.registerDevice();
+            renderDevicesList();
+        }
+    });
+
+    // Sign out all devices button
+    const btnLogoutAll = document.getElementById('btnLogoutAllDevices');
+    if (btnLogoutAll) {
+        btnLogoutAll.addEventListener('click', async () => {
+            const confirmed = await ui.confirm(
+                'Sign out from all devices?\n\nYou will need to log in again on each device.'
+            );
+            if (!confirmed) return;
+
+            // Clear all devices from settings
+            const key = store.getScopedKey('ankiflow_settings');
+            const settings = JSON.parse(localStorage.getItem(key) || '{}');
+            settings.devices = {};
+            localStorage.setItem(key, JSON.stringify(settings));
+            store._scheduleSyncToCloud();
+
+            // Sign out current device
+            if (window.__ankiflow_signOut) {
+                window.__ankiflow_signOut();
+            }
+        });
+    }
+}
+
+/**
+ * Render devices list in settings panel
+ */
+function renderDevicesList() {
+    const container = document.getElementById('devicesListContainer');
+    if (!container) return;
+
+    const devices = store.getDevices();
+    const currentDeviceId = store.getDeviceId();
+    const entries = Object.entries(devices);
+
+    if (entries.length === 0) {
+        container.innerHTML = '<div class="devices-empty">No devices registered yet</div>';
+        return;
+    }
+
+    // Sort: current device first, then by lastActive descending
+    entries.sort(([idA], [idB]) => {
+        if (idA === currentDeviceId) return -1;
+        if (idB === currentDeviceId) return 1;
+        const a = devices[idA].lastActive || '';
+        const b = devices[idB].lastActive || '';
+        return b.localeCompare(a);
+    });
+
+    container.innerHTML = entries.map(([deviceId, info]) => {
+        const isCurrent = deviceId === currentDeviceId;
+        const iconName = info.deviceType === 'phone' ? 'phone-portrait-outline'
+            : info.deviceType === 'tablet' ? 'tablet-portrait-outline'
+            : 'desktop-outline';
+
+        const lastActive = info.lastActive ? formatTimeAgo(new Date(info.lastActive)) : 'Unknown';
+        const deviceLabel = `${info.browser} · ${info.os}`;
+
+        return `
+            <div class="device-item ${isCurrent ? 'current-device' : ''}" data-device-id="${deviceId}">
+                <div class="device-info">
+                    <div class="device-icon"><ion-icon name="${iconName}"></ion-icon></div>
+                    <div class="device-details">
+                        <div class="device-name">
+                            ${deviceLabel}
+                            ${isCurrent ? '<span class="device-current-badge">This device</span>' : ''}
+                        </div>
+                        <div class="device-meta">Last active: ${lastActive}</div>
+                    </div>
+                </div>
+                ${!isCurrent ? `
+                    <button class="device-remove-btn" data-remove-device="${deviceId}" title="Remove this device">
+                        <ion-icon name="close-circle-outline"></ion-icon>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+
+    // Attach remove handlers
+    container.querySelectorAll('[data-remove-device]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.removeDevice;
+            store.removeDevice(id);
+            renderDevicesList();
+            ui.showToast('Device removed');
+        });
+    });
+}
+
+/**
+ * Format a date as relative time (e.g., "2 hours ago", "Just now")
+ */
+function formatTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+
+    if (diffSec < 60) return 'Just now';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+    if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
 }
 
 /**

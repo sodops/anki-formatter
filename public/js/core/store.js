@@ -996,6 +996,104 @@ class Store {
         this.persist();
         this._notifyListeners();
     }
+
+    // ===== DEVICE MANAGEMENT =====
+
+    /**
+     * Get or create a unique device ID for this browser
+     */
+    getDeviceId() {
+        let deviceId = localStorage.getItem('ankiflow_device_id');
+        if (!deviceId) {
+            deviceId = 'dev_' + crypto.randomUUID();
+            localStorage.setItem('ankiflow_device_id', deviceId);
+        }
+        return deviceId;
+    }
+
+    /**
+     * Detect current device info from User-Agent
+     */
+    getDeviceInfo() {
+        const ua = navigator.userAgent;
+        let browser = 'Unknown';
+        let os = 'Unknown';
+        let deviceType = 'desktop';
+
+        // Detect browser
+        if (ua.includes('Firefox/')) browser = 'Firefox';
+        else if (ua.includes('Edg/')) browser = 'Edge';
+        else if (ua.includes('OPR/') || ua.includes('Opera/')) browser = 'Opera';
+        else if (ua.includes('Chrome/') && !ua.includes('Edg/')) browser = 'Chrome';
+        else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Safari';
+
+        // Detect OS
+        if (ua.includes('Windows')) os = 'Windows';
+        else if (ua.includes('Mac OS X') || ua.includes('Macintosh')) os = 'macOS';
+        else if (ua.includes('Linux') && !ua.includes('Android')) os = 'Linux';
+        else if (ua.includes('Android')) os = 'Android';
+        else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+        else if (ua.includes('CrOS')) os = 'ChromeOS';
+
+        // Detect device type
+        if (/Mobi|Android|iPhone|iPod/.test(ua)) deviceType = 'phone';
+        else if (/iPad|Tablet/.test(ua)) deviceType = 'tablet';
+
+        return { browser, os, deviceType };
+    }
+
+    /**
+     * Register this device in cloud settings
+     * Called after successful cloud sync
+     */
+    async registerDevice() {
+        if (!this._authUser) return;
+
+        const deviceId = this.getDeviceId();
+        const { browser, os, deviceType } = this.getDeviceInfo();
+        const key = this.getScopedKey('ankiflow_settings');
+        const settings = JSON.parse(localStorage.getItem(key) || '{}');
+
+        const devices = settings.devices || {};
+        devices[deviceId] = {
+            browser,
+            os,
+            deviceType,
+            lastActive: new Date().toISOString(),
+            userAgent: navigator.userAgent.substring(0, 120)
+        };
+
+        settings.devices = devices;
+        localStorage.setItem(key, JSON.stringify(settings));
+
+        // This will be synced to cloud on next persist cycle
+        this._scheduleSyncToCloud();
+    }
+
+    /**
+     * Remove a device from the devices list
+     */
+    removeDevice(deviceIdToRemove) {
+        if (!this._authUser) return;
+
+        const key = this.getScopedKey('ankiflow_settings');
+        const settings = JSON.parse(localStorage.getItem(key) || '{}');
+        const devices = settings.devices || {};
+
+        delete devices[deviceIdToRemove];
+        settings.devices = devices;
+        localStorage.setItem(key, JSON.stringify(settings));
+        this._scheduleSyncToCloud();
+    }
+
+    /**
+     * Get all registered devices
+     */
+    getDevices() {
+        const key = this.getScopedKey('ankiflow_settings');
+        const settings = JSON.parse(localStorage.getItem(key) || '{}');
+        return settings.devices || {};
+    }
 }
 
 // Export singleton instance
