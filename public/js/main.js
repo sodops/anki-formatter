@@ -8,8 +8,8 @@ import { store } from './core/store.js';
 import { eventBus, EVENTS } from './core/events.js';
 import { appLogger, uiLogger } from './core/logger.js';
 
-// Legacy storage (deprecated - use store instead)
-import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './core/storage/storage.js';
+// Legacy storage (deprecated - kept for reference, all state flows through store now)
+// import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './core/storage/storage.js';
 
 import { dom, verifyDomElements } from './utils/dom-helpers.js';
 import { ui } from './ui/components/ui.js'; // Default export object
@@ -50,11 +50,9 @@ function initAnkiFlow() {
         verifyDomElements();
         setupMarked();
         
-        // Load state: if user is authenticated, auth events handle cloud + scoped localStorage.
-        // Only call loadState() for guest mode (no user).
-        if (!store._authUser) {
-            loadState();
-        }
+        // Cloud is the source of truth — auth events handle loading.
+        // localStorage cache is loaded by _loadLocalCache() for instant render.
+        // Cloud data will override when _loadFromCloud() completes.
         
         // Default Deck if none exists
         const currentState = store.getState();
@@ -360,7 +358,7 @@ function setupEventListeners() {
                 e.preventDefault();
                 // Add Card
                 const line = dom.omnibarInput.value.trim();
-                const deck = getActiveDeck();
+                const deck = store.getActiveDeck();
                 
                 if (!deck) {
                     ui.showToast("Select or create a deck first");
@@ -387,7 +385,7 @@ function setupEventListeners() {
                      }));
                      
                      if (validCards.length > 0) {
-                         const deck = getActiveDeck();
+                         const deck = store.getActiveDeck();
                          if (deck) {
                              store.dispatch('CARD_BATCH_ADD', {
                                  deckId: deck.id,
@@ -430,7 +428,7 @@ function setupEventListeners() {
             // If 3+ lines pasted, treat as bulk import via import preview
             if (lines.length >= 3) {
                 e.preventDefault();
-                const deck = getActiveDeck();
+                const deck = store.getActiveDeck();
                 if (!deck) {
                     ui.showToast('Select or create a deck first');
                     return;

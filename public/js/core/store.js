@@ -39,10 +39,12 @@ class Store {
     }
 
     /**
-     * Setup listeners for auth events from React layer
+     * Setup listeners for auth events from React layer.
+     * Architecture: Cloud is the SINGLE SOURCE OF TRUTH.
+     * localStorage is only a cache for instant rendering while cloud loads.
      */
     _setupAuthListeners() {
-        this._cloudLoaded = false; // track if cloud data was already loaded this session
+        this._cloudLoaded = false;
 
         // When auth is ready on page load
         window.addEventListener('ankiflow:auth-ready', (e) => {
@@ -50,14 +52,13 @@ class Store {
             this._authUser = detail.user || null;
             this._accessToken = detail.accessToken || null;
             if (this._authUser) {
-                // Skip if already loaded from pre-loaded auth (window.__ankiflow_auth)
                 if (this._cloudLoaded || this._isLoadingCloud) {
                     console.log('[STORE] Auth ready, already loading/loaded — skipping');
                     return;
                 }
                 console.log('[STORE] Auth ready, user:', this._authUser.email);
-                this._loadUserLocalState();
-                this._loadFromCloud();
+                this._loadLocalCache(); // instant render from cache
+                this._loadFromCloud();  // then override with cloud truth
             }
         });
 
@@ -69,36 +70,34 @@ class Store {
             this._accessToken = detail.accessToken || null;
 
             if (this._authUser) {
-                // If switching to a DIFFERENT user, always reload
                 const userChanged = !prevUser || prevUser.id !== this._authUser.id;
                 if (userChanged) {
-                    console.log('[STORE] User changed, loading cloud data for:', this._authUser.email);
+                    console.log('[STORE] User changed, loading from cloud for:', this._authUser.email);
                     this._cloudLoaded = false;
-                    this._loadUserLocalState();
+                    this._loadLocalCache();
                     this._loadFromCloud();
                 } else if (!this._cloudLoaded) {
-                    console.log('[STORE] Auth changed, loading cloud data');
+                    console.log('[STORE] Auth changed, loading from cloud');
                     this._loadFromCloud();
                 } else {
                     console.log('[STORE] Auth changed, cloud already loaded — skipping');
                 }
             } else {
                 console.log('[STORE] User logged out');
-                // Reset to defaults on logout so next user doesn't see stale data
                 this.state = { ...DEFAULT_STATE };
                 this._cloudLoaded = false;
+                this._clearLocalCache();
                 this._notifyListeners();
                 this._triggerUIRefresh();
             }
         });
 
         // Check if auth was already set before store loaded
-        // (auth-ready event may have fired before this script loaded)
         if (window.__ankiflow_auth && window.__ankiflow_auth.user) {
             this._authUser = window.__ankiflow_auth.user;
             this._accessToken = window.__ankiflow_auth.accessToken || null;
             console.log('[STORE] Auth already available (pre-loaded), user:', this._authUser.email);
-            this._loadUserLocalState();
+            this._loadLocalCache();
             this._loadFromCloud();
         }
     }
@@ -273,9 +272,10 @@ class Store {
     }
 
     /**
-     * Load state from user-scoped localStorage
+     * Load from localStorage cache for instant render while cloud loads.
+     * This is NOT the source of truth — cloud will override this.
      */
-    _loadUserLocalState() {
+    _loadLocalCache() {
         try {
             const key = this._getStateKey();
             const saved = localStorage.getItem(key);
@@ -283,49 +283,51 @@ class Store {
                 const parsed = JSON.parse(saved);
                 this.state = { ...DEFAULT_STATE, ...parsed };
                 this._normalizeDecks();
-                console.log(`[STORE] Loaded local state from ${key}`);
+                console.log(`[STORE] Cache hit: ${key} (will be overridden by cloud)`);
             } else {
-                // No local data for this user, start fresh
                 this.state = { ...DEFAULT_STATE };
-                console.log(`[STORE] No local state for ${key}, using defaults`);
+                console.log(`[STORE] No cache for ${key}, waiting for cloud`);
             }
         } catch (e) {
-            console.error('[STORE] Failed to load local state:', e);
+            console.error('[STORE] Cache load failed:', e);
             this.state = { ...DEFAULT_STATE };
         }
     }
 
     /**
-     * Persist state to localStorage + schedule cloud sync
+     * Clear all localStorage cache for current user
+     */
+    _clearLocalCache() {
+        try {
+            const key = this._getStateKey();
+            localStorage.removeItem(key);
+            if (this._authUser && this._authUser.id) {
+                const suffix = `_${this._authUser.id}`;
+                localStorage.removeItem(`ankiflow_settings${suffix}`);
+                localStorage.removeItem(`ankiflow_daily${suffix}`);
+            }
+            console.log('[STORE] Local cache cleared');
+        } catch (e) {
+            console.error('[STORE] Failed to clear cache:', e);
+        }
+    }
+
+    /**
+     * Persist state: sync to cloud (primary) + update localStorage cache.
+     * Cloud is the source of truth. localStorage is expendable cache.
      */
     persist() {
-        try {
-            const data = JSON.stringify(this.state);
-            // Check size before saving (localStorage limit ~5MB)
-            const sizeKB = Math.round(data.length / 1024);
-            if (sizeKB > 4500) {
-                console.warn(`[STORE] State size ${sizeKB}KB approaching localStorage limit (5MB). Consider exporting data.`);
-            }
-            const key = this._getStateKey();
-            localStorage.setItem(key, data);
-        } catch (error) {
-            if (error.name === 'QuotaExceededError' || error.code === 22) {
-                console.error('[STORE] localStorage quota exceeded! Data NOT saved. Export your data immediately.');
-                this.history = this.history.slice(-5);
-                this.historyIndex = Math.min(this.historyIndex, this.history.length - 1);
-                try {
-                    const key = this._getStateKey();
-                    localStorage.setItem(key, JSON.stringify(this.state));
-                } catch (e) {
-                    console.error('[STORE] Still over quota after trimming history');
-                }
-            } else {
-                console.error('Storage error:', error);
-            }
-        }
-
-        // Schedule cloud sync (debounced)
+        // 1. Schedule cloud sync (debounced 2s) — this is the REAL save
         this._scheduleSyncToCloud();
+
+        // 2. Update localStorage cache (best-effort, not critical)
+        try {
+            const key = this._getStateKey();
+            localStorage.setItem(key, JSON.stringify(this.state));
+        } catch (error) {
+            // localStorage full or unavailable — not a problem, cloud has the data
+            console.warn('[STORE] Cache write failed (non-critical):', error.name);
+        }
     }
 
     /**
@@ -388,11 +390,12 @@ class Store {
     }
 
     /**
-     * Load state from cloud, fallback to localStorage
+     * Load state from cloud (SINGLE SOURCE OF TRUTH).
+     * Cloud always wins. localStorage cache is updated to match.
+     * If cloud is empty, state is empty. No fallback to local.
      */
     async _loadFromCloud() {
         if (!this._authUser) return;
-        // Prevent duplicate simultaneous loads (auth-ready + auth-change fire together)
         if (this._isLoadingCloud) return;
         this._isLoadingCloud = true;
 
@@ -403,53 +406,42 @@ class Store {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
             const data = await res.json();
+            const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
 
             if (data.state && data.state.decks && data.state.decks.length > 0) {
-                console.log('[STORE] Loaded state from cloud');
-                // Merge with defaults
+                console.log('[STORE] ☁️ Cloud loaded (%d decks)', data.state.decks.length);
                 this.state = { ...DEFAULT_STATE, ...data.state };
                 this._normalizeDecks();
-
-                // Also restore settings + daily progress from cloud
-                const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
-                if (data.settings && Object.keys(data.settings).length > 0) {
-                    localStorage.setItem(`ankiflow_settings${userSuffix}`, JSON.stringify(data.settings));
-                }
-                if (data.daily_progress && Object.keys(data.daily_progress).length > 0) {
-                    localStorage.setItem(`ankiflow_daily${userSuffix}`, JSON.stringify(data.daily_progress));
-                }
-
-                // Save to user-scoped localStorage as cache
-                const key = this._getStateKey();
-                localStorage.setItem(key, JSON.stringify(this.state));
-
-                // Notify all listeners to re-render
-                this._notifyListeners();
-
-                // Re-render UI
-                this._triggerUIRefresh();
-
-                this._cloudLoaded = true;
-                this._updateSyncUI('synced');
-                return;
             } else {
-                // Cloud is empty — respect cloud as source of truth
-                // Clear local cache so stale data doesn't persist
-                console.log('[STORE] Cloud empty, clearing local cache to match');
+                console.log('[STORE] ☁️ Cloud is empty — starting fresh');
                 this.state = { ...DEFAULT_STATE };
-                const key = this._getStateKey();
-                localStorage.removeItem(key);
-                const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
-                localStorage.removeItem(`ankiflow_settings${userSuffix}`);
-                localStorage.removeItem(`ankiflow_daily${userSuffix}`);
-                this._notifyListeners();
-                this._triggerUIRefresh();
-                
-                this._cloudLoaded = true;
-                this._updateSyncUI('synced');
             }
+
+            // Update local cache to match cloud
+            if (data.settings && Object.keys(data.settings).length > 0) {
+                localStorage.setItem(`ankiflow_settings${userSuffix}`, JSON.stringify(data.settings));
+            } else {
+                localStorage.removeItem(`ankiflow_settings${userSuffix}`);
+            }
+            if (data.daily_progress && Object.keys(data.daily_progress).length > 0) {
+                localStorage.setItem(`ankiflow_daily${userSuffix}`, JSON.stringify(data.daily_progress));
+            } else {
+                localStorage.removeItem(`ankiflow_daily${userSuffix}`);
+            }
+
+            // Write state to local cache
+            const key = this._getStateKey();
+            localStorage.setItem(key, JSON.stringify(this.state));
+
+            this._cloudLoaded = true;
+            this._updateSyncUI('synced');
+            this._notifyListeners();
+            this._triggerUIRefresh();
         } catch (error) {
-            console.error('[STORE] Cloud load failed, using localStorage:', error.message);
+            console.error('[STORE] ☁️ Cloud load failed, using cache:', error.message);
+            // On network error, local cache (already loaded) remains active
+            // User can still work — changes will sync when connection restores
+            this._cloudLoaded = true;
             this._updateSyncUI('error');
         } finally {
             this._isLoadingCloud = false;
@@ -511,38 +503,21 @@ class Store {
     }
 
     /**
-     * Load state from localStorage
+     * Load state from localStorage cache.
+     * Only used as initial cache read — cloud will override.
      */
     load() {
         try {
             const key = this._getStateKey();
-            let saved = localStorage.getItem(key);
-            
-            // Fallback: migrate from legacy unscoped key
-            // Only if this is truly the first login (no other user-scoped keys exist)
-            if (!saved && key !== 'ankiState') {
-                const hasOtherUsers = Object.keys(localStorage).some(
-                    k => k.startsWith('ankiState_') && k !== key
-                );
-                if (!hasOtherUsers) {
-                    saved = localStorage.getItem('ankiState');
-                    if (saved) {
-                        console.log('[STORE] Migrating legacy ankiState to user-scoped key');
-                        localStorage.setItem(key, saved);
-                        // Remove legacy key after migration to prevent leaking to other users
-                        localStorage.removeItem('ankiState');
-                    }
-                }
-            }
+            const saved = localStorage.getItem(key);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                // Merge with defaults to ensure all fields exist
                 this.state = { ...DEFAULT_STATE, ...parsed };
                 this._normalizeDecks();
                 return true;
             }
         } catch (error) {
-            console.error('Load error:', error);
+            console.error('[STORE] Cache load error:', error);
         }
         return false;
     }
