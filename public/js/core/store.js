@@ -476,6 +476,7 @@ class Store {
 
             // Update local cache to match cloud
             if (data.settings && Object.keys(data.settings).length > 0) {
+                this._lastCloudSettings = data.settings;
                 localStorage.setItem(`ankiflow_settings${userSuffix}`, JSON.stringify(data.settings));
             }
             if (data.daily_progress && Object.keys(data.daily_progress).length > 0) {
@@ -995,6 +996,113 @@ class Store {
             }
         });
         return true;
+    }
+
+    // ===== DEVICE MANAGEMENT =====
+
+    /**
+     * Register current device in settings
+     */
+    registerDevice() {
+        if (!this._authUser) return;
+
+        const deviceId = this._getOrCreateDeviceId();
+        const ua = navigator.userAgent;
+        let browser = 'Unknown';
+        if (ua.includes('Firefox')) browser = 'Firefox';
+        else if (ua.includes('Chrome')) browser = 'Chrome';
+        else if (ua.includes('Safari')) browser = 'Safari';
+        else if (ua.includes('Edge')) browser = 'Edge';
+
+        let os = 'Unknown';
+        if (ua.includes('Windows')) os = 'Windows';
+        else if (ua.includes('Mac')) os = 'macOS';
+        else if (ua.includes('Linux')) os = 'Linux';
+        else if (ua.includes('Android')) os = 'Android';
+        else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+
+        const deviceType = (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) 
+            ? 'phone' 
+            : (ua.includes('iPad') || ua.includes('Tablet')) ? 'tablet' : 'desktop';
+
+        const deviceInfo = {
+            id: deviceId,
+            browser,
+            os,
+            deviceType,
+            lastActive: new Date().toISOString()
+        };
+
+        // Update settings with this device
+        const key = this.getScopedKey('ankiflow_settings');
+        const settings = JSON.parse(localStorage.getItem(key) || '{}');
+        
+        if (!settings.devices) settings.devices = {};
+        settings.devices[deviceId] = deviceInfo;
+        
+        localStorage.setItem(key, JSON.stringify(settings));
+        
+        // Sync settings to cloud
+        this._scheduleSyncToCloud();
+    }
+
+    /**
+     * Get or create a persistent device ID for this browser
+     */
+    _getOrCreateDeviceId() {
+        let id = localStorage.getItem('ankiflow_device_id');
+        if (!id) {
+            id = 'dev_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            localStorage.setItem('ankiflow_device_id', id);
+        }
+        return id;
+    }
+
+    /**
+     * Get all registered devices
+     */
+    getDevices() {
+        const key = this.getScopedKey('ankiflow_settings');
+        const settings = JSON.parse(localStorage.getItem(key) || '{}');
+        return settings.devices || {};
+    }
+
+    /**
+     * Get current device ID
+     */
+    getDeviceId() {
+        return this._getOrCreateDeviceId();
+    }
+
+    /**
+     * Remove a device
+     */
+    removeDevice(deviceId) {
+        const key = this.getScopedKey('ankiflow_settings');
+        const settings = JSON.parse(localStorage.getItem(key) || '{}');
+        
+        if (settings.devices && settings.devices[deviceId]) {
+            delete settings.devices[deviceId];
+            localStorage.setItem(key, JSON.stringify(settings));
+            this._scheduleSyncToCloud();
+        }
+    }
+
+    /**
+     * Check if current device has been revoked (removed from cloud)
+     */
+    _checkDeviceRevocation(cloudSettings) {
+        if (!cloudSettings || !cloudSettings.devices) return;
+        
+        const currentDeviceId = this._getOrCreateDeviceId();
+        // If devices list exists but current device is NOT in it -> Revoked
+        if (Object.keys(cloudSettings.devices).length > 0 && !cloudSettings.devices[currentDeviceId]) {
+            console.warn('[STORE] Device revoked by cloud');
+            // Sign out
+            if (window.__ankiflow_signOut) {
+                window.__ankiflow_signOut();
+            }
+        }
     }
 
     // ===== UI SETTINGS ACTIONS (Local only, syncs as 'settings' blob) =====
