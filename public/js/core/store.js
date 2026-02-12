@@ -197,6 +197,8 @@ class Store {
                     return this._handleUndo();
                 case 'REDO':
                     return this._handleRedo();
+                case 'LOG_REVIEW':
+                    return this._handleLogReview(payload);
                 default:
                     console.warn('Unknown action:', action);
                     return false;
@@ -1137,6 +1139,24 @@ class Store {
             ? payload.theme 
             : payload;
         this.setState({ theme: value }, true);
+        return true;
+    }
+
+    _handleLogReview(payload) {
+        const { cardId, deckId, grade, elapsedTime, reviewState } = payload;
+        
+        // Log review is strictly for server-side analytics, doesn't update local state directly
+        // other than being queued for sync.
+        this._queueChange('REVIEW_LOG', {
+            id: this._generateId(),
+            cardId,
+            deckId,
+            grade,
+            elapsedTime: elapsedTime || 0,
+            reviewState: reviewState || 'review',
+            createdAt: new Date().toISOString()
+        });
+        
         return true;
     }
 

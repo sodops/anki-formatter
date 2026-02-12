@@ -99,54 +99,105 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { changes, settings, daily_progress } = body; 
-    // Expecting 'changes' to be a list of operations, OR full state for backwards compat (but we want to move away from full state).
     
-    // If client sends full state, we might need a "Legacy Mode" handler or just reject it.
-    // For this refactor, let's assume we update the client to send `changes`.
-    // But to be safe during transition, if `state` is present, we might warn or try to diff (complex).
-    
-    // Let's implement the "Changes" handler.
+    // Batch processing arrays
+    const deckUpserts: any[] = [];
+    const cardUpserts: any[] = [];
+    const deckDeletes: string[] = [];
+    const cardDeletes: string[] = [];
+    const reviewLogInserts: any[] = [];
+
     if (changes && Array.isArray(changes)) {
         for (const change of changes) {
-            if (change.type === 'DECK_UPDATE' || change.type === 'DECK_CREATE') {
-                await supabase.from('decks').upsert({
-                    id: change.data.id,
+            const { type, data, id } = change;
+
+            if (type === 'DECK_CREATE' || type === 'DECK_UPDATE') {
+                deckUpserts.push({
+                    id: data.id,
                     user_id: user.id,
-                    name: change.data.name,
-                    settings: { color: change.data.color },
-                    is_deleted: change.data.isDeleted || false,
-                    updated_at: new Date()
+                    name: data.name,
+                    settings: { color: data.color },
+                    is_deleted: data.isDeleted || false,
+                    updated_at: new Date().toISOString()
                 });
-            } else if (change.type === 'CARD_UPDATE' || change.type === 'CARD_CREATE') {
-                await supabase.from('cards').upsert({
-                    id: change.data.id,
-                    deck_id: change.data.deckId, // Client must send this
+            } else if (type === 'CARD_CREATE' || type === 'CARD_UPDATE') {
+                // Ensure deck_id is present for new cards
+                if (!data.deckId && type === 'CARD_CREATE') {
+                    console.warn(`Skipping CARD_CREATE ${data.id}: Missing deckId`);
+                    continue;
+                }
+
+                cardUpserts.push({
+                    id: data.id,
+                    deck_id: data.deckId, // Required
                     user_id: user.id,
-                    term: change.data.term,
-                    definition: change.data.def,
-                    tags: change.data.tags,
-                    review_data: change.data.reviewData,
-                    is_suspended: change.data.suspended,
+                    term: data.term,
+                    definition: data.def, // Map 'def' to 'definition'
+                    tags: data.tags || [],
+                    review_data: data.reviewData,
+                    is_suspended: data.suspended || false,
                     is_deleted: false,
-                    updated_at: new Date()
+                    updated_at: new Date().toISOString(),
+                    // Only set created_at on creation if provided, else DB default
+                    ...(type === 'CARD_CREATE' && data.createdAt ? { created_at: data.createdAt } : {})
                 });
-            } else if (change.type === 'CARD_DELETE') {
-                 await supabase.from('cards').update({ is_deleted: true }).eq('id', change.id);
-            } else if (change.type === 'DECK_DELETE') {
-                 await supabase.from('decks').update({ is_deleted: true }).eq('id', change.id);
+            } else if (type === 'DECK_DELETE') {
+                if (id) deckDeletes.push(id);
+            } else if (type === 'CARD_DELETE') {
+                if (id) cardDeletes.push(id);
+            } else if (type === 'REVIEW_LOG') {
+                reviewLogInserts.push({
+                    id: data.id,
+                    card_id: data.cardId,
+                    user_id: user.id,
+                    deck_id: data.deckId,
+                    grade: data.grade,
+                    elapsed_time: data.elapsedTime,
+                    review_state: data.reviewState,
+                    created_at: data.createdAt
+                });
             }
         }
     }
 
-    // Update Legacy Settings/Daily Progress (keep in user_data for now)
-    if (settings || daily_progress) {
-        const updateData: any = { user_id: user.id };
-        if (settings) updateData.settings = settings;
-        if (daily_progress) updateData.daily_progress = daily_progress;
-        await supabase.from('user_data').upsert(updateData);
+    // Execute Batched Operations in Parallel
+    const promises = [];
+
+    if (deckUpserts.length > 0) {
+        promises.push(supabase.from('decks').upsert(deckUpserts));
+    }
+    if (cardUpserts.length > 0) {
+        promises.push(supabase.from('cards').upsert(cardUpserts));
+    }
+    if (deckDeletes.length > 0) {
+        promises.push(supabase.from('decks').update({ is_deleted: true, updated_at: new Date().toISOString() }).in('id', deckDeletes));
+    }
+    if (cardDeletes.length > 0) {
+        promises.push(supabase.from('cards').update({ is_deleted: true, updated_at: new Date().toISOString() }).in('id', cardDeletes));
+    }
+    if (reviewLogInserts.length > 0) {
+        promises.push(supabase.from('review_logs').insert(reviewLogInserts));
     }
 
-    return NextResponse.json({ success: true });
+    // Update Legacy Settings/Daily Progress (keep in user_data)
+    if (settings || daily_progress) {
+        const updateData: any = { user_id: user.id, updated_at: new Date().toISOString() };
+        if (settings) updateData.settings = settings;
+        if (daily_progress) updateData.daily_progress = daily_progress;
+        promises.push(supabase.from('user_data').upsert(updateData));
+    }
+
+    // Wait for all operations to complete
+    const results = await Promise.all(promises);
+
+    // Check for errors
+    const errors = results.filter(r => r.error).map(r => r.error?.message);
+    if (errors.length > 0) {
+        console.error("Sync Batch Errors:", errors);
+        return NextResponse.json({ error: "Partial sync failure", details: errors }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, processed: changes?.length || 0 });
 
   } catch (err: any) {
     console.error("[SYNC POST]", err);

@@ -8,9 +8,6 @@ import { store } from './core/store.js';
 import { eventBus, EVENTS } from './core/events.js';
 import { appLogger, uiLogger } from './core/logger.js';
 
-// Legacy storage (deprecated - kept for reference, all state flows through store now)
-// import { STATE, loadState, saveState, getActiveDeck, addToHistory } from './core/storage/storage.js';
-
 import { dom, verifyDomElements } from './utils/dom-helpers.js';
 import { ui } from './ui/components/ui.js'; // Default export object
 import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './features/library/deck-manager.js';

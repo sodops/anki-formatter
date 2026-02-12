@@ -441,6 +441,19 @@ export function rateCard(quality) {
             // Update daily goal (pass card to deduplicate re-queued cards)
             updateDailyGoal(card);
             
+            // Log the review for analytics
+            store.dispatch('LOG_REVIEW', {
+                cardId: card.id,
+                deckId: deck.id,
+                grade: quality, // 0=Again, 2=Hard, 3=Good, 5=Easy. Note: DB expects 1-4 mapped below or updated check
+                // Mapping: Again(0)->1, Hard(2)->2, Good(3)->3, Easy(5)->4
+                // But wait, my DB check says grade >= 1 AND grade <= 4.
+                // Let's map it safely:
+                grade: quality === 0 ? 1 : (quality === 2 ? 2 : (quality === 3 ? 3 : 4)),
+                reviewState: card.reviewData?.isLearning ? 'learning' : 'review',
+                elapsedTime: 0 // TODO: Track actual time spent
+            });
+
             eventBus.emit(EVENTS.STUDY_CARD_RATED, { 
                 cardId: deck.cards[deckCardIndex].id,
                 quality,
