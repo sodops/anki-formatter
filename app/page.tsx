@@ -589,17 +589,7 @@ export default function Home() {
                         <span className="settings-sublabel">Language for pronunciation</span>
                       </div>
                       <select className="settings-input" id="settingTtsLanguage">
-                        <option value="en-US">English (US)</option>
-                        <option value="en-GB">English (UK)</option>
-                        <option value="es-ES">Spanish (Spain)</option>
-                        <option value="fr-FR">French (France)</option>
-                        <option value="de-DE">German (Germany)</option>
-                        <option value="ja-JP">Japanese (Japan)</option>
-                        <option value="ko-KR">Korean (Korea)</option>
-                        <option value="zh-CN">Chinese (Mandarin)</option>
-                        <option value="ru-RU">Russian (Russia)</option>
-                        <option value="uz-UZ">Uzbek (Uzbekistan)</option>
-                        {/* Add more languages as needed */}
+                        <option disabled>Loading voices...</option>
                       </select>
                     </div>
                     <div className="settings-row">

@@ -22,7 +22,7 @@ import { loadDailyGoal } from './features/study/study-session.js';
 import { openStats, calculateAndRenderStats } from './features/stats/stats-calculator.js';
 import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
 import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } from './ui/theme/theme-manager.js';
-import { setSpeechLanguage, setSpeechRate, setSpeechPitch } from './utils/tts-helper.js';
+import { setSpeechLanguage, setSpeechRate, setSpeechPitch, getAvailableVoices } from './utils/tts-helper.js';
 
 
 // --- Command Registry ---
@@ -1016,6 +1016,47 @@ function initSettings() {
 
     // --- Devices Management ---
     initDevicesPanel();
+
+    // --- TTS Voice Population ---
+    const ttsSelect = document.getElementById('settingTtsLanguage');
+    if (ttsSelect) {
+        const populateVoices = () => {
+            const voices = getAvailableVoices();
+            if (voices.length === 0) return; // Not loaded yet
+
+            // Keep current selection
+            const currentVal = ttsSelect.value || settings.ttsLanguage;
+            
+            ttsSelect.innerHTML = ''; // Clear static options
+            
+            // Group by language for cleaner UI (optional, but let's list them all)
+            voices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.voiceURI; // Use specific URI
+                option.textContent = `${voice.name} (${voice.lang})`;
+                ttsSelect.appendChild(option);
+            });
+
+            // Restore selection or default to first English
+            const hasOption = Array.from(ttsSelect.options).some(o => o.value === currentVal);
+            if (hasOption) {
+                ttsSelect.value = currentVal;
+            } else {
+                // Fallback to first English voice
+                const enVoice = voices.find(v => v.lang.startsWith('en'));
+                if (enVoice) ttsSelect.value = enVoice.voiceURI;
+            }
+            
+            // Update helper immediately
+            window.setSpeechLanguage(ttsSelect.value);
+        };
+
+        // Populate initially (if ready)
+        populateVoices();
+
+        // Populate when voices change/load
+        window.addEventListener('ankiflow:voices-changed', populateVoices);
+    }
 }
 
 /**

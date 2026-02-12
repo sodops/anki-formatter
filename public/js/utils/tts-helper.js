@@ -19,7 +19,19 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const voices = speechSynth.getVoices();
         // Try to find an English voice first, then fallback to any voice
         defaultVoice = voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+        
+        // Notify UI that voices are ready
+        window.dispatchEvent(new CustomEvent('ankiflow:voices-changed'));
     };
+}
+
+/**
+ * Get all available voices supported by the browser
+ * @returns {SpeechSynthesisVoice[]} List of voices
+ */
+export function getAvailableVoices() {
+    if (!speechSynth) return [];
+    return speechSynth.getVoices();
 }
 
 /**
@@ -37,15 +49,24 @@ export function speak(text, lang = currentLang) {
     stopSpeaking();
 
     speechUtterance = new SpeechSynthesisUtterance(text);
-    speechUtterance.lang = lang;
-    speechUtterance.rate = currentRate; // Use global rate
-    speechUtterance.pitch = currentPitch; // Use global pitch
+    speechUtterance.rate = currentRate;
+    speechUtterance.pitch = currentPitch;
 
-    // Set voice if available
-    const voices = speechSynth.getVoices();
-    const voiceToUse = voices.find(voice => voice.lang === lang) || defaultVoice;
-    if (voiceToUse) {
-        speechUtterance.voice = voiceToUse;
+    // Use the selected default voice
+    if (defaultVoice) {
+        speechUtterance.voice = defaultVoice;
+        speechUtterance.lang = defaultVoice.lang;
+    }
+
+    // If a specific lang was requested and it differs, try to find a matching voice dynamically
+    // (This overrides the user's preferred voice only if necessary)
+    if (lang && defaultVoice && lang !== defaultVoice.lang) {
+        speechUtterance.lang = lang;
+        const voices = speechSynth.getVoices();
+        const specificVoice = voices.find(voice => voice.lang === lang);
+        if (specificVoice) {
+            speechUtterance.voice = specificVoice;
+        }
     }
 
     speechSynth.speak(speechUtterance);
@@ -61,14 +82,23 @@ export function stopSpeaking() {
 }
 
 /**
- * Sets the current language for speech.
- * @param {string} lang - The language to set (e.g., 'en-US', 'es-ES').
+ * Sets the current language/voice for speech.
+ * @param {string} voiceURI - The voiceURI (or lang code) to set.
  */
-export function setSpeechLanguage(lang) {
-    currentLang = lang;
-    // Update default voice based on new language
+export function setSpeechLanguage(voiceURI) {
+    // Try to find by exact VoiceURI first (most accurate)
     const voices = speechSynth?.getVoices() || [];
-    defaultVoice = voices.find(voice => voice.lang.startsWith(lang.substring(0, 2))) || voices[0];
+    let foundVoice = voices.find(v => v.voiceURI === voiceURI);
+    
+    // Fallback: try to find by Lang code
+    if (!foundVoice) {
+        foundVoice = voices.find(v => v.lang === voiceURI);
+    }
+
+    if (foundVoice) {
+        defaultVoice = foundVoice;
+        currentLang = foundVoice.lang;
+    }
 }
 
 /**
