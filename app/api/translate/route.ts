@@ -28,19 +28,32 @@ export async function POST(request: NextRequest) {
     let translatedText = data[0][0][0];
     const detectedSource = data[2]; // e.g., 'en'
 
-    // Smart Toggle: If user typed in Uzbek (detected 'uz'), translate to English instead
-    if (detectedSource === 'uz' && targetLang === 'uz') {
+    // Smart Logic:
+    // 1. If detected as Uzbek, translate to English.
+    // 2. If detected as NOT Uzbek (e.g. 'en'), but the result is same as input (e.g. "olma" -> "olma"),
+    //    it means Google failed to translate it as English. Try treating it as Uzbek.
+    
+    const isSame = translatedText.toLowerCase().trim() === text.toLowerCase().trim();
+
+    if (
+        (detectedSource === 'uz' && targetLang === 'uz') || 
+        (detectedSource !== 'uz' && isSame)
+    ) {
         const urlEn = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=uz&tl=en&dt=t&q=${encodeURIComponent(text)}`;
-        res = await fetch(urlEn);
-        data = await res.json();
-        translatedText = data[0][0][0];
-        targetLang = 'en';
+        const resEn = await fetch(urlEn);
+        const dataEn = await resEn.json();
+        
+        // Only accept if it actually changed something
+        if (dataEn[0][0][0].toLowerCase().trim() !== text.toLowerCase().trim()) {
+            translatedText = dataEn[0][0][0];
+            targetLang = 'en';
+        }
     }
 
     return NextResponse.json({
       original: text,
       translated: translatedText,
-      sourceLang: detectedSource,
+      sourceLang: targetLang === 'en' ? 'uz' : 'en', // Infer source based on target
       targetLang: targetLang
     });
 
