@@ -3,7 +3,7 @@
  * Handles card reordering via drag and drop
  */
 
-import { store } from '../../core/store.js';
+import store from '../../core/store.js';
 import { renderWorkspace } from '../../features/library/card-manager.js';
 import { showToast } from '../components/ui.js';
 

@@ -1026,4 +1026,5 @@ class Store {
 
 // Export singleton
 const store = new Store();
+export { store };
 export default store;
