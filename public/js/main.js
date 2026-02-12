@@ -22,6 +22,7 @@ import { loadDailyGoal } from './features/study/study-session.js';
 import { openStats, calculateAndRenderStats } from './features/stats/stats-calculator.js';
 import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
 import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } from './ui/theme/theme-manager.js';
+import { setSpeechLanguage, setSpeechRate, setSpeechPitch } from './utils/tts-helper.js';
 
 
 // --- Command Registry ---
@@ -246,6 +247,11 @@ function setupGlobalExports() {
     window.setTagFilter = setTagFilter;
     window.suspendCard = suspendCard;
     
+    // TTS exports for settings
+    window.setSpeechLanguage = setSpeechLanguage;
+    window.setSpeechRate = setSpeechRate;
+    window.setSpeechPitch = setSpeechPitch;
+
     // Statistics refresh
     window.refreshStats = calculateAndRenderStats;
     
@@ -840,8 +846,10 @@ function initSettings() {
         settingSoundEffects: { key: 'soundEffects', default: false },
         settingKeyboardHints: { key: 'keyboardHints', default: true },
         settingReverseMode: { key: 'reverseMode', default: false },
-        settingTtsEnabled: { key: 'ttsEnabled', default: true }, // New TTS setting
-        settingTtsLanguage: { key: 'ttsLanguage', default: 'en-US' } // New TTS language setting
+        settingTtsEnabled: { key: 'ttsEnabled', default: true },
+        settingTtsLanguage: { key: 'ttsLanguage', default: 'en-US' },
+        settingTtsRate: { key: 'ttsRate', default: 1 }, // New Rate setting
+        settingTtsPitch: { key: 'ttsPitch', default: 1 } // New Pitch setting
     };
     
     for (const [id, config] of Object.entries(fields)) {
@@ -885,7 +893,23 @@ function initSettings() {
             
             // Apply TTS language
             if (config.key === 'ttsLanguage') {
-                window.setSpeechLanguage(el.value); // Use the global function
+                window.setSpeechLanguage(el.value);
+            }
+
+            // Apply TTS Rate
+            if (config.key === 'ttsRate') {
+                const val = Number(el.value);
+                window.setSpeechRate(val);
+                const display = document.getElementById('ttsRateValue');
+                if (display) display.textContent = val + 'x';
+            }
+
+            // Apply TTS Pitch
+            if (config.key === 'ttsPitch') {
+                const val = Number(el.value);
+                window.setSpeechPitch(val);
+                const display = document.getElementById('ttsPitchValue');
+                if (display) display.textContent = val;
             }
             
             // Update range display labels

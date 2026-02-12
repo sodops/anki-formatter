@@ -4561,3 +4561,41 @@ noscript {
 .text-signup {
   color: #10b981 !important;
 }
+
+/* ===========================
+   TTS BUTTON (Text-to-Speech)
+   =========================== */
+.tts-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 44px; /* Minimum touch target size */
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 10;
+  font-size: 20px;
+}
+
+.tts-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tts-btn:active {
+  transform: scale(0.95);
+}
+
+.tts-btn.hidden {
+  display: none !important;
+}

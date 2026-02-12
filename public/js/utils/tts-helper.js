@@ -7,6 +7,8 @@ let speechUtterance = null;
 let speechSynth = null;
 let defaultVoice = null;
 let currentLang = 'en-US'; // Default language
+let currentRate = 1; // Default rate
+let currentPitch = 1; // Default pitch
 
 // Initialize speech synthesis
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -36,8 +38,8 @@ export function speak(text, lang = currentLang) {
 
     speechUtterance = new SpeechSynthesisUtterance(text);
     speechUtterance.lang = lang;
-    speechUtterance.rate = 1; // 0.1 to 10
-    speechUtterance.pitch = 1; // 0 to 2
+    speechUtterance.rate = currentRate; // Use global rate
+    speechUtterance.pitch = currentPitch; // Use global pitch
 
     // Set voice if available
     const voices = speechSynth.getVoices();
@@ -67,4 +69,20 @@ export function setSpeechLanguage(lang) {
     // Update default voice based on new language
     const voices = speechSynth?.getVoices() || [];
     defaultVoice = voices.find(voice => voice.lang.startsWith(lang.substring(0, 2))) || voices[0];
+}
+
+/**
+ * Sets the speech rate.
+ * @param {number} rate - The rate (0.5 to 2.0).
+ */
+export function setSpeechRate(rate) {
+    currentRate = rate;
+}
+
+/**
+ * Sets the speech pitch.
+ * @param {number} pitch - The pitch (0 to 2).
+ */
+export function setSpeechPitch(pitch) {
+    currentPitch = pitch;
 }

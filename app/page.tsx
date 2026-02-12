@@ -391,12 +391,18 @@ export default function Home() {
                   <div className="flashcard-area" id="flashcard">
                     <div className="flashcard-inner">
                       <div className="flashcard-front">
-                        <div className="card-label">TERM <ion-icon name="volume-high-outline" class="tts-icon" data-text-role="term"></ion-icon></div>
+                        <button className="tts-btn tts-icon" data-text-role="term" title="Listen">
+                          <ion-icon name="volume-high-outline"></ion-icon>
+                        </button>
+                        <div className="card-label">TERM</div>
                         <div className="card-content" id="studyFront"></div>
                         <div className="hint-text">Click to Flip (Space)</div>
                       </div>
                       <div className="flashcard-back">
-                        <div className="card-label">DEFINITION <ion-icon name="volume-high-outline" class="tts-icon" data-text-role="def"></ion-icon></div>
+                        <button className="tts-btn tts-icon" data-text-role="def" title="Listen">
+                          <ion-icon name="volume-high-outline"></ion-icon>
+                        </button>
+                        <div className="card-label">DEFINITION</div>
                         <div className="card-content" id="studyBack"></div>
                       </div>
                     </div>
@@ -595,6 +601,26 @@ export default function Home() {
                         <option value="uz-UZ">Uzbek (Uzbekistan)</option>
                         {/* Add more languages as needed */}
                       </select>
+                    </div>
+                    <div className="settings-row">
+                      <div className="settings-row-info">
+                        <span className="settings-label">TTS Speed</span>
+                        <span className="settings-sublabel">Speech rate (0.5x - 2.0x)</span>
+                      </div>
+                      <div className="settings-range-group">
+                        <input type="range" className="settings-range" id="settingTtsRate" min="0.5" max="2" step="0.1" defaultValue="1" />
+                        <span className="settings-range-value" id="ttsRateValue">1x</span>
+                      </div>
+                    </div>
+                    <div className="settings-row">
+                      <div className="settings-row-info">
+                        <span className="settings-label">TTS Pitch</span>
+                        <span className="settings-sublabel">Voice pitch (0 - 2)</span>
+                      </div>
+                      <div className="settings-range-group">
+                        <input type="range" className="settings-range" id="settingTtsPitch" min="0" max="2" step="0.1" defaultValue="1" />
+                        <span className="settings-range-value" id="ttsPitchValue">1</span>
+                      </div>
                     </div>
                   </div>
 
