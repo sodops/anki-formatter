@@ -140,11 +140,6 @@ export default function LoginPage() {
 
         {/* Right — Auth Form */}
         <div className="login-form-side">
-          <div className="login-back-link" style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10 }}>
-             <button onClick={() => router.push('/')} className="login-back-btn">
-               ← Back to Home
-             </button>
-          </div>
           <div className={`login-card ${mode === 'signup' ? 'border-signup' : ''}`}>
             <div className="login-card-header">
               <h2 className={mode === 'signup' ? 'text-signup' : ''}>
