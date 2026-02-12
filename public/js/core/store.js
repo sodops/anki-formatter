@@ -1110,17 +1110,26 @@ class Store {
     // BUT since we modified _syncToCloud to send settings, it works fine.
 
     _handleSetSearch(payload) {
-        this.setState({ searchQuery: payload }, true); // skip history
+        const value = (typeof payload === 'object' && payload !== null && payload.query !== undefined) 
+            ? payload.query 
+            : payload;
+        this.setState({ searchQuery: value }, true); // skip history
         return true;
     }
 
     _handleSetView(payload) {
-        this.setState({ activeView: payload }, true);
+        const value = (typeof payload === 'object' && payload !== null && payload.view !== undefined) 
+            ? payload.view 
+            : payload;
+        this.setState({ activeView: value }, true);
         return true;
     }
 
     _handleSetTheme(payload) {
-        this.setState({ theme: payload }, true);
+        const value = (typeof payload === 'object' && payload !== null && payload.theme !== undefined) 
+            ? payload.theme 
+            : payload;
+        this.setState({ theme: value }, true);
         return true;
     }
 
