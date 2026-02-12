@@ -391,12 +391,12 @@ export default function Home() {
                   <div className="flashcard-area" id="flashcard">
                     <div className="flashcard-inner">
                       <div className="flashcard-front">
-                        <div className="card-label">TERM</div>
+                        <div className="card-label">TERM <ion-icon name="volume-high-outline" class="tts-icon" data-text-role="term"></ion-icon></div>
                         <div className="card-content" id="studyFront"></div>
                         <div className="hint-text">Click to Flip (Space)</div>
                       </div>
                       <div className="flashcard-back">
-                        <div className="card-label">DEFINITION</div>
+                        <div className="card-label">DEFINITION <ion-icon name="volume-high-outline" class="tts-icon" data-text-role="def"></ion-icon></div>
                         <div className="card-content" id="studyBack"></div>
                       </div>
                     </div>
@@ -566,6 +566,35 @@ export default function Home() {
                         <input type="checkbox" id="settingKeyboardHints" defaultChecked />
                         <span className="toggle-slider"></span>
                       </label>
+                    </div>
+                    <div className="settings-row">
+                      <div className="settings-row-info">
+                        <span className="settings-label">Text-to-Speech (TTS)</span>
+                        <span className="settings-sublabel">Read card text aloud during study</span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input type="checkbox" id="settingTtsEnabled" />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div className="settings-row">
+                      <div className="settings-row-info">
+                        <span className="settings-label">TTS Language</span>
+                        <span className="settings-sublabel">Language for pronunciation</span>
+                      </div>
+                      <select className="settings-input" id="settingTtsLanguage">
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="es-ES">Spanish (Spain)</option>
+                        <option value="fr-FR">French (France)</option>
+                        <option value="de-DE">German (Germany)</option>
+                        <option value="ja-JP">Japanese (Japan)</option>
+                        <option value="ko-KR">Korean (Korea)</option>
+                        <option value="zh-CN">Chinese (Mandarin)</option>
+                        <option value="ru-RU">Russian (Russia)</option>
+                        <option value="uz-UZ">Uzbek (Uzbekistan)</option>
+                        {/* Add more languages as needed */}
+                      </select>
                     </div>
                   </div>
 

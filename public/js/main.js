@@ -839,7 +839,9 @@ function initSettings() {
         settingFontSize: { key: 'fontSize', default: 32 },
         settingSoundEffects: { key: 'soundEffects', default: false },
         settingKeyboardHints: { key: 'keyboardHints', default: true },
-        settingReverseMode: { key: 'reverseMode', default: false }
+        settingReverseMode: { key: 'reverseMode', default: false },
+        settingTtsEnabled: { key: 'ttsEnabled', default: true }, // New TTS setting
+        settingTtsLanguage: { key: 'ttsLanguage', default: 'en-US' } // New TTS language setting
     };
     
     for (const [id, config] of Object.entries(fields)) {
@@ -879,6 +881,11 @@ function initSettings() {
             // Apply keyboard hints
             if (config.key === 'keyboardHints') {
                 applyKeyboardHints(el.checked);
+            }
+            
+            // Apply TTS language
+            if (config.key === 'ttsLanguage') {
+                window.setSpeechLanguage(el.value); // Use the global function
             }
             
             // Update range display labels

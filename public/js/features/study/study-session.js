@@ -10,6 +10,7 @@ import { dom } from '../../utils/dom-helpers.js';
 import { ui, showToast } from '../../ui/components/ui.js';
 import { renderMarkdown } from '../../utils/markdown-parser.js';
 import { getDueCards, updateCardAfterReview, getIntervalPreview } from '../../core/srs/scheduler.js';
+import { speak, stopSpeaking, setSpeechLanguage } from '../../utils/tts-helper.js'; // Import TTS functions
 
 import { switchView, VIEWS } from '../../ui/navigation/view-manager.js';
 import { animateCountUp } from '../../utils/dom-helpers.js';
@@ -297,6 +298,9 @@ function renderStudyCard() {
         return;
     }
     
+    // Stop any ongoing speech when a new card is rendered
+    stopSpeaking();
+
     // Reset answer shown
     isAnswerShown = false;
     
@@ -321,6 +325,25 @@ function renderStudyCard() {
     // Update Progress
     if (dom.studyIndex) dom.studyIndex.textContent = currentIndex + 1;
     if (dom.studyTotal) dom.studyTotal.textContent = sessionCards.length;
+    
+    // Setup TTS listeners for icons
+    const settings = getSettings();
+    const ttsEnabled = settings.ttsEnabled !== false; // Default to true if not set
+    const cardLang = settings.cardLanguage || 'en-US'; // Default language
+
+    setSpeechLanguage(cardLang); // Set TTS language
+
+    document.querySelectorAll('.tts-icon').forEach(icon => {
+        icon.classList.toggle('hidden', !ttsEnabled); // Hide icon if TTS is disabled
+        icon.onclick = (e) => {
+            e.stopPropagation(); // Prevent card flip
+            const textRole = icon.dataset.textRole;
+            const textToSpeak = textRole === 'term' ? (reverseMode ? card.def : card.term) : (reverseMode ? card.term : card.def);
+            if (textToSpeak) {
+                speak(textToSpeak, cardLang);
+            }
+        };
+    });
     
     // Update UI for answer-hidden state
     updateButtonsForAnswerState();
