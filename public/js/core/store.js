@@ -737,7 +737,14 @@ class Store {
             term: (term || '').trim(),
             def: (def || '').trim(),
             tags: Array.isArray(tags) ? tags : [],
-            reviewData: null,
+            reviewData: {
+                state: 'new',
+                step: 0,
+                due: null,
+                interval: 0,
+                ease: 2.5,
+                lapses: 0
+            },
             createdAt: new Date().toISOString()
         };
 
