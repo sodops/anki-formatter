@@ -18,8 +18,11 @@ let currentTheme = THEMES.AUTO;
  * Initialize theme manager
  */
 export function initThemeManager() {
-    // Load saved theme from store (persisted in localStorage via ankiState)
-    const savedTheme = store.getState().theme;
+    // Load saved theme from settings (primary) or store (fallback)
+    const key = store.getScopedKey('ankiflow_settings');
+    const settings = JSON.parse(localStorage.getItem(key) || '{}');
+    const savedTheme = settings.theme || store.getState().theme;
+    
     currentTheme = savedTheme || THEMES.AUTO;
     
     // Apply theme
@@ -64,8 +67,21 @@ export function switchTheme(theme) {
     
     applyTheme(theme);
     
-    // Save to store (persisted to localStorage automatically)
+    // Save to store state
     store.dispatch('THEME_SET', theme);
+    
+    // EXPLICITLY Save to settings for cloud sync
+    try {
+        const key = store.getScopedKey('ankiflow_settings');
+        const current = JSON.parse(localStorage.getItem(key) || '{}');
+        current.theme = theme;
+        localStorage.setItem(key, JSON.stringify(current));
+        
+        // Trigger sync
+        store._scheduleSyncToCloud();
+    } catch (e) {
+        console.error('Failed to save theme setting:', e);
+    }
     
     // Add smooth transition effect
     document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
