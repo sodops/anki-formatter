@@ -56,10 +56,10 @@ class Store {
             this._accessToken = detail.accessToken || null;
             if (this._authUser) {
                 if (this._cloudLoaded || this._isLoadingCloud) {
-                    console.log('[STORE] Auth ready, already loading/loaded — skipping');
+                    // console.debug('[STORE] Auth ready, skipping reload');
                     return;
                 }
-                console.log('[STORE] Auth ready, user:', this._authUser.email);
+                // console.debug('[STORE] Auth ready');
                 this._loadLocalCache(); // instant render from cache
                 this._loadFromCloud();  // then override with cloud truth
             }
@@ -101,7 +101,7 @@ class Store {
         if (window.__ankiflow_auth && window.__ankiflow_auth.user) {
             this._authUser = window.__ankiflow_auth.user;
             this._accessToken = window.__ankiflow_auth.accessToken || null;
-            console.log('[STORE] Auth already available (pre-loaded), user:', this._authUser.email);
+            // console.debug('[STORE] Auth pre-loaded');
             this._loadLocalCache();
             this._loadFromCloud();
         }

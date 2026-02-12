@@ -45,6 +45,41 @@ class Logger {
     }
 
     /**
+     * Send log to remote server
+     */
+    _sendToRemote(level, message, data) {
+        // Only send WARN and ERROR logs to save bandwidth/storage
+        if (level !== 'WARN' && level !== 'ERROR') return;
+        
+        // Don't log recursively if the logger itself fails
+        if (this._isLoggingRemote) return;
+
+        try {
+            this._isLoggingRemote = true;
+            
+            // Simple fire-and-forget fetch to avoid blocking UI
+            // In a real app, we might batch these
+            fetch('/api/logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    level,
+                    message,
+                    data,
+                    user_agent: navigator.userAgent
+                })
+            }).catch(err => {
+                // Silently fail if logging fails to prevent loop
+                if (this.isDev) console.error('Remote logging failed:', err);
+            }).finally(() => {
+                this._isLoggingRemote = false;
+            });
+        } catch (e) {
+            this._isLoggingRemote = false;
+        }
+    }
+
+    /**
      * Internal log storage
      */
     _log(level, message, data) {
@@ -63,6 +98,9 @@ class Logger {
         if (this.logs.length > this.maxLogs) {
             this.logs.shift();
         }
+
+        // Send to verified remote
+        this._sendToRemote(level, message, data);
     }
 
     /**
