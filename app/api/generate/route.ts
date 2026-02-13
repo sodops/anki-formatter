@@ -5,7 +5,10 @@ export async function POST(request: NextRequest) {
   try {
     // Auth check
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -13,10 +16,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     if (!data || !data.cards || !Array.isArray(data.cards)) {
-      return NextResponse.json(
-        { error: "No cards data provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No cards data provided" }, { status: 400 });
     }
 
     const cards: { question: string; answer: string }[] = data.cards;
@@ -24,9 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Generate a simple tab-separated text file for Anki import
     // (Since genanki is Python-only, we generate a TSV that Anki can import)
-    const lines = cards.map(
-      (c) => `${c.question}\t${c.answer}`
-    );
+    const lines = cards.map((c) => `${c.question}\t${c.answer}`);
     const content = lines.join("\n");
 
     return NextResponse.json({

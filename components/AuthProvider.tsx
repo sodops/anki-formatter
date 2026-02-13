@@ -28,7 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // Check if Supabase is configured
-  const isConfigured = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const isConfigured = !!(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 
   useEffect(() => {
     if (!isConfigured) {
@@ -79,12 +81,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         await supabase.auth.signOut();
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     // Clear cloud sync state, keep localStorage as offline cache
-    window.dispatchEvent(new CustomEvent("ankiflow:auth-change", {
-      detail: { user: null, accessToken: null },
-    }));
+    window.dispatchEvent(
+      new CustomEvent("ankiflow:auth-change", {
+        detail: { user: null, accessToken: null },
+      })
+    );
     window.location.href = "/login";
   };
 

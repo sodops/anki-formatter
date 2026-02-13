@@ -4,6 +4,37 @@ All notable changes are documented in this file.
 
 ---
 
+## v8.1 — 2026-02-13
+
+> Incremental Sync, Device Fixes, and Testing Infrastructure
+
+**Core Sync Improvements:**
+
+- **Incremental Sync:** Optimized data syncing to fetch only changed items (delta sync) instead of the full database, significantly reducing bandwidth usage and improving speed.
+- **Conflict Resolution:** Implemented server-side "deep merge" for settings and devices. This fixes the critical bug where syncing from a new device would overwrite and erase other registered devices.
+- **Real-time Deletions:** Sync protocol now correctly propagates deletion events to all devices.
+
+**Security:**
+
+- **API Hardening:** Added mandatory authentication checks to `/api/logs`, `/api/translate`, `/api/generate`, and `/api/parse` endpoints to prevent unauthorized access and abuse.
+
+**Testing & Quality:**
+
+- **Test Infrastructure:** Added Jest and React Testing Library setup (`jest.config.js`, `jest.setup.ts`).
+- **Linting:** Added ESLint and Prettier configuration (`.eslintrc`, `.prettierrc`) for consistent code style.
+- **Unit Tests:** Added initial test suites for:
+  - `AuthProvider` (Login/Logout flows)
+  - `Scheduler` (SRS algorithm logic)
+  - `Supabase` (Client initialization)
+- **Documentation:** Added `TESTING.md` and `LINTING_TESTING_SETUP.md` guides.
+
+**Fixes:**
+
+- Fixed device list inconsistency where devices appeared on one client but not others.
+- Fixed potential data loss in user settings due to aggressive overwriting during sync.
+
+---
+
 ## v8.0 — 2026-02-09
 
 > Supabase authentication, cloud sync, and login page redesign

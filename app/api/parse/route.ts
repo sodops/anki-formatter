@@ -3,11 +3,19 @@ import { createClient } from "@/lib/supabase/server";
 
 // Separator list (same as Python parser)
 const SEPARATORS = [
-  " == ", "==",
-  " -> ", "->",
-  " => ", "=>",
-  " ⇒ ", "⇒", " → ", "→",
-  " - ", " – ", " — ",
+  " == ",
+  "==",
+  " -> ",
+  "->",
+  " => ",
+  "=>",
+  " ⇒ ",
+  "⇒",
+  " → ",
+  "→",
+  " - ",
+  " – ",
+  " — ",
   " : ",
   " = ",
   "\t",
@@ -31,11 +39,9 @@ function isLikelyTitleOrGrammar(term: string, def: string): string | null {
   term = term.trim();
   def = def.trim();
   if (!term || !def) return "Empty Term/Def";
-  if (term.includes("+") && term.toLowerCase().includes("verb"))
-    return "Grammar Pattern (S+Verb)";
+  if (term.includes("+") && term.toLowerCase().includes("verb")) return "Grammar Pattern (S+Verb)";
   if (term.split(/\s+/).length > 10) return "Term too long (>10 words)";
-  if (term === term.toUpperCase() && term.split(/\s+/).length > 1)
-    return "All Caps Header";
+  if (term === term.toUpperCase() && term.split(/\s+/).length > 1) return "All Caps Header";
   return null;
 }
 
@@ -107,7 +113,10 @@ export async function POST(request: NextRequest) {
   try {
     // Auth check
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -164,10 +173,7 @@ export async function POST(request: NextRequest) {
 
         filename = file.name.replace(/\.[^.]+$/, "");
       } else {
-        return NextResponse.json(
-          { error: "No content provided" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "No content provided" }, { status: 400 });
       }
     } else {
       // JSON body
@@ -182,10 +188,7 @@ export async function POST(request: NextRequest) {
           .filter(Boolean);
         filename = "pasted_text";
       } else {
-        return NextResponse.json(
-          { error: "No content provided" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "No content provided" }, { status: 400 });
       }
     }
 

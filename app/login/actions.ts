@@ -7,7 +7,7 @@ import { headers } from "next/headers";
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  
+
   // Basic validation
   if (!email || !password) {
     return { error: "Email and password are required" };

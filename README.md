@@ -10,14 +10,14 @@
 
 ### Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| **Framework** | Next.js 16.1 (React 19, Turbopack) |
-| **UI** | Vanilla JavaScript ES6 Modules |
-| **Auth** | Supabase Auth (Email, Google, GitHub OAuth) |
-| **Database** | Supabase PostgreSQL (JSONB) + localStorage fallback |
-| **Deploy** | Vercel (auto-deploy from `main` branch) |
-| **Algorithm** | SM-2 Spaced Repetition |
+| Layer         | Technology                                          |
+| ------------- | --------------------------------------------------- |
+| **Framework** | Next.js 16.1 (React 19, Turbopack)                  |
+| **UI**        | Vanilla JavaScript ES6 Modules                      |
+| **Auth**      | Supabase Auth (Email, Google, GitHub OAuth)         |
+| **Database**  | Supabase PostgreSQL (JSONB) + localStorage fallback |
+| **Deploy**    | Vercel (auto-deploy from `main` branch)             |
+| **Algorithm** | SM-2 Spaced Repetition                              |
 
 ---
 
@@ -190,16 +190,16 @@ anki-formatter/
 
 ## ⌨️ Keyboard Shortcuts
 
-| Key | Action |
-| --- | --- |
-| `F1` | Command palette |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Ctrl+F` | Search |
-| `Ctrl+/` | Shortcuts list |
-| `Space` | Show answer (study mode) |
+| Key                   | Action                     |
+| --------------------- | -------------------------- |
+| `F1`                  | Command palette            |
+| `Ctrl+Z`              | Undo                       |
+| `Ctrl+Y`              | Redo                       |
+| `Ctrl+F`              | Search                     |
+| `Ctrl+/`              | Shortcuts list             |
+| `Space`               | Show answer (study mode)   |
 | `1` / `2` / `3` / `4` | Again / Hard / Good / Easy |
-| `Esc` | Close modal / End session |
+| `Esc`                 | Close modal / End session  |
 
 ---
 
