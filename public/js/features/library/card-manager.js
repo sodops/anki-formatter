@@ -6,7 +6,7 @@ import { dom } from '../../utils/dom-helpers.js';
 import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from '../../ui/interactions/drag-drop.js';
 
 // --- Local State for Virtualization ---
-const RENDER_BATCH_SIZE = 50;
+const RENDER_BATCH_SIZE = 100;
 let renderState = {
     filteredCards: [],
     renderedCount: 0,
@@ -144,8 +144,12 @@ function setupInfiniteScroll() {
     if (!container || scrollListenerAttached) return;
 
     container.addEventListener('scroll', () => {
-        // Check if scrolled near bottom (200px buffer)
-        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 200) {
+        // Debugging Infinite Scroll
+        // console.log(`[SCROLL] Top: ${container.scrollTop}, Client: ${container.clientHeight}, ScrollH: ${container.scrollHeight}, Diff: ${container.scrollHeight - (container.scrollTop + container.clientHeight)}`);
+        
+        // Check if scrolled near bottom (500px buffer)
+        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 500) {
+            // console.log('[SCROLL] Loading next batch...');
             renderNextBatch();
         }
     });

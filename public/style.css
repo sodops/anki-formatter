@@ -655,7 +655,9 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: calc(100vh - 180px); /* Enable internal scrolling */
+  position: relative;
 }
 
 .live-table {
