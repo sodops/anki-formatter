@@ -251,60 +251,60 @@ export async function POST(request: NextRequest) {
 
     // Update Legacy Settings/Daily Progress (keep in user_data)
     if (settings || daily_progress) {
-        // 1. Fetch existing data first to perform a merge
-        const { data: existingData } = await supabase
-            .from('user_data')
-            .select('settings, daily_progress')
-            .eq('user_id', user.id)
-            .single();
+      // 1. Fetch existing data first to perform a merge
+      const { data: existingData } = await supabase
+        .from("user_data")
+        .select("settings, daily_progress")
+        .eq("user_id", user.id)
+        .single();
 
-        const updateData: any = { 
-            user_id: user.id, 
-            updated_at: new Date().toISOString() 
+      const updateData: any = {
+        user_id: user.id,
+        updated_at: new Date().toISOString(),
+      };
+
+      // 2. Merge Settings (Deep merge for 'devices', shallow for others)
+      if (settings) {
+        const currentSettings = existingData?.settings || {};
+
+        // Special handling for devices: merge the objects, don't overwrite
+        const mergedDevices = {
+          ...(currentSettings.devices || {}),
+          ...(settings.devices || {}),
         };
 
-        // 2. Merge Settings (Deep merge for 'devices', shallow for others)
-        if (settings) {
-            const currentSettings = existingData?.settings || {};
-            
-            // Special handling for devices: merge the objects, don't overwrite
-            const mergedDevices = {
-                ...(currentSettings.devices || {}),
-                ...(settings.devices || {})
-            };
+        updateData.settings = {
+          ...currentSettings,
+          ...settings,
+          devices: mergedDevices,
+        };
+      }
 
-            updateData.settings = {
-                ...currentSettings,
-                ...settings,
-                devices: mergedDevices
-            };
-        }
+      // 3. Merge Daily Progress (Last write wins for simple fields usually fine, but let's be safe)
+      if (daily_progress) {
+        const currentProgress = existingData?.daily_progress || {};
+        updateData.daily_progress = {
+          ...currentProgress,
+          ...daily_progress,
+        };
+      }
 
-        // 3. Merge Daily Progress (Last write wins for simple fields usually fine, but let's be safe)
-        if (daily_progress) {
-             const currentProgress = existingData?.daily_progress || {};
-             updateData.daily_progress = {
-                 ...currentProgress,
-                 ...daily_progress
-             };
-        }
-        
-        // If neither was provided in payload but we are here (unlikely given the outer if), 
-        // we shouldn't wipe data. But the outer if checks (settings || daily_progress).
-        // If one is missing in payload, we shouldn't include it in updateData to overwrite with null?
-        // Actually, upserting {settings: ...} might leave daily_progress alone if we don't specify it?
-        // No, upsert replaces the row if we don't specify columns to ignore.
-        // Better: We MUST include the existing data for the field we are NOT updating, 
-        // or ensure we construct a full object.
-        
-        if (!settings && existingData?.settings) {
-             updateData.settings = existingData.settings;
-        }
-        if (!daily_progress && existingData?.daily_progress) {
-             updateData.daily_progress = existingData.daily_progress;
-        }
+      // If neither was provided in payload but we are here (unlikely given the outer if),
+      // we shouldn't wipe data. But the outer if checks (settings || daily_progress).
+      // If one is missing in payload, we shouldn't include it in updateData to overwrite with null?
+      // Actually, upserting {settings: ...} might leave daily_progress alone if we don't specify it?
+      // No, upsert replaces the row if we don't specify columns to ignore.
+      // Better: We MUST include the existing data for the field we are NOT updating,
+      // or ensure we construct a full object.
 
-        promises.push(supabase.from('user_data').upsert(updateData));
+      if (!settings && existingData?.settings) {
+        updateData.settings = existingData.settings;
+      }
+      if (!daily_progress && existingData?.daily_progress) {
+        updateData.daily_progress = existingData.daily_progress;
+      }
+
+      promises.push(supabase.from("user_data").upsert(updateData));
     }
 
     // Wait for all operations to complete

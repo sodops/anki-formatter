@@ -33,8 +33,8 @@ export async function POST(request: Request) {
     // Fetch translation using the public client API (Note: Use responsibly)
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
 
-    let res = await fetch(url);
-    let data = await res.json();
+    const res = await fetch(url);
+    const data = await res.json();
 
     let translatedText = data[0][0][0];
     const detectedSource = data[2]; // e.g., 'en'
