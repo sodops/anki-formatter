@@ -11,7 +11,7 @@ import { appLogger, uiLogger } from './core/logger.js';
 import { dom, verifyDomElements } from './utils/dom-helpers.js';
 import { ui } from './ui/components/ui.js'; // Default export object
 import { renderSidebar, createDeck, switchDeck, renameDeck, deleteDeck, restoreDeck, emptyTrash, clearDeck, toggleTrash } from './features/library/deck-manager.js';
-import { renderWorkspace, addCard, updateCard, removeCard, handleTagInput, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection, findAndReplace, moveCard, copyCard, setTagFilter, suspendCard } from './features/library/card-manager.js';
+import { renderWorkspace, addCard, updateCard, removeCard, handleTagInputUI, removeTag, parseLine, parseBulkLine, bulkDelete, bulkTag, cancelBulkSelection, findAndReplace, moveCard, copyCard, setTagFilter, suspendCard } from './features/library/card-manager.js';
 import { setupDragDrop, handleDrop } from './ui/interactions/drag-drop.js';
 import { setupMarked, insertMarkdown, renderMarkdown } from './utils/markdown-parser.js';
 import { executeExport, showExportPreview, closeExportPreview } from './features/export/export-handler.js';
@@ -226,7 +226,7 @@ function setupGlobalExports() {
     window.toggleTrash = toggleTrash;
     window.removeCard = removeCard;
     window.updateCard = updateCard;
-    window.handleTagInput = handleTagInput;
+    window.handleTagInputUI = handleTagInputUI;
     window.removeTag = removeTag;
     window.handleFileUpload = (e) => {
         handleFileUpload(e.target.files[0]);
