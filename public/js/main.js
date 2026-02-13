@@ -470,10 +470,17 @@ function setupEventListeners() {
                 // 1. Not a command
                 // 2. Not empty
                 // 3. Doesn't contain separator (already has definition)
-                // 4. Not a URL
-                if (val.trim().length > 1 && !val.includes('-') && !val.startsWith('http')) {
+                // 4. Not a URL (checking http, https, and common domains)
+                const trimmed = val.trim();
+                const isUrl = trimmed.startsWith('http') || 
+                              trimmed.startsWith('www.') || 
+                              trimmed.includes('docs.google.com') ||
+                              trimmed.includes('.com') || // simple heuristic
+                              trimmed.includes('.org');
+
+                if (trimmed.length > 1 && !trimmed.includes('-') && !isUrl) {
                     debounceTimer = setTimeout(() => {
-                        fetchTranslation(val.trim());
+                        fetchTranslation(trimmed);
                     }, 600); // Wait 600ms after typing stops
                 }
             }
