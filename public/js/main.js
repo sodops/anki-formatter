@@ -1251,7 +1251,11 @@ function updateOmnibarPreview(text) {
     
     // Check if text has markdown formatting
     const hasMd = /[*_`#\[\]]/.test(text);
-    if (!hasMd) {
+    
+    // Check for URLs to prevent previewing them as content
+    const isUrl = text.startsWith('http') || text.includes('docs.google.com') || text.includes('www.');
+
+    if (!hasMd || isUrl) {
         preview.classList.add('hidden');
         return;
     }
