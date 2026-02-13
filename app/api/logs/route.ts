@@ -3,6 +3,13 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const body = await request.json();
         const { level, message, data, user_agent } = body;
 
@@ -10,11 +17,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing level or message' }, { status: 400 });
         }
 
-        const supabase = await createClient();
-        
-        // Get user if authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        const user_id = user?.id || null;
+        const user_id = user.id;
 
         const { error } = await supabase
             .from('system_logs')

@@ -3,9 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * GET /api/sync — Load user's state from cloud
- * Now constructs the state from relational tables.
+ * Supports incremental sync via 'since' query parameter.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -14,69 +14,130 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const since = searchParams.get('since'); // ISO timestamp string or null
+
     // 1. Fetch Decks
-    const { data: decks, error: decksError } = await supabase
+    let decksQuery = supabase
       .from("decks")
       .select("*")
-      .eq("user_id", user.id)
-      .eq("is_deleted", false);
-
-    if (decksError) throw decksError;
+      .eq("user_id", user.id);
 
     // 2. Fetch Cards
-    const { data: cards, error: cardsError } = await supabase
+    let cardsQuery = supabase
       .from("cards")
       .select("*")
-      .eq("user_id", user.id)
-      .eq("is_deleted", false);
+      .eq("user_id", user.id);
 
+    // Incremental Sync Logic
+    if (since) {
+      // If 'since' is provided, we want ALL changes (including deletions) that happened after that time
+      decksQuery = decksQuery.gt("updated_at", since);
+      cardsQuery = cardsQuery.gt("updated_at", since);
+    } else {
+      // Full Sync (snapshot): Only get active items. 
+      // We don't need to send deleted items because the client is starting from scratch.
+      decksQuery = decksQuery.eq("is_deleted", false);
+      cardsQuery = cardsQuery.eq("is_deleted", false);
+    }
+
+    const { data: decks, error: decksError } = await decksQuery;
+    if (decksError) throw decksError;
+
+    const { data: cards, error: cardsError } = await cardsQuery;
     if (cardsError) throw cardsError;
 
-    // 3. Fetch Settings & Daily Progress (Still JSON for now, or new tables?)
-    // For now, let's keep them in user_data or similar lighter table if we didn't migrate them yet.
-    // The migration plan kept them in user_data.
+    // 3. Fetch Settings & Daily Progress
+    // We always fetch these for now as they are single rows and small.
+    // Optimization: We could also check updated_at for these if we wanted to be strict.
     const { data: userData } = await supabase
       .from("user_data")
-      .select("settings, daily_progress")
+      .select("settings, daily_progress, updated_at")
       .eq("user_id", user.id)
       .single();
+    
+    // Server-side timestamp for the client to use as the next 'since' token
+    const serverTime = new Date().toISOString();
 
-    // 4. Construct State Object
-    const state = {
-      decks: decks.map(d => ({
-        id: d.id,
-        name: d.name,
-        color: d.settings?.color || '#6366F1',
-        createdAt: d.created_at,
-        isDeleted: d.is_deleted,
-        cards: cards
-          .filter(c => c.deck_id === d.id)
-          .map(c => ({
+    // 4. Construct State Object (Only for Full Sync usually, but here we return raw arrays for client to merge)
+    // The previous implementation constructed a full 'state' object.
+    // To maintain backward compatibility while supporting incremental sync:
+    // If 'since' is missing -> Return full 'state' structure (Client clears local and uses this).
+    // If 'since' is present -> Return 'changes' object (Client merges this).
+
+    if (!since) {
+      // --- FULL SYNC RESPONSE (Legacy Structure) ---
+      const state = {
+        decks: decks.map(d => ({
+          id: d.id,
+          name: d.name,
+          color: d.settings?.color || '#6366F1',
+          createdAt: d.created_at,
+          isDeleted: d.is_deleted, // Should be false here
+          cards: cards
+            .filter(c => c.deck_id === d.id)
+            .map(c => ({
+              id: c.id,
+              term: c.term,
+              def: c.definition,
+              tags: c.tags || [],
+              reviewData: c.review_data,
+              suspended: c.is_suspended,
+              createdAt: c.created_at
+            }))
+        })),
+        activeDeckId: null, // Client should decide
+        searchQuery: "",
+        activeView: "library",
+        showTrash: false,
+        theme: "dark",
+        trash: [],
+        history: []
+      };
+
+      return NextResponse.json({
+        type: 'full',
+        state,
+        settings: userData?.settings || {},
+        daily_progress: userData?.daily_progress || {},
+        server_time: serverTime,
+      });
+
+    } else {
+      // --- INCREMENTAL SYNC RESPONSE ---
+      // Return flat arrays of changed items. Client maps them.
+      
+      const changes = {
+        decks: decks.map(d => ({
+           id: d.id,
+           name: d.name,
+           color: d.settings?.color || '#6366F1',
+           createdAt: d.created_at,
+           isDeleted: d.is_deleted,
+           updatedAt: d.updated_at
+        })),
+        cards: cards.map(c => ({
             id: c.id,
+            deckId: c.deck_id,
             term: c.term,
             def: c.definition,
             tags: c.tags || [],
             reviewData: c.review_data,
             suspended: c.is_suspended,
-            createdAt: c.created_at
-          }))
-      })),
-      // Default values for other state props
-      activeDeckId: null,
-      searchQuery: "",
-      activeView: "library",
-      showTrash: false,
-      theme: "dark",
-      trash: [],
-      history: []
-    };
+            isDeleted: c.is_deleted,
+            createdAt: c.created_at,
+            updatedAt: c.updated_at
+        })),
+        settings: (userData?.updated_at && userData.updated_at > since) ? userData.settings : null,
+        daily_progress: (userData?.updated_at && userData.updated_at > since) ? userData.daily_progress : null
+      };
 
-    return NextResponse.json({
-      state,
-      settings: userData?.settings || {},
-      daily_progress: userData?.daily_progress || {},
-      updated_at: new Date().toISOString(), // Dynamic now
-    });
+      return NextResponse.json({
+        type: 'delta',
+        changes,
+        server_time: serverTime
+      });
+    }
 
   } catch (err: any) {
     console.error("[SYNC GET]", err);

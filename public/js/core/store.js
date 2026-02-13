@@ -446,13 +446,22 @@ class Store {
         this._updateSyncUI('syncing');
 
         try {
-            let res = await fetch('/api/sync');
+            // Get last sync time for this user
+            const syncKey = this.getScopedKey('ankiflow_last_sync');
+            const lastSyncTime = localStorage.getItem(syncKey);
+            
+            let url = '/api/sync';
+            if (lastSyncTime) {
+                url += `?since=${encodeURIComponent(lastSyncTime)}`;
+            }
+
+            let res = await fetch(url);
 
             // On 401, retry once (middleware may have just refreshed the session cookie)
             if (res.status === 401) {
                 console.warn('[STORE] ☁️ Got 401, retrying once...');
                 await new Promise(r => setTimeout(r, 1000));
-                res = await fetch('/api/sync');
+                res = await fetch(url);
             }
 
             if (res.status === 401) {
@@ -467,22 +476,35 @@ class Store {
             const data = await res.json();
             const userSuffix = this._authUser.id ? `_${this._authUser.id}` : '';
 
-            if (data.state && data.state.decks) {
-                console.log('[STORE] ☁️ Cloud loaded (%d decks)', data.state.decks.length);
-                this.state = { ...DEFAULT_STATE, ...data.state };
-                this._normalizeDecks();
+            // Handle Full Sync vs Delta Sync
+            if (data.type === 'delta') {
+                console.log('[STORE] ☁️ Incremental Sync:', data.changes);
+                this._mergeDelta(data.changes);
             } else {
-                console.log('[STORE] ☁️ Cloud is empty or error');
-                this.state = { ...DEFAULT_STATE };
+                // Full Sync (or legacy)
+                if (data.state && data.state.decks) {
+                    console.log('[STORE] ☁️ Full Sync (%d decks)', data.state.decks.length);
+                    this.state = { ...DEFAULT_STATE, ...data.state };
+                    this._normalizeDecks();
+                } else {
+                    console.log('[STORE] ☁️ Cloud is empty or error');
+                    this.state = { ...DEFAULT_STATE };
+                }
             }
 
-            // Update local cache to match cloud
+            // Update Settings if present in response
             if (data.settings && Object.keys(data.settings).length > 0) {
-                this._lastCloudSettings = data.settings;
+                this._lastCloudSettings = data.settings; // For device check
                 localStorage.setItem(`ankiflow_settings${userSuffix}`, JSON.stringify(data.settings));
             }
+            // Update Daily Progress if present
             if (data.daily_progress && Object.keys(data.daily_progress).length > 0) {
                 localStorage.setItem(`ankiflow_daily${userSuffix}`, JSON.stringify(data.daily_progress));
+            }
+
+            // Save new sync checkpoint
+            if (data.server_time) {
+                localStorage.setItem(syncKey, data.server_time);
             }
 
             // Write state to local cache
@@ -501,6 +523,80 @@ class Store {
             this._updateSyncUI('error');
         } finally {
             this._isLoadingCloud = false;
+        }
+    }
+
+    /**
+     * Merge incremental changes from server into local state
+     */
+    _mergeDelta(changes) {
+        if (!changes) return;
+
+        // 1. Merge Decks
+        if (changes.decks && changes.decks.length > 0) {
+            changes.decks.forEach(serverDeck => {
+                const localIndex = this.state.decks.findIndex(d => d.id === serverDeck.id);
+                
+                if (serverDeck.isDeleted) {
+                    // Remove deck
+                    if (localIndex !== -1) {
+                        this.state.decks.splice(localIndex, 1);
+                    }
+                } else {
+                    // Update or Add
+                    const newDeckData = {
+                        id: serverDeck.id,
+                        name: serverDeck.name,
+                        color: serverDeck.color,
+                        createdAt: serverDeck.createdAt,
+                        isDeleted: false,
+                        cards: localIndex !== -1 ? this.state.decks[localIndex].cards : [] // Preserve existing cards if updating deck metadata
+                    };
+
+                    if (localIndex !== -1) {
+                        this.state.decks[localIndex] = { ...this.state.decks[localIndex], ...newDeckData };
+                    } else {
+                        this.state.decks.push(newDeckData);
+                    }
+                }
+            });
+        }
+
+        // 2. Merge Cards
+        if (changes.cards && changes.cards.length > 0) {
+            changes.cards.forEach(serverCard => {
+                // Find which deck this card belongs to (server tells us deckId)
+                const deck = this.state.decks.find(d => d.id === serverCard.deckId);
+                
+                // If deck not found locally (maybe we just deleted it?), ignore card
+                if (!deck) return;
+
+                const cardIndex = deck.cards.findIndex(c => c.id === serverCard.id);
+
+                if (serverCard.isDeleted) {
+                    // Remove card
+                    if (cardIndex !== -1) {
+                        deck.cards.splice(cardIndex, 1);
+                    }
+                } else {
+                    // Update or Add
+                    const newCardData = {
+                        id: serverCard.id,
+                        term: serverCard.term,
+                        def: serverCard.def,
+                        tags: serverCard.tags,
+                        reviewData: serverCard.reviewData,
+                        suspended: serverCard.suspended,
+                        createdAt: serverCard.createdAt
+                    };
+
+                    if (cardIndex !== -1) {
+                        deck.cards[cardIndex] = { ...deck.cards[cardIndex], ...newCardData };
+                    } else {
+                        deck.cards.push(newCardData);
+                    }
+                }
+            });
         }
     }
 
