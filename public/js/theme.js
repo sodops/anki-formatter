@@ -22,7 +22,7 @@ function setTheme(theme) {
   localStorage.setItem("ankiflow-theme", theme);
 
   // Update icon
-  const icon = document.querySelector(".theme-toggle ion-icon");
+  const icon = document.querySelector(".sidebar-theme-btn ion-icon") || document.querySelector(".theme-toggle ion-icon");
   if (icon) {
     icon.setAttribute("name", theme === "light" ? "moon-outline" : "sunny-outline");
   }

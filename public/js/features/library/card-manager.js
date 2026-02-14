@@ -382,6 +382,13 @@ export function getFilteredCards(cards) {
         );
     }
     
+    // Sort: Issue cards (missing term or def) first
+    filtered = [...filtered].sort((a, b) => {
+        const aIssue = !a.term || !a.def ? 1 : 0;
+        const bIssue = !b.term || !b.def ? 1 : 0;
+        return bIssue - aIssue; // Issues first
+    });
+    
     return filtered;
 }
 

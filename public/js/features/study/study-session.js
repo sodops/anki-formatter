@@ -503,6 +503,25 @@ export function rateCard(quality) {
                 
                 showToast("Card will appear again shortly", "info");
             }
+            
+            // === HARD RE-QUEUING ===
+            // If rated "Hard" (quality=2), re-insert further ahead than Again
+            // This tests recall at a longer interval within the session
+            if (quality === 2) {
+                const freshDeck = store.getActiveDeck();
+                const freshCard = freshDeck.cards[deckCardIndex];
+                
+                // Insert 5-12 positions ahead (longer delay than Again)
+                const reinsertOffset = Math.min(
+                    5 + Math.floor(Math.random() * 8), // 5-12 positions ahead
+                    sessionCards.length - currentIndex
+                );
+                const reinsertPos = currentIndex + reinsertOffset;
+                
+                sessionCards.splice(reinsertPos, 0, { ...freshCard });
+                
+                showToast("Hard card will reappear later", "info");
+            }
         }
         
         // Move to next card or end session

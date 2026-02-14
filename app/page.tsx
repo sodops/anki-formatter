@@ -232,6 +232,20 @@ export default function Home() {
               </div>
             )}
 
+            <button
+              className="sidebar-theme-btn"
+              onClick={() => {
+                if (typeof window !== "undefined" && (window as any).toggleTheme) {
+                  (window as any).toggleTheme();
+                }
+              }}
+              aria-label="Toggle theme"
+              title="Toggle Dark/Light Mode"
+            >
+              <ion-icon name="sunny-outline"></ion-icon>
+              <span>Theme</span>
+            </button>
+
             <div className="daily-goal-widget" id="dailyGoalWidget">
               <div className="goal-progress">
                 <div
@@ -896,19 +910,7 @@ export default function Home() {
         Action Successful
       </div>
 
-      {/* THEME TOGGLE */}
-      <button
-        className="theme-toggle"
-        onClick={() => {
-          if (typeof window !== "undefined" && (window as any).toggleTheme) {
-            (window as any).toggleTheme();
-          }
-        }}
-        aria-label="Toggle theme"
-        title="Toggle Dark/Light Mode"
-      >
-        <ion-icon name="sunny-outline"></ion-icon>
-      </button>
+
 
       {/* EXPORT MODAL */}
       <div id="exportModal" className="modal-overlay hidden" role="dialog" aria-modal="true">
