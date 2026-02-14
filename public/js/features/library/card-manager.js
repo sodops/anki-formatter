@@ -507,9 +507,8 @@ export function removeCard(index) {
             cardId: card.id
         });
         
-        // Remove from DOM immediately
-        const row = document.querySelector(`tr[data-card-index="${index}"]`);
-        if(row) row.remove();
+        // Re-render entire workspace to update issue count, card count, etc.
+        renderWorkspace();
         
         showToast("Card deleted");
     } catch(e) {
