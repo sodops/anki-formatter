@@ -319,6 +319,11 @@ body {
   background: var(--success);
 }
 
+.status-indicator.online .dot {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
 .sidebar-trash-btn,
 .sidebar-theme-btn {
   display: flex;
@@ -449,6 +454,18 @@ body {
   color: var(--accent);
 }
 
+.omnibar-icon.clickable {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  transition: all var(--transition-fast);
+}
+
+.omnibar-icon.clickable:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
 #omnibarInput {
   flex: 1;
   background: transparent;
@@ -566,6 +583,12 @@ body {
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .deck-stats {
@@ -3938,6 +3961,12 @@ noscript {
   }
 }
 
+.sync-text {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
 /* ===========================
    LOGIN PAGE
    =========================== */
@@ -4658,6 +4687,14 @@ noscript {
 
 .tts-btn.hidden {
   display: none !important;
+}
+
+.tts-btn.tts-icon {
+  font-size: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ===========================
