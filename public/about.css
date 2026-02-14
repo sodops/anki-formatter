@@ -11,6 +11,12 @@
   font-family: 'Inter', sans-serif;
 }
 
+/* Override body overflow:hidden for the landing page (body uses it for app sidebar layout) */
+body:has(.about-page) {
+  height: auto;
+  overflow: auto;
+}
+
 /* Animated orbs */
 .about-orb {
   position: fixed;

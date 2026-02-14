@@ -45,10 +45,12 @@ export async function updateSession(request: NextRequest) {
   // But allow access to login, auth callback, and public assets
   // API routes are NOT public — they need auth but shouldn't redirect (return 401 instead)
   const isPublicPath =
+    request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/auth") ||
     request.nextUrl.pathname.startsWith("/js") ||
     request.nextUrl.pathname.startsWith("/style.css") ||
+    request.nextUrl.pathname.startsWith("/about.css") ||
     request.nextUrl.pathname === "/favicon.ico";
 
   const isApiPath = request.nextUrl.pathname.startsWith("/api");
@@ -62,7 +64,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect logged-in users away from login page
   if (user && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 
