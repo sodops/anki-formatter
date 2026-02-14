@@ -4491,6 +4491,106 @@ noscript {
   }
 }
 
+/* ===== LOGIN LIGHT THEME ===== */
+[data-theme="light"] .login-page {
+  background: #f5f5f7;
+}
+
+[data-theme="light"] .login-orb {
+  opacity: 0.15;
+}
+
+[data-theme="light"] .login-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .login-hero {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
+  border-right-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .login-hero-content h1 {
+  color: #111827;
+}
+
+[data-theme="light"] .login-hero-tagline {
+  color: #6b7280;
+}
+
+[data-theme="light"] .login-hero-feature-icon {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .login-hero-feature strong {
+  color: #111827;
+}
+
+[data-theme="light"] .login-hero-feature span {
+  color: #6b7280;
+}
+
+[data-theme="light"] .login-card-header h2 {
+  color: #111827;
+}
+
+[data-theme="light"] .login-card-header p {
+  color: #6b7280;
+}
+
+[data-theme="light"] .login-oauth-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #374151;
+}
+
+[data-theme="light"] .login-oauth-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .login-divider::before,
+[data-theme="light"] .login-divider::after {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .login-divider span {
+  color: #9ca3af;
+}
+
+[data-theme="light"] .login-field label {
+  color: #374151;
+}
+
+[data-theme="light"] .login-field input {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #111827;
+}
+
+[data-theme="light"] .login-field input::placeholder {
+  color: #9ca3af;
+}
+
+[data-theme="light"] .login-field input:focus {
+  background: #ffffff;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+[data-theme="light"] .login-mode-toggle {
+  color: #6b7280;
+}
+
+[data-theme="light"] .login-mode-toggle button {
+  color: #6366f1;
+}
+
+[data-theme="light"] .login-mode-toggle button:hover {
+  color: #4f46e5;
+}
+
 /* ===== LOADING OVERLAY ===== */
 .loading-overlay {
   position: fixed;

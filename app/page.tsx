@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function LandingPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
 
   return (
     <div className="about-page">
@@ -24,9 +24,43 @@ export default function LandingPage() {
           <a href="#roadmap">Reja</a>
           {!loading && (
             user ? (
-              <Link href="/app" className="about-nav-cta">
-                Dashboard →
-              </Link>
+              <>
+                <Link href="/app" className="about-nav-cta">
+                  Dashboard →
+                </Link>
+                <div className="about-nav-profile">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt=""
+                      className="about-nav-avatar"
+                    />
+                  ) : (
+                    <div className="about-nav-avatar-placeholder">
+                      {(user?.email?.[0] || "U").toUpperCase()}
+                    </div>
+                  )}
+                  <div className="about-nav-dropdown">
+                    <div className="about-nav-dropdown-header">
+                      <div className="about-nav-dropdown-name">
+                        {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User"}
+                      </div>
+                      <div className="about-nav-dropdown-email">
+                        {user?.email}
+                      </div>
+                    </div>
+                    <Link href="/app" className="about-nav-dropdown-item">
+                      📊 Dashboard
+                    </Link>
+                    <button
+                      className="about-nav-dropdown-item danger"
+                      onClick={signOut}
+                    >
+                      🚪 Chiqish
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : (
               <Link href="/login" className="about-nav-cta">
                 Kirish →
