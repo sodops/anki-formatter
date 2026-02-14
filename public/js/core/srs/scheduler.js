@@ -5,6 +5,7 @@
  */
 
 import { store } from '../store.js';
+import { FSRS, Rating, createEmptyCard, generatorParameters } from '../../utils/lib/ts-fsrs.mjs';
 
 /**
  * Get user settings from localStorage
@@ -18,10 +19,15 @@ function getSettings() {
             intervalMod: (saved.intervalMod || 100) / 100, // Convert % to multiplier
             learningSteps: parseLearningSteps(saved.learningSteps || '1, 10'),
             newCards: parseInt(saved.newCards) || 20,
-            maxReviews: parseInt(saved.maxReviews) || 100
+            maxReviews: parseInt(saved.maxReviews) || 100,
+            algorithm: saved.algorithm || 'sm-2', // 'sm-2' or 'fsrs'
+            fsrsParams: {
+                request_retention: parseFloat(saved.fsrsRetention) || 0.9,
+                ...saved.fsrsParams
+            }
         };
     } catch {
-        return { intervalMod: 1, learningSteps: [1, 10], newCards: 20, maxReviews: 100 };
+        return { intervalMod: 1, learningSteps: [1, 10], newCards: 20, maxReviews: 100, algorithm: 'sm-2' };
     }
 }
 
@@ -40,24 +46,122 @@ function parseLearningSteps(stepsStr) {
 }
 
 /**
- * SM-2 Algorithm Implementation with Learning Steps
- * 
- * Card states:
- * - NEW: Never reviewed (reviewData is null or step === undefined)
- * - LEARNING: In learning phase (step < learningSteps.length)
- * - REVIEW: Graduated to review queue (step >= learningSteps.length)
- * - RELEARNING: Failed a review, back in learning (relearning = true)
- * 
- * @param {Object} card - Card with reviewData
- * @param {number} quality - Quality rating (0-5)
- *   0: Complete blackout (Again)
- *   2: Incorrect/hard
- *   3: Correct, but difficult (Good)
- *   5: Perfect recall (Easy)
- * @returns {Object} Updated review data
+ * Calculate next review schedule
+ * Wrapper that delegates to selected algorithm
  */
 export function calculateNextReview(card, quality) {
     const settings = getSettings();
+    if (settings.algorithm === 'fsrs') {
+        return calculateNextReviewFSRS(card, quality, settings);
+    }
+    return calculateNextReviewSM2(card, quality, settings);
+}
+
+/**
+ * FSRS Implementation
+ */
+function calculateNextReviewFSRS(card, quality, settings) {
+    const retention = settings.fsrsParams.request_retention || 0.9;
+    const params = generatorParameters({ 
+        request_retention: retention,
+        maximum_interval: 36500,
+        enable_fuzz: true
+    });
+    const f = new FSRS(params);
+    
+    // Map existing card to FSRS Card
+    let fsrsCard;
+    const now = new Date();
+
+    if (card.reviewData && card.reviewData.fsrs) {
+        fsrsCard = card.reviewData.fsrs;
+        
+        // Fix dates/enums from JSON
+        // We use TypeConvert helper from library or manual reconstruction
+        // ts-fsrs objects are plain JSON safe usually, but Dates need restoration
+        fsrsCard.due = new Date(fsrsCard.due);
+        if (fsrsCard.last_review) fsrsCard.last_review = new Date(fsrsCard.last_review);
+    } else {
+        // Migrate or Create New
+        // Start with empty
+        fsrsCard = createEmptyCard(now);
+        
+        // Best effort migration from SM-2
+        if (card.reviewData) {
+            const ivl = card.reviewData.interval || 0;
+            const isLearning = card.reviewData.isLearning;
+            
+            // If card is graduating or review, treat as review state
+            if (!isLearning && ivl > 0) {
+                fsrsCard.state = 2; // State.Review
+                fsrsCard.stability = ivl; // Approximation
+                fsrsCard.difficulty = 5.5;
+                fsrsCard.scheduled_days = ivl;
+                fsrsCard.elapsed_days = ivl; // Assume due now
+                
+                if (card.reviewData.lastReview) {
+                     const last = new Date(card.reviewData.lastReview);
+                     const diff = (now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24);
+                     fsrsCard.elapsed_days = diff;
+                     fsrsCard.last_review = last;
+                } else {
+                     fsrsCard.elapsed_days = ivl; // fallback
+                }
+            }
+        }
+    }
+
+    // Map Quality (App 0,2,3,5 -> FSRS 1,2,3,4)
+    let rating = Rating.Good;
+    if (quality === 0) rating = Rating.Again; // 1
+    else if (quality === 2) rating = Rating.Hard; // 2
+    else if (quality === 3) rating = Rating.Good; // 3
+    else if (quality === 5) rating = Rating.Easy; // 4
+
+    // Reschedule
+    // f.repeat returns RecordLog (all ratings). We pick the one user chose.
+    const schedulingCards = f.repeat(fsrsCard, now);
+    const resultLog = schedulingCards[rating];
+    const resultCard = resultLog.card;
+
+    // Return combined data structure
+    return {
+        // Native keys for compatibility
+        nextReview: resultCard.due.toISOString(),
+        interval: resultCard.scheduled_days, 
+        easeFactor: 0, // Not used in FSRS
+        repetitions: resultCard.reps,
+        step: 0, 
+        // Map FSRS state to isLearning
+        // New(0), Learning(1), Review(2), Relearning(3)
+        // AnkiFlow isLearning: true if Learning or Relearning. (or New implicitly)
+        isLearning: (resultCard.state === 0 || resultCard.state === 1 || resultCard.state === 3),
+
+        // FSRS specific state (persisted)
+        fsrs: {
+            ...resultCard,
+            due: resultCard.due.toISOString(),
+            last_review: resultCard.last_review ? resultCard.last_review.toISOString() : null
+        },
+        
+        // Append history
+        reviewHistory: [
+            ...(card.reviewData?.reviewHistory || []),
+            {
+                timestamp: now.toISOString(),
+                quality,
+                interval: resultCard.scheduled_days,
+                isLearning: (resultCard.state !== 2),
+                algorithm: 'fsrs'
+            }
+        ]
+    };
+}
+
+/**
+ * SM-2 Algorithm Implementation with Learning Steps
+ */
+function calculateNextReviewSM2(card, quality, settings) {
     const learningSteps = settings.learningSteps;
     const intervalMod = settings.intervalMod;
     
@@ -94,6 +198,7 @@ export function calculateNextReview(card, quality) {
             if (step >= learningSteps.length) {
                 // Graduate to review queue!
                 isLearning = false;
+                step = 0; // Reset step as it's no longer relevant
                 
                 if (quality === 5) {
                     // Easy: Graduate with longer interval (4 days)

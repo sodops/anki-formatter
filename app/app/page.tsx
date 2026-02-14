@@ -620,6 +620,42 @@ export default function Home() {
                   </div>
 
                   <h3 className="section-title" style={{ marginTop: "24px" }}>
+                    Scheduling
+                  </h3>
+                  <div className="settings-card">
+                    <div className="settings-row">
+                      <div className="settings-row-info">
+                        <span className="settings-label">Algorithm</span>
+                        <span className="settings-sublabel">Scheduling Method</span>
+                      </div>
+                      <select
+                        className="settings-input"
+                        id="settingAlgorithm"
+                        defaultValue="sm-2"
+                        style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px' }}
+                      >
+                         <option value="sm-2">SM-2 (Default)</option>
+                         <option value="fsrs">FSRS v5 (Advanced)</option>
+                      </select>
+                    </div>
+                    <div className="settings-row" id="containerFsrsRetention" style={{ display: 'none' }}>
+                      <div className="settings-row-info">
+                        <span className="settings-label">FSRS Retention</span>
+                        <span className="settings-sublabel">Forgetting curve target (0.7-0.95)</span>
+                      </div>
+                      <input
+                        type="number"
+                        className="settings-input"
+                        id="settingFsrsRetention"
+                        min={0.70}
+                        max={0.97}
+                        step={0.01}
+                        defaultValue={0.90}
+                      />
+                    </div>
+                  </div>
+
+                  <h3 className="section-title" style={{ marginTop: "24px" }}>
                     Study
                   </h3>
                   <div className="settings-card">

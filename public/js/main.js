@@ -906,7 +906,9 @@ function initSettings() {
         settingTtsEnabled: { key: 'ttsEnabled', default: true },
         settingTtsLanguage: { key: 'ttsLanguage', default: 'en-US' },
         settingTtsRate: { key: 'ttsRate', default: 1 }, // New Rate setting
-        settingTtsPitch: { key: 'ttsPitch', default: 1 } // New Pitch setting
+        settingTtsPitch: { key: 'ttsPitch', default: 1 }, // New Pitch setting
+        settingAlgorithm: { key: 'algorithm', default: 'sm-2' },
+        settingFsrsRetention: { key: 'fsrsRetention', default: 0.9 }
     };
     
     for (const [id, config] of Object.entries(fields)) {
@@ -974,6 +976,14 @@ function initSettings() {
                 const display = document.getElementById('intervalModValue');
                 if (display) display.textContent = el.value + '%';
             }
+            
+            // Handle Algorithm Change
+            if (config.key === 'algorithm') {
+                const retentionContainer = document.getElementById('containerFsrsRetention');
+                if (retentionContainer) {
+                    retentionContainer.style.display = el.value === 'fsrs' ? 'flex' : 'none';
+                }
+            }
         };
         
         // Save on both change AND input so settings persist even on quick refresh
@@ -998,6 +1008,13 @@ function initSettings() {
     
     // Apply keyboard hints visibility
     applyKeyboardHints(settings.keyboardHints !== false);
+
+    // Initialize FSRS visibility
+    const algoEl = document.getElementById('settingAlgorithm');
+    const retentionBase = document.getElementById('containerFsrsRetention');
+    if (algoEl && retentionBase) {
+        retentionBase.style.display = algoEl.value === 'fsrs' ? 'flex' : 'none';
+    }
     
     // Export all data button
     const btnExportAll = document.getElementById('btnExportAllData');
