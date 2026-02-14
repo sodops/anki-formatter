@@ -270,7 +270,8 @@ export function startStudySession(skipViewSwitch = false) {
         else countReview++;
     });
     
-    ui.showToast(`Starting session: ${dueCards.length} cards\n(${countLearning} Learning, ${countReview} Review, ${countNew} New)`);
+    // Show toast summary
+    ui.showToast(`Session: ${dueCards.length} cards (L:${countLearning}, R:${countReview}, N:${countNew})`);
     
     // Shuffle due cards
     sessionCards = [...dueCards].sort(() => Math.random() - 0.5);
