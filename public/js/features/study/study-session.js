@@ -223,7 +223,7 @@ function updateStreakDisplay() {
         }
     }
     
-    streakBadge.textContent = `🔥 ${streak}`;
+    streakBadge.innerHTML = `<ion-icon name="flame"></ion-icon> <span>${streak}</span>`;
 }
 
 /**

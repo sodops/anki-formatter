@@ -265,7 +265,7 @@ export default function Home() {
                   0 / 20 cards today
                 </span>
                 <span className="streak-badge" id="streakBadge">
-                  🔥 0
+                  <ion-icon name="flame"></ion-icon> <span>0</span>
                 </span>
               </div>
             </div>

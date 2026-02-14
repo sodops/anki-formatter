@@ -2849,12 +2849,26 @@ tr[draggable="true"]:active {
 }
 
 .streak-badge {
-  font-size: 12px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--warning);
   background: rgba(245, 158, 11, 0.1);
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.streak-badge ion-icon {
+  font-size: 14px;
+  animation: pulse-fire 2s ease-in-out infinite;
+}
+
+@keyframes pulse-fire {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
 }
 
 /* ===========================
