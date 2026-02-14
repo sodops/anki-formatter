@@ -4528,6 +4528,13 @@ noscript {
   .login-oauth {
     flex-direction: column;
   }
+  
+  .login-back-home {
+    top: 12px;
+    left: 12px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 }
 
 /* ===== LOGIN LIGHT THEME ===== */

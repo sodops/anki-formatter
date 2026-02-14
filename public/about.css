@@ -852,6 +852,10 @@ body:has(.about-page) {
   .about-ratings-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .about-benefits-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
@@ -864,30 +868,157 @@ body:has(.about-page) {
   }
   
   .about-hero {
-    padding: 110px 16px 60px;
+    padding: 100px 16px 50px;
+  }
+  
+  .about-hero-title {
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+  
+  .about-hero-subtitle {
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+  
+  /* Stack hero buttons vertically on mobile */
+  .about-hero-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .about-btn-primary,
+  .about-btn-secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+  }
+  
+  .about-btn-large {
+    padding: 16px 24px;
+    font-size: 16px;
   }
   
   .about-features-grid {
     grid-template-columns: 1fr;
   }
   
+  /* Ratings: single column on small screens */
   .about-ratings-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .about-benefits-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
+  /* Stats bar: wrap and reduce size */
   .about-stats-bar {
-    gap: 16px;
+    gap: 12px;
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    justify-content: space-around;
   }
   
   .about-stat-divider {
     display: none;
   }
   
+  .about-stat {
+    min-width: 70px;
+  }
+  
+  .about-stat-value {
+    font-size: 20px;
+  }
+  
+  .about-stat-label {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+  
   .about-section {
     padding: 60px 16px;
+  }
+  
+  .about-section-title {
+    font-size: 24px;
+  }
+  
+  /* Algo cards */
+  .about-algo-card {
+    padding: 20px;
+  }
+  
+  .about-forget-label {
+    min-width: 90px;
+    font-size: 11px;
+  }
+  
+  .about-forget-fill {
+    font-size: 10px;
+  }
+  
+  /* Rating cards */
+  .about-rating-card {
+    padding: 18px 14px;
+  }
+  
+  .about-rating-btn-label {
+    font-size: 16px;
+  }
+  
+  .about-rating-card p {
+    font-size: 12px;
+  }
+  
+  .about-rating-effect {
+    font-size: 10px;
+  }
+  
+  /* CTA section */
+  .about-cta-section {
+    padding: 60px 16px 80px;
+  }
+  
+  .about-cta-section h2 {
+    font-size: 24px;
+  }
+  
+  /* Footer */
+  .about-footer-inner {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}
+
+/* Ultra-small screens */
+@media (max-width: 380px) {
+  .about-nav {
+    padding: 10px 12px;
+  }
+  
+  .about-nav-brand {
+    font-size: 17px;
+  }
+  
+  .about-nav-cta {
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+  }
+  
+  .about-hero {
+    padding: 90px 12px 40px;
+  }
+  
+  .about-hero-title {
+    font-size: 24px;
+  }
+  
+  .about-stats-bar {
+    gap: 8px;
+    padding: 14px 12px;
+  }
+  
+  .about-stat-value {
+    font-size: 18px;
   }
 }
