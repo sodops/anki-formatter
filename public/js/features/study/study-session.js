@@ -43,52 +43,71 @@ function getSettings() {
  * Play a subtle sound effect using Web Audio API
  * @param {'flip'|'again'|'good'|'easy'} type - Type of sound to play
  */
+// Cached AudioContext to prevent memory leaks
+let audioCtx = null;
+
+/**
+ * Play a subtle sound effect using Web Audio API
+ * @param {'flip'|'again'|'good'|'easy'} type - Type of sound to play
+ */
 function playSound(type) {
     const settings = getSettings();
     if (!settings.soundEffects) return;
     
     try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
+        // Init AudioContext once (must be after user interaction)
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Resume if suspended (browser autoplay policy)
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
         
         oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        gainNode.connect(audioCtx.destination);
         
         gainNode.gain.value = 0.08; // Very subtle
         
+        const now = audioCtx.currentTime;
+
         switch (type) {
             case 'flip':
-                oscillator.frequency.value = 600;
+                oscillator.frequency.setValueAtTime(600, now);
                 oscillator.type = 'sine';
-                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-                oscillator.start(ctx.currentTime);
-                oscillator.stop(ctx.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
                 break;
             case 'again':
-                oscillator.frequency.value = 300;
+                oscillator.frequency.setValueAtTime(300, now);
                 oscillator.type = 'sine';
-                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-                oscillator.start(ctx.currentTime);
-                oscillator.stop(ctx.currentTime + 0.2);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                oscillator.start(now);
+                oscillator.stop(now + 0.2);
                 break;
             case 'good':
-                oscillator.frequency.value = 800;
+                oscillator.frequency.setValueAtTime(800, now);
                 oscillator.type = 'sine';
-                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-                oscillator.start(ctx.currentTime);
-                oscillator.stop(ctx.currentTime + 0.12);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                oscillator.start(now);
+                oscillator.stop(now + 0.12);
                 break;
             case 'easy':
-                oscillator.frequency.value = 1000;
+                oscillator.frequency.setValueAtTime(1000, now);
                 oscillator.type = 'sine';
-                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-                oscillator.start(ctx.currentTime);
-                oscillator.stop(ctx.currentTime + 0.15);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
                 break;
         }
     } catch (e) {
-        // Web Audio API not available — silently ignore
+        // Web Audio API not available or error — silently ignore
+        if (process.env.NODE_ENV === 'development') console.warn('Audio Error:', e);
     }
 }
 

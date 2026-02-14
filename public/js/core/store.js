@@ -24,7 +24,7 @@ class Store {
         this.listeners = [];
         this.history = [];
         this.historyIndex = -1;
-        this.maxHistory = 50;
+        this.maxHistory = 15; // Reduced from 50 to save memory on large decks
 
         // Cloud sync state
         this._syncTimer = null;
@@ -322,19 +322,27 @@ class Store {
     /**
      * Persist state: sync to cloud (primary) + update localStorage cache.
      * Cloud is the source of truth. localStorage is expendable cache.
+     * Debounced to prevent main thread blocking during rapid updates (e.g. studying).
      */
     persist() {
         // 1. Schedule cloud sync (debounced) — this is the REAL save
         this._scheduleSyncToCloud();
 
         // 2. Update localStorage cache (best-effort, not critical)
-        try {
-            const key = this._getStateKey();
-            localStorage.setItem(key, JSON.stringify(this.state));
-        } catch (error) {
-            // localStorage full or unavailable — not a problem, cloud has the data
-            console.warn('[STORE] Cache write failed (non-critical):', error.name);
-        }
+        // Debounce this heavily (e.g. 2s) or at least 500ms to avoid blocking UI
+        if (this._persistTimer) clearTimeout(this._persistTimer);
+        
+        this._persistTimer = setTimeout(() => {
+            try {
+                const key = this._getStateKey();
+                const stateString = JSON.stringify(this.state);
+                localStorage.setItem(key, stateString);
+                // console.debug('[STORE] Cache updated');
+            } catch (error) {
+                // localStorage full or unavailable — not a problem, cloud has the data
+                console.warn('[STORE] Cache write failed (non-critical):', error.name);
+            }
+        }, 500); // 500ms debounce for heavier localStorage write
     }
 
     /**
@@ -357,17 +365,16 @@ class Store {
     _scheduleSyncToCloud() {
         if (!this._authUser) return; // Not logged in, skip cloud sync
 
-        // Don't sync if queue is empty (unless it's settings update which we check later)
+        // Don't sync if queue is empty AND not syncing settings/daily
         // Actually, we can check queue length here.
-        if (this._syncQueue.length === 0) {
-            // Might be settings update?
-            // For now, let's debounce anyway.
-        }
+        // if (this._syncQueue.length === 0) { ... } but we might have pending setting saves.
 
         if (this._syncTimer) clearTimeout(this._syncTimer);
 
-        // Update sync indicator to "syncing"
-        this._updateSyncUI('syncing');
+        // Update sync indicator to "syncing" (unless already syncing)
+        if (!this._isSyncing) {
+            this._updateSyncUI('syncing');
+        }
 
         this._syncTimer = setTimeout(() => {
             this._syncToCloud();
@@ -378,7 +385,18 @@ class Store {
      * Sync state + settings + daily_progress to cloud
      */
     async _syncToCloud() {
-        if (!this._authUser || this._isSyncing) return;
+        if (!this._authUser) return;
+        
+        // If already syncing, we'll let it finish. 
+        // But we MUST check if there are MORE changes pending after it finishes.
+        // The previous logic just returned and dropped the schedule.
+        if (this._isSyncing) {
+            // Re-schedule check in a bit to process the next batch
+            if (this._syncTimer) clearTimeout(this._syncTimer);
+            this._syncTimer = setTimeout(() => this._syncToCloud(), 1000);
+            return;
+        }
+        
         this._isSyncing = true;
         this._updateSyncUI('syncing');
 
@@ -411,7 +429,6 @@ class Store {
                 if (res.status === 401) {
                     console.warn('[STORE] Session expired during sync');
                     // Retry logic...
-                    // For now, simplify to avoid complex retry in this snippet
                     throw new Error('Unauthorized');
                 }
                 const err = await res.json().catch(() => ({}));
@@ -423,13 +440,21 @@ class Store {
             
             // Clear synced items from queue
             // We only remove the items we sent. If new items were added during fetch, keep them.
-            this._syncQueue = this._syncQueue.slice(changesToSync.length);
+            // Note: changesToSync is a snapshot. We splice the *count* from the front.
+            // This assumes ordered processing which is true here.
+            this._syncQueue.splice(0, changesToSync.length);
             
         } catch (error) {
             console.error('[STORE] Cloud sync failed:', error.message);
             this._updateSyncUI('error');
+            // Don't clear queue on error, retry later
         } finally {
             this._isSyncing = false;
+            
+            // Critical Fix: If new changes arrived while we were syncing, schedule another sync!
+            if (this._syncQueue.length > 0) {
+                this._scheduleSyncToCloud();
+            }
         }
     }
 
