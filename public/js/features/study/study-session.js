@@ -330,15 +330,26 @@ function renderStudyCard() {
     }
     if (dom.flashcard) dom.flashcard.classList.remove('flipped');
     
+    // Force reflow to ensure the class removal happens instantly without transition
+    if (inner) void inner.offsetWidth;
+
+    // Temporarily clear back content to ensure no flash of previous/new answer
+    if (dom.studyBack) dom.studyBack.innerHTML = '';
+    
     // Render Front/Back (swap if reverse mode)
     const frontText = reverseMode ? (card.def || '') : (card.term || '');
     const backText = reverseMode ? (card.term || '') : (card.def || '');
     if (dom.studyFront) dom.studyFront.innerHTML = renderMarkdown(frontText);
+    
+    // Render back content (it's hidden by Unflipped state, but we ensure it's there)
     if (dom.studyBack) dom.studyBack.innerHTML = renderMarkdown(backText);
     
-    // Re-enable transition after a frame so the "Show Answer" flip animates normally
+    // Re-enable transition after a two frames so the "Show Answer" flip animates normally
+    // Double rAF ensures we are in the next paint cycle
     requestAnimationFrame(() => {
-        if (inner) inner.style.transition = '';
+        requestAnimationFrame(() => {
+            if (inner) inner.style.transition = '';
+        });
     });
     
     // Update Progress
