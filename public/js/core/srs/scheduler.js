@@ -17,8 +17,8 @@ function getSettings() {
         return {
             intervalMod: (saved.intervalMod || 100) / 100, // Convert % to multiplier
             learningSteps: parseLearningSteps(saved.learningSteps || '1, 10'),
-            newCards: saved.newCards || 20,
-            maxReviews: saved.maxReviews || 100
+            newCards: parseInt(saved.newCards) || 20,
+            maxReviews: parseInt(saved.maxReviews) || 100
         };
     } catch {
         return { intervalMod: 1, learningSteps: [1, 10], newCards: 20, maxReviews: 100 };

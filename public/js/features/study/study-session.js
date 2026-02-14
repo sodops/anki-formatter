@@ -262,6 +262,16 @@ export function startStudySession(skipViewSwitch = false) {
         return;
     }
     
+    // Analyze session composition for user clarity
+    let countNew = 0, countLearning = 0, countReview = 0;
+    dueCards.forEach(c => {
+        if (!c.reviewData || !c.reviewData.nextReview) countNew++;
+        else if (c.reviewData.isLearning) countLearning++;
+        else countReview++;
+    });
+    
+    ui.showToast(`Starting session: ${dueCards.length} cards\n(${countLearning} Learning, ${countReview} Review, ${countNew} New)`);
+    
     // Shuffle due cards
     sessionCards = [...dueCards].sort(() => Math.random() - 0.5);
     currentIndex = 0;
@@ -297,8 +307,6 @@ export function startStudySession(skipViewSwitch = false) {
     renderStudyCard();
     updateProgressBar();
     setupStudyListeners();
-    
-
 }
 
 /**
