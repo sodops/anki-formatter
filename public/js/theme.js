@@ -1,20 +1,27 @@
 /**
  * Theme Toggle Functionality
  * Supports: Dark, Light, Auto (system preference)
- * 
+ *
  * Default: follows system preference (prefers-color-scheme)
- * Only saves to localStorage when user explicitly toggles
+ * Only overrides system when user explicitly toggles via button
  */
+
+// Check if user has EXPLICITLY chosen a theme (not old auto-saved values)
+function hasUserExplicitChoice() {
+  return localStorage.getItem("ankiflow-theme-explicit") === "true";
+}
 
 // Get the effective theme to apply
 function getTheme() {
   if (typeof window === "undefined") return "dark";
 
-  // Check if user has explicitly set a preference
-  const saved = localStorage.getItem("ankiflow-theme");
-  if (saved === "light" || saved === "dark") return saved;
+  // Only use saved theme if user EXPLICITLY toggled it
+  if (hasUserExplicitChoice()) {
+    const saved = localStorage.getItem("ankiflow-theme");
+    if (saved === "light" || saved === "dark") return saved;
+  }
 
-  // No explicit preference — follow system
+  // Follow system preference
   if (window.matchMedia("(prefers-color-scheme: light)").matches) {
     return "light";
   }
@@ -25,7 +32,7 @@ function getTheme() {
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
 
-  // Update icon on both sidebar button and floating button (if present)
+  // Update icon on sidebar button / floating button
   const icon =
     document.querySelector(".sidebar-theme-btn ion-icon") ||
     document.querySelector(".theme-toggle ion-icon");
@@ -37,11 +44,12 @@ function applyTheme(theme) {
   }
 }
 
-// Toggle theme (user explicit action — saves to localStorage)
+// Toggle theme — explicit user action, saves to localStorage
 function toggleTheme() {
   const current = getTheme();
   const next = current === "dark" ? "light" : "dark";
   localStorage.setItem("ankiflow-theme", next);
+  localStorage.setItem("ankiflow-theme-explicit", "true");
   applyTheme(next);
 }
 
@@ -50,16 +58,23 @@ window.toggleTheme = toggleTheme;
 
 // Initialize on page load
 if (typeof document !== "undefined") {
+  // Clean up old auto-saved values (migration from old code)
+  // If theme was saved but no explicit flag exists, remove old saved value
+  if (
+    localStorage.getItem("ankiflow-theme") &&
+    !localStorage.getItem("ankiflow-theme-explicit")
+  ) {
+    localStorage.removeItem("ankiflow-theme");
+  }
+
   // Apply immediately to prevent flash (FOUC)
   applyTheme(getTheme());
 
-  // Listen for system preference changes — auto-switch if user hasn't set preference
+  // Listen for system preference changes
   window
     .matchMedia("(prefers-color-scheme: light)")
     .addEventListener("change", (e) => {
-      const saved = localStorage.getItem("ankiflow-theme");
-      if (!saved) {
-        // Only auto-switch if user hasn't explicitly toggled
+      if (!hasUserExplicitChoice()) {
         applyTheme(e.matches ? "light" : "dark");
       }
     });

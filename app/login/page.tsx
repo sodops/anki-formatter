@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { login, signup, resetPassword } from "./actions";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 type AuthMode = "signin" | "signup" | "forgot";
 
@@ -63,6 +64,10 @@ export default function LoginPage() {
       <div className="login-orb login-orb-1"></div>
       <div className="login-orb login-orb-2"></div>
       <div className="login-orb login-orb-3"></div>
+
+      <Link href="/" className="login-back-home">
+        ← Bosh sahifa
+      </Link>
 
       <div className="login-wrapper">
         {/* Left — Hero */}
