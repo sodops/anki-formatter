@@ -31,6 +31,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <link rel="stylesheet" href="/style.css" />
         <link rel="stylesheet" href="/about.css" />
+        {/* Inline theme detection — must run before paint to prevent FOUC */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Migration: clear old auto-saved values from previous code
+                if (localStorage.getItem("ankiflow-theme") && !localStorage.getItem("ankiflow-theme-explicit")) {
+                  localStorage.removeItem("ankiflow-theme");
+                }
+                // Detect theme
+                var theme = "dark";
+                if (localStorage.getItem("ankiflow-theme-explicit") === "true") {
+                  var saved = localStorage.getItem("ankiflow-theme");
+                  if (saved === "light" || saved === "dark") theme = saved;
+                } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
+                  theme = "light";
+                }
+                document.documentElement.setAttribute("data-theme", theme);
+              })();
+            `,
+          }}
+        />
         <script src="/js/theme.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
