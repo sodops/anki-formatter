@@ -442,7 +442,60 @@ function setupEventListeners() {
             handleOmnibarKey(e);
         });
         
-        // ... (paste handler remains same) ...
+        // Paste handler: Intercept multi-line paste before <input> strips newlines
+        dom.omnibarInput.addEventListener('paste', (e) => {
+            const clipboardText = (e.clipboardData || window.clipboardData).getData('text');
+            if (!clipboardText) return;
+
+            const lines = clipboardText.split('\n').map(l => l.trim()).filter(Boolean);
+            
+            // If only 1 line, let default input behavior handle it
+            if (lines.length <= 1) return;
+
+            // Multi-line paste detected — prevent default (input would collapse newlines)
+            e.preventDefault();
+            
+            const deck = store.getActiveDeck();
+            if (!deck) {
+                ui.showToast('Select a deck first');
+                return;
+            }
+
+            // Check for Google Docs URL
+            if (lines.length === 1 && clipboardText.includes('docs.google.com')) {
+                dom.omnibarInput.value = clipboardText.trim();
+                return;
+            }
+
+            // Parse all lines using parseLine
+            const parsed = lines.map(line => parseLine(line)).filter(p => p && (p.term || p.def));
+            
+            if (parsed.length === 0) {
+                ui.showToast('No valid cards found in pasted text');
+                return;
+            }
+
+            const validCards = parsed.map(p => ({
+                term: p.term || '',
+                def: p.def || '',
+                tags: []
+            }));
+
+            // For large pastes, use import preview; for small ones, add directly
+            if (validCards.length > 20) {
+                // Use import preview for large pastes
+                import('./features/import/import-handler.js').then(({ showImportPreview }) => {
+                    showImportPreview(validCards, 'paste');
+                });
+            } else {
+                // Direct bulk add for small pastes
+                store.dispatch('CARD_BATCH_ADD', { deckId: deck.id, cards: validCards });
+                renderWorkspace();
+                ui.showToast(`${validCards.length} cards added`);
+            }
+            
+            dom.omnibarInput.value = '';
+        });
 
         dom.omnibarInput.addEventListener('input', (e) => {
             const val = e.target.value;

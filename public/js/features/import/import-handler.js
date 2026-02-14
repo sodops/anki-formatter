@@ -19,6 +19,7 @@ const SEPARATORS = [
     ' - ', ' – ', ' — ',
     ' : ',
     ' = ',
+    '=', // Support tight equals
     '\t',
 ];
 

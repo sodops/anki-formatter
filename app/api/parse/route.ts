@@ -18,6 +18,7 @@ const SEPARATORS = [
   " — ",
   " : ",
   " = ",
+  "=",  // Support tight equals (e.g. term=def)
   "\t",
 ];
 
