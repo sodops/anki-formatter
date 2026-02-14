@@ -166,6 +166,7 @@ function createCardRow(card, originalIndex) {
     tr.dataset.cardId = card.id || '';
     
     if (card.suspended) tr.classList.add('suspended');
+    if (!card.term || !card.def) tr.classList.add('row-issue');
 
     // Drag Handle / Checkbox
     const tdDrag = document.createElement('td');

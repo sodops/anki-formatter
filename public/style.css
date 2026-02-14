@@ -698,6 +698,15 @@ body {
   background: rgba(245, 158, 11, 0.1);
 }
 
+.live-table tr.row-issue {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid #f59e0b;
+}
+
+.live-table tr.row-issue:hover {
+  background: rgba(245, 158, 11, 0.15);
+}
+
 /* Editable Cells */
 .editable-cell {
   background: transparent;
