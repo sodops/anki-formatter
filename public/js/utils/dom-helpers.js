@@ -5,112 +5,109 @@
 
 export const dom = {
     // Sidebar
-    deckList: document.getElementById('deckList'),
-    trashList: document.getElementById('trashList'), // Might not exist in HTML if dynamic
-    btnNewDeck: document.getElementById('btnNewDeck'),
-    // btnTrash not in HTML, dynamic in deck.js
+    get deckList() { return document.getElementById('deckList'); },
+    get trashList() { return document.getElementById('trashList'); },
+    get btnNewDeck() { return document.getElementById('btnNewDeck'); },
     
     // Workspace
-    workspace: document.querySelector('.workspace'), // Class selector as fallback
-    currentDeckTitle: document.getElementById('currentDeckTitle'),
-    countTotal: document.getElementById('countTotal'),
-    countIssues: document.getElementById('countIssues'),
-    cardTable: document.getElementById('cardTable'),
-    tableBody: document.getElementById('tableBody'), // Correct ID
-    emptyState: document.getElementById('emptyState'),
+    get workspace() { return document.querySelector('.workspace'); },
+    get currentDeckTitle() { return document.getElementById('currentDeckTitle'); },
+    get countTotal() { return document.getElementById('countTotal'); },
+    get countIssues() { return document.getElementById('countIssues'); },
+    get cardTable() { return document.getElementById('cardTable'); },
+    get tableBody() { return document.getElementById('tableBody'); },
+    get emptyState() { return document.getElementById('emptyState'); },
     
     // Omnibar
-    omnibarContainer: document.getElementById('omnibarContainer'),
-    omnibarInput: document.getElementById('omnibarInput'),
-    omnibarIcon: document.getElementById('omnibarIcon'),
-    fileInput: document.getElementById('fileInput'),
-    commandDropdown: document.getElementById('commandDropdown'),
+    get omnibarContainer() { return document.getElementById('omnibarContainer'); },
+    get omnibarInput() { return document.getElementById('omnibarInput'); },
+    get omnibarIcon() { return document.getElementById('omnibarIcon'); },
+    get fileInput() { return document.getElementById('fileInput'); },
+    get commandDropdown() { return document.getElementById('commandDropdown'); },
     
     // Search
-    searchInput: document.getElementById('searchInput'),
-    btnClearSearch: document.getElementById('btnClearSearch'),
+    get searchInput() { return document.getElementById('searchInput'); },
+    get btnClearSearch() { return document.getElementById('btnClearSearch'); },
     
     // Action Buttons
-    btnRenameDeck: document.getElementById('btnRenameDeck'),
-    btnDeckColor: document.getElementById('btnDeckColor'),
-    btnClearDeck: document.getElementById('btnClearDeck'),
-    btnExportDeck: document.getElementById('btnExportDeck'),
+    get btnRenameDeck() { return document.getElementById('btnRenameDeck'); },
+    get btnDeckColor() { return document.getElementById('btnDeckColor'); },
+    get btnClearDeck() { return document.getElementById('btnClearDeck'); },
+    get btnExportDeck() { return document.getElementById('btnExportDeck'); },
     
     // Export Modal
-    exportModal: document.getElementById('exportModal'),
-    exportFilename: document.getElementById('exportFilename'),
-    btnCancelExport: document.getElementById('btnCancelExport'),
-    btnPreviewExport: document.getElementById('btnPreviewExport'),
-    btnConfirmExport: document.getElementById('btnConfirmExport'),
-    exportLoader: document.getElementById('exportLoader'),
+    get exportModal() { return document.getElementById('exportModal'); },
+    get exportFilename() { return document.getElementById('exportFilename'); },
+    get btnCancelExport() { return document.getElementById('btnCancelExport'); },
+    get btnPreviewExport() { return document.getElementById('btnPreviewExport'); },
+    get btnConfirmExport() { return document.getElementById('btnConfirmExport'); },
+    get exportLoader() { return document.getElementById('exportLoader'); },
     
     // Export Preview Modal
-    exportPreviewModal: document.getElementById('exportPreviewModal'),
-    previewTotalCards: document.getElementById('previewTotalCards'),
-    previewValidCards: document.getElementById('previewValidCards'),
-    previewIssues: document.getElementById('previewIssues'),
-    previewCardsList: document.getElementById('previewCardsList'),
-    btnClosePreview: document.getElementById('btnClosePreview'),
-    btnConfirmFromPreview: document.getElementById('btnConfirmFromPreview'),
+    get exportPreviewModal() { return document.getElementById('exportPreviewModal'); },
+    get previewTotalCards() { return document.getElementById('previewTotalCards'); },
+    get previewValidCards() { return document.getElementById('previewValidCards'); },
+    get previewIssues() { return document.getElementById('previewIssues'); },
+    get previewCardsList() { return document.getElementById('previewCardsList'); },
+    get btnClosePreview() { return document.getElementById('btnClosePreview'); },
+    get btnConfirmFromPreview() { return document.getElementById('btnConfirmFromPreview'); },
     
-    // Custom Modal (Prompt/Confirm/Alert)
-    customModal: document.getElementById('customModal'),
-    customModalTitle: document.getElementById('customModalTitle'),
-    customModalContent: document.getElementById('customModalContent'),
-    customModalInputContainer: document.getElementById('customModalInputContainer'),
-    customModalInput: document.getElementById('customModalInput'),
-    btnModalCancel: document.getElementById('btnModalCancel'),
-    btnModalConfirm: document.getElementById('btnModalConfirm'),
+    // Custom Modal
+    get customModal() { return document.getElementById('customModal'); },
+    get customModalTitle() { return document.getElementById('customModalTitle'); },
+    get customModalContent() { return document.getElementById('customModalContent'); },
+    get customModalInputContainer() { return document.getElementById('customModalInputContainer'); },
+    get customModalInput() { return document.getElementById('customModalInput'); },
+    get btnModalCancel() { return document.getElementById('btnModalCancel'); },
+    get btnModalConfirm() { return document.getElementById('btnModalConfirm'); },
     
     // Import Preview Modal
-    importPreviewModal: document.getElementById('importPreviewModal'),
-    importTotal: document.getElementById('importTotal'),
-    columnMapping: document.getElementById('columnMapping'),
-    termColumnSelect: document.getElementById('termColumnSelect'),
-    defColumnSelect: document.getElementById('defColumnSelect'),
-    importPreviewList: document.getElementById('importPreviewList'),
-    btnCancelImport: document.getElementById('btnCancelImport'),
-    btnConfirmImport: document.getElementById('btnConfirmImport'),
+    get importPreviewModal() { return document.getElementById('importPreviewModal'); },
+    get importTotal() { return document.getElementById('importTotal'); },
+    get columnMapping() { return document.getElementById('columnMapping'); },
+    get termColumnSelect() { return document.getElementById('termColumnSelect'); },
+    get defColumnSelect() { return document.getElementById('defColumnSelect'); },
+    get importPreviewList() { return document.getElementById('importPreviewList'); },
+    get btnCancelImport() { return document.getElementById('btnCancelImport'); },
+    get btnConfirmImport() { return document.getElementById('btnConfirmImport'); },
 
     // Toast
-    toast: document.getElementById('toast'),
+    get toast() { return document.getElementById('toast'); },
 
     // Study Mode
-    // Study Mode
-    btnStudyDeck: document.getElementById('btnStudyDeck'),
-    // studyModal removed, using view directly
-    studyInterface: document.getElementById('studyInterface'),
-    studyPlaceholder: document.getElementById('studyPlaceholder'),
-    studyDeckTitle: document.getElementById('studyDeckTitle'),
-    flashcard: document.getElementById('flashcard'),
-    studyFront: document.getElementById('studyFront'),
-    studyBack: document.getElementById('studyBack'),
-    studyIndex: document.getElementById('studyIndex'),
-    studyTotal: document.getElementById('studyTotal'),
-    studyProgressBar: document.getElementById('studyProgressBar'),
-    btnStudyFlip: document.getElementById('btnStudyFlip'),
+    get btnStudyDeck() { return document.getElementById('btnStudyDeck'); },
+    get studyInterface() { return document.getElementById('studyInterface'); },
+    get studyPlaceholder() { return document.getElementById('studyPlaceholder'); },
+    get studyDeckTitle() { return document.getElementById('studyDeckTitle'); },
+    get flashcard() { return document.getElementById('flashcard'); },
+    get studyFront() { return document.getElementById('studyFront'); },
+    get studyBack() { return document.getElementById('studyBack'); },
+    get studyIndex() { return document.getElementById('studyIndex'); },
+    get studyTotal() { return document.getElementById('studyTotal'); },
+    get studyProgressBar() { return document.getElementById('studyProgressBar'); },
+    get btnStudyFlip() { return document.getElementById('btnStudyFlip'); },
     
     // Session Summary
-    sessionSummary: document.getElementById('sessionSummary'),
-    btnBackToLibrary: document.getElementById('btnBackToLibrary'),
-    btnStudyAgain: document.getElementById('btnStudyAgain'),
+    get sessionSummary() { return document.getElementById('sessionSummary'); },
+    get btnBackToLibrary() { return document.getElementById('btnBackToLibrary'); },
+    get btnStudyAgain() { return document.getElementById('btnStudyAgain'); },
     
     // Bulk Operations
-    selectAllCheckbox: document.getElementById('selectAllCheckbox'),
-    bulkActionBar: document.getElementById('bulkActionBar'),
-    bulkCount: document.getElementById('bulkCount'),
-    btnBulkTag: document.getElementById('btnBulkTag'),
-    btnBulkDelete: document.getElementById('btnBulkDelete'),
-    btnBulkCancel: document.getElementById('btnBulkCancel'),
+    get selectAllCheckbox() { return document.getElementById('selectAllCheckbox'); },
+    get bulkActionBar() { return document.getElementById('bulkActionBar'); },
+    get bulkCount() { return document.getElementById('bulkCount'); },
+    get btnBulkTag() { return document.getElementById('btnBulkTag'); },
+    get btnBulkDelete() { return document.getElementById('btnBulkDelete'); },
+    get btnBulkCancel() { return document.getElementById('btnBulkCancel'); },
     
     // Stats
-    btnOpenStats: document.getElementById('btnOpenStats'),
+    get btnOpenStats() { return document.getElementById('btnOpenStats'); },
     
     // Shortcuts
-    btnCloseShortcuts: document.getElementById('btnCloseShortcuts'),
+    get btnCloseShortcuts() { return document.getElementById('btnCloseShortcuts'); },
     
     // Color Picker
-    btnCancelColor: document.getElementById('btnCancelColor')
+    get btnCancelColor() { return document.getElementById('btnCancelColor'); }
 };
 
 // Verify all required elements exist

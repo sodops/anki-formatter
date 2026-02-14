@@ -211,6 +211,9 @@ if (document.readyState === 'loading') {
     initAnkiFlow();
 }
 
+// Expose for manual re-init by Next.js SPA navigation
+window.initAnkiFlow = initAnkiFlow;
+
 function setupGlobalExports() {
     window.createDeck = () => {
         ui.prompt("Enter deck name:", "New Deck").then(name => {

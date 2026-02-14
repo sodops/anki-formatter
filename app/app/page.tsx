@@ -67,11 +67,17 @@ export default function Home() {
     // Load main.js as ES6 module via DOM injection
     // (Next.js strips <script> tags from JSX, so we do it programmatically)
     // Prevent duplicate loading in React Strict Mode (dev mode runs useEffect twice)
-    if (!document.querySelector('script[src="/js/main.js"]')) {
+    const scriptSrc = "/js/main.js";
+    if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
       const script = document.createElement("script");
       script.type = "module";
-      script.src = "/js/main.js";
+      script.src = scriptSrc;
       document.body.appendChild(script);
+    } else {
+      // Script already exists (SPA navigation), manually re-init
+      if ((window as any).initAnkiFlow) {
+        (window as any).initAnkiFlow();
+      }
     }
   }, [user, session, loading]);
 
