@@ -12,9 +12,22 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "AnkiFlow",
   description: "Smart flashcard study platform with spaced repetition",
+  metadataBase: new URL("https://anki.sodops.uz"),
   openGraph: {
     title: "AnkiFlow",
     description: "Smart flashcard study platform with spaced repetition",
+    url: "https://anki.sodops.uz",
+    siteName: "AnkiFlow",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "AnkiFlow",
+    description: "Smart flashcard study platform with spaced repetition",
+  },
+  alternates: {
+    canonical: "https://anki.sodops.uz",
   },
   icons: {
     icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E",
@@ -25,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
           rel="stylesheet"
@@ -54,8 +68,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <script src="/js/theme.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+        <script
+          src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"
+          integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te"
+          crossOrigin="anonymous"
+        ></script>
+        <script
+          src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"
+          integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>

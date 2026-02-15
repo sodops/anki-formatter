@@ -62,6 +62,7 @@ export default [
       "build/",
       "dist/",
       "public/js/**/*.js",
+      "public/js/**/*.mjs",
       "jest.config.js",
       "next.config.js",
       "eslint.config.mjs",

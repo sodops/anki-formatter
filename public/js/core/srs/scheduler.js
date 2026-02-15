@@ -265,7 +265,8 @@ function calculateNextReviewSM2(card, quality, settings) {
     // Learning-phase cards should not have their ease factor modified
     if (!isLearning) {
         easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-        easeFactor = Math.max(1.3, easeFactor);
+        // Clamp ease factor between 1.3 and 5.0 (prevent unbounded growth)
+        easeFactor = Math.min(Math.max(1.3, easeFactor), 5.0);
     }
 
     // Add to review history

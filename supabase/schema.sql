@@ -178,9 +178,14 @@ DROP TRIGGER IF EXISTS update_user_data_modtime ON user_data;
 CREATE TRIGGER update_user_data_modtime BEFORE UPDATE ON user_data FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Auto-delete old system logs (retention 7 days)
+-- Uses probabilistic cleanup: ~1% chance to run on each insert
+-- This avoids running a full DELETE on every single insert
 CREATE OR REPLACE FUNCTION delete_old_logs() RETURNS TRIGGER AS $$
 BEGIN
-    DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '7 days';
+    -- Only cleanup roughly 1 in 100 inserts to avoid performance overhead
+    IF random() < 0.01 THEN
+        DELETE FROM system_logs WHERE created_at < NOW() - INTERVAL '7 days';
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

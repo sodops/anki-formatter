@@ -22,19 +22,15 @@ export default function LandingPage() {
           <a href="#features">Imkoniyatlar</a>
           <a href="#algorithm">Algoritm</a>
           <a href="#roadmap">Reja</a>
-          {!loading && (
-            user ? (
+          {!loading &&
+            (user ? (
               <>
                 <Link href="/app" className="about-nav-cta">
                   Dashboard →
                 </Link>
                 <div className="about-nav-profile">
                   {user?.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt=""
-                      className="about-nav-avatar"
-                    />
+                    <img src={user.user_metadata.avatar_url} alt="" className="about-nav-avatar" />
                   ) : (
                     <div className="about-nav-avatar-placeholder">
                       {(user?.email?.[0] || "U").toUpperCase()}
@@ -45,17 +41,12 @@ export default function LandingPage() {
                       <div className="about-nav-dropdown-name">
                         {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User"}
                       </div>
-                      <div className="about-nav-dropdown-email">
-                        {user?.email}
-                      </div>
+                      <div className="about-nav-dropdown-email">{user?.email}</div>
                     </div>
                     <Link href="/app" className="about-nav-dropdown-item">
                       📊 Dashboard
                     </Link>
-                    <button
-                      className="about-nav-dropdown-item danger"
-                      onClick={signOut}
-                    >
+                    <button className="about-nav-dropdown-item danger" onClick={signOut}>
                       🚪 Chiqish
                     </button>
                   </div>
@@ -65,8 +56,7 @@ export default function LandingPage() {
               <Link href="/login" className="about-nav-cta">
                 Kirish →
               </Link>
-            )
-          )}
+            ))}
         </div>
       </nav>
 
@@ -74,26 +64,38 @@ export default function LandingPage() {
       <section className="about-hero">
         <div className="about-hero-badge">⚡ SM-2 Spaced Repetition</div>
         <h1 className="about-hero-title">
-          Xotirangizni <span className="about-gradient-text">ilmiy usulda</span>{" "}
-          kuchaytiring
+          Xotirangizni <span className="about-gradient-text">ilmiy usulda</span> kuchaytiring
         </h1>
         <p className="about-hero-subtitle">
-          AnkiFlow — flashcard yaratish, import qilish va ilmiy asoslangan
-          takrorlash algoritmiga asoslangan o&#39;rganish platformasi. Bir marta
-          yozing, umrbod eslab qoling.
+          AnkiFlow — flashcard yaratish, import qilish va ilmiy asoslangan takrorlash algoritmiga
+          asoslangan o&#39;rganish platformasi. Bir marta yozing, umrbod eslab qoling.
         </p>
         <div className="about-hero-actions">
           {user ? (
             <Link href="/app" className="about-btn-primary">
               <span>Dashboard ga o&#39;tish</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
           ) : (
             <Link href="/login" className="about-btn-primary">
               <span>Bepul boshlash</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
@@ -135,8 +137,8 @@ export default function LandingPage() {
             O&#39;rganish uchun kerak bo&#39;lgan <em>hamma narsa</em>
           </h2>
           <p className="about-section-subtitle">
-            AnkiFlow flashcard yaratishdan tortib, ilg&#39;or takrorlash
-            algoritmigacha — bir platformada jamlangan.
+            AnkiFlow flashcard yaratishdan tortib, ilg&#39;or takrorlash algoritmigacha — bir
+            platformada jamlangan.
           </p>
         </div>
 
@@ -145,9 +147,9 @@ export default function LandingPage() {
             <div className="about-feature-icon">📥</div>
             <h3>Smart Import</h3>
             <p>
-              TXT, CSV, DOCX fayllarni yoki Google Docs havolasini paste qiling
-              — AnkiFlow avtomatik term va definitionni ajratadi. Hatto{" "}
-              <code>so&#39;z = tarjima</code> formatida ham ishlaydi.
+              TXT, CSV, DOCX fayllarni yoki Google Docs havolasini paste qiling — AnkiFlow avtomatik
+              term va definitionni ajratadi. Hatto <code>so&#39;z = tarjima</code> formatida ham
+              ishlaydi.
             </p>
           </div>
 
@@ -155,8 +157,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">🧠</div>
             <h3>Spaced Repetition (SRS)</h3>
             <p>
-              SM-2 algoritmiga asoslangan. Bilganingizni kamroq, bilmaganingizni
-              ko&#39;proq ko&#39;rsatadi. Vaqtingizni tejaydi, samarangizni oshiradi.
+              SM-2 algoritmiga asoslangan. Bilganingizni kamroq, bilmaganingizni ko&#39;proq
+              ko&#39;rsatadi. Vaqtingizni tejaydi, samarangizni oshiradi.
             </p>
           </div>
 
@@ -164,8 +166,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">📋</div>
             <h3>Bulk Paste</h3>
             <p>
-              Ko&#39;p qatorli matnni bir marta paste qiling — har bir qator alohida
-              karta bo&#39;ladi. 20+ kartani bir zumda import qiling.
+              Ko&#39;p qatorli matnni bir marta paste qiling — har bir qator alohida karta
+              bo&#39;ladi. 20+ kartani bir zumda import qiling.
             </p>
           </div>
 
@@ -173,8 +175,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">🔊</div>
             <h3>Text-to-Speech</h3>
             <p>
-              Kartalarni eshitib o&#39;rganing. Har qanday tilda talaffuzni tinglang
-              — til o&#39;rganish uchun ideal.
+              Kartalarni eshitib o&#39;rganing. Har qanday tilda talaffuzni tinglang — til
+              o&#39;rganish uchun ideal.
             </p>
           </div>
 
@@ -182,8 +184,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">☁️</div>
             <h3>Cloud Sync</h3>
             <p>
-              Barcha kartalaringiz avtomatik saqlanadi. Kompyuterda yarating,
-              telefonda o&#39;rganing — hamma joyda sinxron.
+              Barcha kartalaringiz avtomatik saqlanadi. Kompyuterda yarating, telefonda
+              o&#39;rganing — hamma joyda sinxron.
             </p>
           </div>
 
@@ -191,8 +193,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">📊</div>
             <h3>Statistika</h3>
             <p>
-              Kunlik maqsad, streak, review tarix, aniqlik foizi — o&#39;z
-              progressingizni kuzatib boring.
+              Kunlik maqsad, streak, review tarix, aniqlik foizi — o&#39;z progressingizni kuzatib
+              boring.
             </p>
           </div>
         </div>
@@ -206,8 +208,8 @@ export default function LandingPage() {
             SM-2: Xotira <em>ilmi</em> asosdagi algoritm
           </h2>
           <p className="about-section-subtitle">
-            1987-yilda olim Piotr Woźniak tomonidan ishlab chiqilgan.
-            Ebbinghaus ning unutish egri chizig&#39;iga asoslangan.
+            1987-yilda olim Piotr Woźniak tomonidan ishlab chiqilgan. Ebbinghaus ning unutish egri
+            chizig&#39;iga asoslangan.
           </p>
         </div>
 
@@ -215,9 +217,7 @@ export default function LandingPage() {
         <div className="about-algo-visual">
           <div className="about-algo-card">
             <h3>🧪 Muammo: Unutish egri chizig&#39;i</h3>
-            <p>
-              Inson biror narsani o&#39;rgangandan keyin, takrorlamasdan:
-            </p>
+            <p>Inson biror narsani o&#39;rgangandan keyin, takrorlamasdan:</p>
             <div className="about-forget-bars">
               <div className="about-forget-row">
                 <span className="about-forget-label">1 soatdan keyin</span>
@@ -230,10 +230,7 @@ export default function LandingPage() {
               <div className="about-forget-row">
                 <span className="about-forget-label">1 kundan keyin</span>
                 <div className="about-forget-bar">
-                  <div
-                    className="about-forget-fill about-forget-warn"
-                    style={{ width: "70%" }}
-                  >
+                  <div className="about-forget-fill about-forget-warn" style={{ width: "70%" }}>
                     70% unutiladi
                   </div>
                 </div>
@@ -241,10 +238,7 @@ export default function LandingPage() {
               <div className="about-forget-row">
                 <span className="about-forget-label">1 haftadan keyin</span>
                 <div className="about-forget-bar">
-                  <div
-                    className="about-forget-fill about-forget-danger"
-                    style={{ width: "90%" }}
-                  >
+                  <div className="about-forget-fill about-forget-danger" style={{ width: "90%" }}>
                     90% unutiladi
                   </div>
                 </div>
@@ -254,7 +248,9 @@ export default function LandingPage() {
 
           <div className="about-algo-card about-algo-solution">
             <h3>✅ Yechim: Optimal takrorlash</h3>
-            <p>SM-2 algoritmi kartani <strong>unutishdan oldin</strong> ko&#39;rsatadi:</p>
+            <p>
+              SM-2 algoritmi kartani <strong>unutishdan oldin</strong> ko&#39;rsatadi:
+            </p>
             <div className="about-review-steps">
               <div className="about-step">
                 <div className="about-step-number">1</div>
@@ -349,32 +345,32 @@ export default function LandingPage() {
             <div className="about-benefit-icon">⏱️</div>
             <h3>Vaqtni tejang</h3>
             <p>
-              Faqat unutish arafasidagi kartalarni ko&#39;rasiz. Bilganlaringiz
-              bilan vaqtingizni behuda sarflamaysiz.
+              Faqat unutish arafasidagi kartalarni ko&#39;rasiz. Bilganlaringiz bilan vaqtingizni
+              behuda sarflamaysiz.
             </p>
           </div>
           <div className="about-benefit">
             <div className="about-benefit-icon">📈</div>
             <h3>95% samaradorlik</h3>
             <p>
-              Tadqiqotlar shuni ko&#39;rsatadiki, SRS bilan o&#39;rgangan odamlar
-              ma&#39;lumotning 95% ini uzoq muddatga eslab qoladi.
+              Tadqiqotlar shuni ko&#39;rsatadiki, SRS bilan o&#39;rgangan odamlar ma&#39;lumotning
+              95% ini uzoq muddatga eslab qoladi.
             </p>
           </div>
           <div className="about-benefit">
             <div className="about-benefit-icon">🎯</div>
             <h3>Shaxsiy moslashgan</h3>
             <p>
-              Ease Factor har bir kartaga alohida moslashadi. Sizga qiyin bo&#39;lgan
-              so&#39;zlar ko&#39;proq, osonlari kamroq takrorlanadi.
+              Ease Factor har bir kartaga alohida moslashadi. Sizga qiyin bo&#39;lgan so&#39;zlar
+              ko&#39;proq, osonlari kamroq takrorlanadi.
             </p>
           </div>
           <div className="about-benefit">
             <div className="about-benefit-icon">🌍</div>
             <h3>Har qanday fan uchun</h3>
             <p>
-              Chet tili, tibbiyot, dasturlash, tarix — flashcard bilan
-              o&#39;rganish mumkin bo&#39;lgan har qanday soha uchun.
+              Chet tili, tibbiyot, dasturlash, tarix — flashcard bilan o&#39;rganish mumkin
+              bo&#39;lgan har qanday soha uchun.
             </p>
           </div>
         </div>
@@ -423,8 +419,8 @@ export default function LandingPage() {
               <span className="about-roadmap-status">🚧 Jarayonda</span>
               <h4>FSRS Algorithm</h4>
               <p>
-                SM-2 dan yanada zamonaviy Free Spaced Repetition Scheduler ga o&#39;tish —
-                mashinali o&#39;rganish asosida aniqroq intervallar
+                SM-2 dan yanada zamonaviy Free Spaced Repetition Scheduler ga o&#39;tish — mashinali
+                o&#39;rganish asosida aniqroq intervallar
               </p>
             </div>
           </div>
@@ -433,9 +429,7 @@ export default function LandingPage() {
             <div className="about-roadmap-content">
               <span className="about-roadmap-status">📋 Rejalangan</span>
               <h4>AI-Powered Card Generation</h4>
-              <p>
-                Matn yoki PDF yuklang — AI avtomatik flashcard yaratib beradi
-              </p>
+              <p>Matn yoki PDF yuklang — AI avtomatik flashcard yaratib beradi</p>
             </div>
           </div>
           <div className="about-roadmap-item">
@@ -468,14 +462,28 @@ export default function LandingPage() {
         {user ? (
           <Link href="/app" className="about-btn-primary about-btn-large">
             <span>Dashboard ga o&#39;tish</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>
         ) : (
           <Link href="/login" className="about-btn-primary about-btn-large">
             <span>Bepul boshlash</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>

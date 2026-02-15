@@ -632,25 +632,37 @@ export default function Home() {
                         className="settings-input"
                         id="settingAlgorithm"
                         defaultValue="sm-2"
-                        style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px' }}
+                        style={{
+                          background: "var(--bg-secondary)",
+                          color: "var(--text-primary)",
+                          border: "1px solid var(--border-color)",
+                          borderRadius: "8px",
+                          padding: "8px",
+                        }}
                       >
-                         <option value="sm-2">SM-2 (Default)</option>
-                         <option value="fsrs">FSRS v5 (Advanced)</option>
+                        <option value="sm-2">SM-2 (Default)</option>
+                        <option value="fsrs">FSRS v5 (Advanced)</option>
                       </select>
                     </div>
-                    <div className="settings-row" id="containerFsrsRetention" style={{ display: 'none' }}>
+                    <div
+                      className="settings-row"
+                      id="containerFsrsRetention"
+                      style={{ display: "none" }}
+                    >
                       <div className="settings-row-info">
                         <span className="settings-label">FSRS Retention</span>
-                        <span className="settings-sublabel">Forgetting curve target (0.7-0.95)</span>
+                        <span className="settings-sublabel">
+                          Forgetting curve target (0.7-0.95)
+                        </span>
                       </div>
                       <input
                         type="number"
                         className="settings-input"
                         id="settingFsrsRetention"
-                        min={0.70}
+                        min={0.7}
                         max={0.97}
                         step={0.01}
-                        defaultValue={0.90}
+                        defaultValue={0.9}
                       />
                     </div>
                   </div>
@@ -951,8 +963,6 @@ export default function Home() {
       <div id="toast" className="toast hidden" role="alert" aria-live="polite">
         Action Successful
       </div>
-
-
 
       {/* EXPORT MODAL */}
       <div id="exportModal" className="modal-overlay hidden" role="dialog" aria-modal="true">
@@ -1310,7 +1320,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      
+
       {/* Toast Notification Container */}
       <div id="toast" className="toast hidden"></div>
     </main>
