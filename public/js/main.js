@@ -1019,16 +1019,26 @@ function initSettings() {
     // Export all data button
     const btnExportAll = document.getElementById('btnExportAllData');
     if (btnExportAll) {
-        btnExportAll.addEventListener('click', () => {
-            const state = store.getState();
-            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ankiflow-backup-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            ui.showToast('Backup downloaded');
+        btnExportAll.addEventListener('click', async () => {
+            ui.showToast('Preparing backup...', 'info');
+            try {
+                const response = await fetch('/api/backup/export');
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error || 'Export failed');
+                }
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ankiflow-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                ui.showToast('Backup downloaded');
+            } catch (err) {
+                ui.showToast('Backup failed: ' + err.message, 'error');
+            }
         });
     }
     
@@ -1043,16 +1053,25 @@ function initSettings() {
             try {
                 const text = await file.text();
                 const data = JSON.parse(text);
-                if (!data.decks || !Array.isArray(data.decks)) {
+                if (!data.data || !Array.isArray(data.data.decks)) {
                     ui.alert('Invalid backup file — missing decks array.');
                     return;
                 }
                 const confirmed = await ui.confirm(
-                    `Import ${data.decks.length} decks from backup?\n\nThis will REPLACE all current data.`
+                    `Import ${data.data.decks.length} decks from backup?\n\nThis will REPLACE all current data in cloud.`
                 );
                 if (confirmed) {
-                    const stateKey = store._getStateKey ? store._getStateKey() : 'ankiState';
-                    localStorage.setItem(stateKey, JSON.stringify(data));
+                    ui.showToast('Restoring backup...', 'info');
+                    const response = await fetch('/api/backup/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => ({}));
+                        throw new Error(err.error || 'Import failed');
+                    }
+                    ui.showToast('Backup restored. Reloading...');
                     window.location.reload();
                 }
             } catch (err) {
