@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { AppSkeleton } from "@/components/app/AppSkeleton";
 import { reportWebVitals } from "@/lib/web-vitals";
 
 export default function Home() {
@@ -113,23 +114,7 @@ export default function Home() {
     return (
       <main id="app-main">
         <div className="app-background"></div>
-        <div id="appSkeleton" className="app-skeleton">
-          <div className="skeleton-sidebar">
-            <div className="skeleton-line w60"></div>
-            <div className="skeleton-line w80"></div>
-            <div className="skeleton-line w40"></div>
-            <div className="skeleton-line w70"></div>
-          </div>
-          <div className="skeleton-main">
-            <div className="skeleton-topbar"></div>
-            <div className="skeleton-content">
-              <div className="skeleton-line w50"></div>
-              <div className="skeleton-rect"></div>
-              <div className="skeleton-line w80"></div>
-              <div className="skeleton-line w60"></div>
-            </div>
-          </div>
-        </div>
+        <AppSkeleton />
       </main>
     );
   }
