@@ -493,7 +493,15 @@ export default function LandingPage() {
       {/* ============ FOOTER ============ */}
       <footer className="about-footer">
         <div className="about-footer-inner">
-          <span>⚡ AnkiFlow — Ilmiy o&#39;rganish platformasi</span>
+          <div>
+            <span>⚡ AnkiFlow — Ilmiy o&#39;rganish platformasi</span>
+            <div style={{ marginTop: "0.5rem", fontSize: "0.875rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <Link href="/privacy" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Maxfiylik</Link>
+              <Link href="/terms" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Shartlar</Link>
+              <a href="https://github.com/sodops/anki-formatter" target="_blank" rel="noopener" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>GitHub</a>
+              <a href="mailto:support@ankiflow.com" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Support</a>
+            </div>
+          </div>
           <span>© {new Date().getFullYear()}</span>
         </div>
       </footer>

@@ -12,37 +12,62 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "AnkiFlow",
-  description: "Smart flashcard study platform with spaced repetition",
+  title: {
+    default: "AnkiFlow — Ilmiy O'rganish Platformasi",
+    template: "%s | AnkiFlow"
+  },
+  description: "Flashcard yaratish, import qilish va SM-2 spaced repetition algoritmi bilan samarali o'rganish. Xotirangizni ilmiy usulda kuchaytiring. Bepul cloud sync, offline rejim, Anki export.",
+  keywords: ["flashcard", "spaced repetition", "anki", "o'rganish", "memorization", "uzbek", "SM-2", "cloud sync", "bepul"],
+  authors: [{ name: "AnkiFlow Team" }],
+  creator: "AnkiFlow",
+  publisher: "AnkiFlow",
   metadataBase: new URL("https://anki.sodops.uz"),
   openGraph: {
-    title: "AnkiFlow",
-    description: "Smart flashcard study platform with spaced repetition",
+    title: "AnkiFlow — Ilmiy O'rganish Platformasi",
+    description: "Flashcard yaratish, import qilish va SM-2 spaced repetition algoritmi bilan samarali o'rganish. Bepul cloud sync va offline rejim.",
     url: "https://anki.sodops.uz",
     siteName: "AnkiFlow",
     type: "website",
-    locale: "en_US",
+    locale: "uz_UZ",
     images: [
       {
         url: "/og.svg",
         width: 1200,
         height: 630,
-        alt: "AnkiFlow — Smart flashcard study platform",
+        alt: "AnkiFlow — Smart flashcard study platform with spaced repetition",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AnkiFlow",
-    description: "Smart flashcard study platform with spaced repetition",
+    title: "AnkiFlow — Ilmiy O'rganish Platformasi",
+    description: "Flashcard yaratish, import qilish va SM-2 spaced repetition algoritmi bilan samarali o'rganish",
     images: ["/og.svg"],
+    creator: "@ankiflow",
   },
   alternates: {
     canonical: "https://anki.sodops.uz",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // google: "your-google-verification-code",
+    // yandex: "your-yandex-verification-code",
+  },
   icons: {
     icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E",
+    apple: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E",
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
