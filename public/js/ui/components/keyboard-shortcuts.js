@@ -85,7 +85,7 @@ export function createKeyboardShortcutsModal() {
 
   const content = document.createElement("div");
   content.style.cssText = `
-    background: var(--bg-secondary);
+    background: var(--bg-primary, #ffffff);
     border: 1px solid var(--border);
     border-radius: 16px;
     max-width: 800px;
@@ -94,7 +94,7 @@ export function createKeyboardShortcutsModal() {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.3s ease-out;
   `;
 
@@ -161,13 +161,13 @@ export function createKeyboardShortcutsModal() {
     padding: 0.75rem 1rem;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg-secondary, #f3f4f6);
+    color: var(--text-primary, #000000);
     font-size: 0.95rem;
     outline: none;
     transition: border-color 0.2s;
   `;
-  searchInput.onfocus = () => (searchInput.style.borderColor = "var(--accent)");
+  searchInput.onfocus = () => (searchInput.style.borderColor = "var(--accent, #6366f1)");
   searchInput.onblur = () => (searchInput.style.borderColor = "var(--border)");
 
   searchContainer.appendChild(searchInput);
@@ -200,7 +200,7 @@ export function createKeyboardShortcutsModal() {
       categoryTitle.style.cssText = `
         font-size: 1rem;
         font-weight: 700;
-        color: var(--text-primary);
+        color: var(--text-primary, #000000);
         margin: 0 0 1rem 0;
       `;
       categorySection.appendChild(categoryTitle);
@@ -222,7 +222,7 @@ export function createKeyboardShortcutsModal() {
         const description = document.createElement("span");
         description.textContent = item.description;
         description.style.cssText = `
-          color: var(--text-primary);
+          color: var(--text-primary, #000000);
           font-size: 0.9rem;
         `;
 
@@ -236,13 +236,13 @@ export function createKeyboardShortcutsModal() {
           const keyBadge = document.createElement("kbd");
           keyBadge.textContent = key;
           keyBadge.style.cssText = `
-            background: var(--bg-primary);
+            background: var(--bg-secondary, #f3f4f6);
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--text-primary, #000000);
             font-family: monospace;
             box-shadow: 0 2px 0 var(--border);
           `;
