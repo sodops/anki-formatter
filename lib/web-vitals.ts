@@ -11,17 +11,17 @@ function sendToAnalytics(metric: Metric) {
     navigationType: metric.navigationType,
   });
 
-  // Use `navigator.sendBeacon()` if available, falling back to `fetch()`
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon('/api/analytics', body);
-  } else {
-    fetch('/api/analytics', {
-      body,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      keepalive: true,
-    });
-  }
+  // Always use fetch with credentials so Supabase auth cookies are sent.
+  // navigator.sendBeacon does NOT send cookies, causing 401 errors.
+  fetch('/api/analytics', {
+    body,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    keepalive: true,
+  }).catch(() => {
+    // Silently ignore analytics failures — don't block the user
+  });
 }
 
 // Report all available web vitals
