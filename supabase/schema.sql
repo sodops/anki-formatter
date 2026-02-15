@@ -195,3 +195,48 @@ CREATE TRIGGER trigger_delete_old_logs
     AFTER INSERT ON system_logs
     FOR EACH STATEMENT
     EXECUTE FUNCTION delete_old_logs();
+-- ============================================
+-- 6. WEB VITALS (Performance Monitoring)
+-- ============================================
+CREATE TABLE IF NOT EXISTS web_vitals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    metric_name TEXT NOT NULL,
+    metric_value NUMERIC NOT NULL,
+    rating TEXT,
+    delta NUMERIC,
+    metric_id TEXT,
+    navigation_type TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for faster queries by user and metric
+CREATE INDEX IF NOT EXISTS idx_web_vitals_user_metric ON web_vitals(user_id, metric_name, created_at DESC);
+
+-- RLS policies for web_vitals
+ALTER TABLE web_vitals ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can insert their own web vitals"
+    ON web_vitals FOR INSERT
+    WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+
+CREATE POLICY "Users can view their own web vitals"
+    ON web_vitals FOR SELECT
+    USING (auth.uid() = user_id);
+
+-- Auto-delete old web vitals (retention 30 days)
+CREATE OR REPLACE FUNCTION delete_old_web_vitals() RETURNS TRIGGER AS $$
+BEGIN
+    IF random() < 0.01 THEN
+        DELETE FROM web_vitals WHERE created_at < NOW() - INTERVAL '30 days';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_delete_old_web_vitals ON web_vitals;
+CREATE TRIGGER trigger_delete_old_web_vitals
+    AFTER INSERT ON web_vitals
+    FOR EACH STATEMENT
+    EXECUTE FUNCTION delete_old_web_vitals();

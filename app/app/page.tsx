@@ -3,10 +3,16 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { reportWebVitals } from "@/lib/web-vitals";
 
 export default function Home() {
   const { user, session, loading, signOut } = useAuth();
   const router = useRouter();
+
+  // Report Web Vitals on mount
+  useEffect(() => {
+    reportWebVitals();
+  }, []);
 
   // Redirect to login if not authenticated
   useEffect(() => {
