@@ -23,6 +23,8 @@ import { openStats, calculateAndRenderStats } from './features/stats/stats-calcu
 import { initViewManager, initTabNavigation, switchView, VIEWS } from './ui/navigation/view-manager.js';
 import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } from './ui/theme/theme-manager.js';
 import { setSpeechLanguage, setSpeechRate, setSpeechPitch, getAvailableVoices } from './utils/tts-helper.js';
+import { createKeyboardShortcutsModal } from './ui/components/keyboard-shortcuts.js';
+import { offlineManager } from './core/offline-manager.js';
 
 
 // --- Command Registry ---
@@ -840,13 +842,7 @@ function renderCommandDropdown() {
 // --- Utils ---
 
 function openShortcutsModal() {
-    const modal = document.getElementById('shortcutsModal');
-    if(modal) {
-        modal.classList.remove('hidden');
-        modal.onclick = (e) => {
-            if(e.target === modal) modal.classList.add('hidden');
-        };
-    }
+    createKeyboardShortcutsModal();
 }
 
 // --- Undo / Redo ---
