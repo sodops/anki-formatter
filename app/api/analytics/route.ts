@@ -20,7 +20,12 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await request.json();
     const { name, value, rating, delta, id, navigationType } = body;
@@ -33,20 +38,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store in Supabase (optional - only if user is authenticated)
-    if (user) {
-      await supabase.from("web_vitals").insert({
-        user_id: user.id,
-        metric_name: name,
-        metric_value: value,
-        rating,
-        delta,
-        metric_id: id,
-        navigation_type: navigationType,
-        user_agent: request.headers.get("user-agent"),
-        created_at: new Date().toISOString(),
-      });
-    }
+    await supabase.from("web_vitals").insert({
+      user_id: user.id,
+      metric_name: name,
+      metric_value: value,
+      rating,
+      delta,
+      metric_id: id,
+      navigation_type: navigationType,
+      user_agent: request.headers.get("user-agent"),
+      created_at: new Date().toISOString(),
+    });
 
     // Log to console in development
     if (process.env.NODE_ENV === "development") {
