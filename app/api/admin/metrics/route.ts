@@ -27,6 +27,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+    const adminUserIds = (process.env.ADMIN_USER_IDS || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    const isAdmin =
+      (user.email && adminEmails.includes(user.email.toLowerCase())) ||
+      adminUserIds.includes(user.id);
+
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get("days") || "7");
     const metricName = searchParams.get("metric");

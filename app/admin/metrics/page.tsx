@@ -32,6 +32,7 @@ export default function AdminMetrics() {
   const [data, setData] = useState<MetricsData | null>(null);
   const [days, setDays] = useState(7);
   const [isLoading, setIsLoading] = useState(true);
+  const [isForbidden, setIsForbidden] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -46,6 +47,11 @@ export default function AdminMetrics() {
       setIsLoading(true);
       try {
         const response = await fetch(`/api/admin/metrics?days=${days}`);
+        if (response.status === 403) {
+          setIsForbidden(true);
+          setData(null);
+          return;
+        }
         if (response.ok) {
           const json = await response.json();
           setData(json);
@@ -72,6 +78,40 @@ export default function AdminMetrics() {
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⚡</div>
           <div>Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isForbidden) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "var(--bg-primary)",
+          padding: "2rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            background: "var(--bg-secondary)",
+            border: "1px solid var(--border)",
+            borderRadius: "1rem",
+            padding: "2rem",
+            maxWidth: "520px",
+          }}
+        >
+          <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>🚫</div>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+            Access denied
+          </h1>
+          <p style={{ color: "var(--text-secondary)" }}>
+            This dashboard is restricted to admins. Contact the owner if you need access.
+          </p>
         </div>
       </div>
     );
