@@ -39,10 +39,20 @@ const nextConfig = {
               "font-src 'self' fonts.gstatic.com",
               "img-src 'self' data: blob: https://lh3.googleusercontent.com",
               "connect-src 'self' *.supabase.co vitals.vercel-insights.com vercel.live fonts.googleapis.com fonts.gstatic.com cdn.jsdelivr.net unpkg.com",
+              "frame-src 'self' vercel.live",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
             ].join("; "),
+          },
+        ],
+      },
+      {
+        source: "/manifest.json",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/manifest+json",
           },
         ],
       },
