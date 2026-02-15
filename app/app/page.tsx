@@ -116,6 +116,9 @@ export default function Home() {
 
   return (
     <main id="app-main">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <noscript>
         <div
           style={{
@@ -276,7 +279,7 @@ export default function Home() {
         </nav>
 
         {/* MAIN WORKSPACE */}
-        <div className="main-content">
+        <div className="main-content" id="main-content" role="main">
           {/* TOP BAR */}
           <div className="top-bar">
             <div className="omnibar-container" id="omnibarContainer">
@@ -288,22 +291,23 @@ export default function Home() {
                 id="omnibarInput"
                 placeholder="Type word - def, paste text, or drag files here..."
                 autoComplete="off"
+                aria-label="Search cards or paste text to import"
               />
               <div className="omnibar-actions">
                 <div className="md-toolbar">
-                  <button className="md-btn" title="Bold (Ctrl+B)" data-md="**">
+                  <button className="md-btn" title="Bold (Ctrl+B)" data-md="**" aria-label="Make text bold">
                     <b>B</b>
                   </button>
-                  <button className="md-btn" title="Italic (Ctrl+I)" data-md="*">
+                  <button className="md-btn" title="Italic (Ctrl+I)" data-md="*" aria-label="Make text italic">
                     <i>I</i>
                   </button>
-                  <button className="md-btn" title="Code (Ctrl+`)" data-md="`">
+                  <button className="md-btn" title="Code (Ctrl+`)" data-md="`" aria-label="Format as code">
                     &lt;/&gt;
                   </button>
                 </div>
                 <span className="key-hint">ENTER</span>
               </div>
-              <input type="file" id="fileInput" className="hidden" accept=".txt,.csv,.docx" />
+              <input type="file" id="fileInput" className="hidden" accept=".txt,.csv,.docx" aria-label="Upload file to import cards" />
               <div id="commandDropdown" className="command-dropdown hidden"></div>
               <div id="omnibarPreview" className="omnibar-preview hidden"></div>
             </div>
