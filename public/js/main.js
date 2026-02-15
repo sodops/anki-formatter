@@ -623,41 +623,164 @@ function setupEventListeners() {
 
     // Shortcuts
     document.addEventListener('keydown', (e) => {
-        // Ctrl+/ for shortcuts
-        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-            e.preventDefault();
-            openShortcutsModal();
-        }
-        
-        // F1 for Command Palette
-        if (e.key === 'F1') {
-            e.preventDefault();
-            openCommandPalette();
-        }
-        
-        // Undo/Redo (Ctrl+Z, Ctrl+Y) — skip inside inputs
+        // Debug logging
         const isInputFocused = document.activeElement && 
             (document.activeElement.tagName === 'INPUT' || 
              document.activeElement.tagName === 'TEXTAREA' || 
              document.activeElement.isContentEditable);
         
+        console.log('🎹 Keyboard event:', {
+            key: e.key,
+            code: e.code,
+            ctrl: e.ctrlKey,
+            meta: e.metaKey,
+            shift: e.shiftKey,
+            alt: e.altKey,
+            isInputFocused
+        });
+        
+        // Ctrl+/ for shortcuts help
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+            e.preventDefault();
+            console.log('🔧 Opening shortcuts modal');
+            openShortcutsModal();
+            return;
+        }
+        
+        // Ctrl+K for Command Palette
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            console.log('🔧 Opening command palette (Ctrl+K)');
+            openCommandPalette();
+            return;
+        }
+        
+        // F1 for Command Palette (alternative)
+        if (e.key === 'F1') {
+            e.preventDefault();
+            console.log('🔧 Opening command palette (F1)');
+            openCommandPalette();
+            return;
+        }
+        
+        // Ctrl+S for Sync
+        if ((e.ctrlKey || e.metaKey) && e.key === 's' && !isInputFocused) {
+            e.preventDefault();
+            console.log('🔄 Triggering sync');
+            // Trigger sync
+            if (window.__ankiflow_triggerSync) {
+                window.__ankiflow_triggerSync();
+            }
+            return;
+        }
+        
+        // Ctrl+N for New Deck
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !isInputFocused) {
+            e.preventDefault();
+            console.log('➕ Creating new deck');
+            if (window.createDeck) window.createDeck();
+            return;
+        }
+        
+        // Ctrl+Enter for Add Card
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !isInputFocused) {
+            e.preventDefault();
+            console.log('➕ Adding card');
+            if (dom.btnAddCard) dom.btnAddCard.click();
+            return;
+        }
+        
+        // Ctrl+B for Toggle Sidebar
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b' && !isInputFocused) {
+            e.preventDefault();
+            console.log('🔄 Toggle sidebar');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('open');
+            return;
+        }
+        
+        // Ctrl+T for Theme Toggle
+        if ((e.ctrlKey || e.metaKey) && e.key === 't' && !isInputFocused) {
+            e.preventDefault();
+            console.log('🎨 Toggle theme');
+            if (window.toggleTheme) window.toggleTheme();
+            return;
+        }
+        
+        // Ctrl+1, 2, 3 for View Switching
+        if ((e.ctrlKey || e.metaKey) && ['1', '2', '3'].includes(e.key) && !isInputFocused) {
+            e.preventDefault();
+            const views = ['library', 'study', 'stats'];
+            const index = parseInt(e.key) - 1;
+            console.log('👁️ Switching view to:', views[index]);
+            if (window.switchView && views[index]) {
+                window.switchView(views[index]);
+            }
+            return;
+        }
+        
+        // Ctrl+O for Import File
+        if ((e.ctrlKey || e.metaKey) && e.key === 'o' && !isInputFocused) {
+            e.preventDefault();
+            console.log('📥 Opening import');
+            if (dom.fileInput) dom.fileInput.click();
+            return;
+        }
+        
+        // Ctrl+Shift+E for Export
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'E' && !isInputFocused) {
+            e.preventDefault();
+            console.log('📤 Opening export');
+            if (dom.btnExportDeck) dom.btnExportDeck.click();
+            return;
+        }
+        
+        // Undo/Redo (Ctrl+Z, Ctrl+Y)
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !isInputFocused) {
             e.preventDefault();
+            console.log('⏪ Undo');
             undo();
+            return;
         }
         if ((e.ctrlKey || e.metaKey) && e.key === 'y' && !isInputFocused) {
             e.preventDefault();
+            console.log('⏩ Redo');
             redo();
+            return;
         }
 
         // Ctrl+F for Search
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
             e.preventDefault();
+            console.log('🔍 Focus search');
             if(dom.searchInput) {
                 dom.searchInput.focus();
-                // Optional: Scroll to search bar if off screen
                 dom.searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
+            return;
+        }
+        
+        // Ctrl+A for Select All Cards (in library view)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !isInputFocused) {
+            e.preventDefault();
+            console.log('✅ Select all cards');
+            // Select all cards logic can be added here
+            return;
+        }
+        
+        // Delete key for Delete Card
+        if (e.key === 'Delete' && !isInputFocused) {
+            // Check if a card is selected
+            const selectedCard = document.querySelector('.card-item.selected');
+            if (selectedCard) {
+                e.preventDefault();
+                const cardId = selectedCard.dataset.cardId;
+                console.log('🗑️ Deleting card:', cardId);
+                if (cardId && window.removeCard) {
+                    window.removeCard(cardId);
+                }
+            }
+            return;
         }
 
         // Global Escape Handler for Feature Modals
