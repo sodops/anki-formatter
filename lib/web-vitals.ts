@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onFCP, onTTFB, onINP, Metric } from 'web-vitals';
+import { onCLS, onLCP, onFCP, onTTFB, onINP, Metric } from 'web-vitals';
 
 // Send metrics to analytics endpoint
 function sendToAnalytics(metric: Metric) {
@@ -28,7 +28,6 @@ function sendToAnalytics(metric: Metric) {
 export function reportWebVitals() {
   try {
     onCLS(sendToAnalytics);
-    onFID(sendToAnalytics);
     onLCP(sendToAnalytics);
     onFCP(sendToAnalytics);
     onTTFB(sendToAnalytics);
