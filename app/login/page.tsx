@@ -51,7 +51,7 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError(result.error);
-      } else if (result?.success) {
+      } else if (result && "success" in result && result.success) {
         setMessage(result.success);
         // If signin was successful, the server action would have redirected already.
         // If we are here, it's likely signup or forgot password success.

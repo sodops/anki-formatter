@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { analyticsSchema } from "@/lib/validations";
 
 /**
  * POST /api/analytics — Store Web Vitals metrics
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit: 100 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`analytics:${ip}`, { limit: 100, windowSec: 60 });
+    const rl = await rateLimit(`analytics:${ip}`, { limit: 100, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
@@ -27,16 +28,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, value, rating, delta, id, navigationType } = body;
-
-    // Validate required fields
-    if (!name || value === undefined) {
+    const raw = await request.json();
+    const parsed = analyticsSchema.safeParse(raw);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Invalid input", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+
+    const { name, value, rating, delta, id, navigationType } = parsed.data;
 
     await supabase.from("web_vitals").insert({
       user_id: user.id,

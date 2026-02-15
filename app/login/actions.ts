@@ -29,7 +29,7 @@ async function getClientId(): Promise<string> {
 export async function login(formData: FormData) {
   // Rate limiting - 5 attempts per 15 minutes
   const clientId = await getClientId();
-  const rateLimitResult = rateLimit(clientId, { limit: 5, windowSec: 15 * 60 });
+  const rateLimitResult = await rateLimit(clientId, { limit: 5, windowSec: 15 * 60 });
   
   if (!rateLimitResult.allowed) {
     const retryMinutes = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
@@ -63,7 +63,7 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   // Rate limiting - 3 attempts per hour (stricter for signups)
   const clientId = await getClientId();
-  const rateLimitResult = rateLimit(`${clientId}:signup`, { limit: 3, windowSec: 60 * 60 });
+  const rateLimitResult = await rateLimit(`${clientId}:signup`, { limit: 3, windowSec: 60 * 60 });
   
   if (!rateLimitResult.allowed) {
     const retryMinutes = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
@@ -103,7 +103,7 @@ export async function signup(formData: FormData) {
 export async function resetPassword(formData: FormData) {
   // Rate limiting - 3 attempts per hour
   const clientId = await getClientId();
-  const rateLimitResult = rateLimit(`${clientId}:reset`, { limit: 3, windowSec: 60 * 60 });
+  const rateLimitResult = await rateLimit(`${clientId}:reset`, { limit: 3, windowSec: 60 * 60 });
   
   if (!rateLimitResult.allowed) {
     const retryMinutes = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);

@@ -144,7 +144,7 @@ export default function AdminDashboard() {
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   // Data management
-  const [syncResult, setSyncResult] = useState<unknown>(null);
+  const [syncResult, setSyncResult] = useState<Record<string, unknown> | null>(null);
   const [syncLoading, setSyncLoading] = useState(false);
 
   useEffect(() => {

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { generateSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
   try {
     // Rate limit: 30 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`generate:${ip}`, { limit: 30, windowSec: 60 });
+    const rl = await rateLimit(`generate:${ip}`, { limit: 30, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -30,14 +31,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const data = await request.json();
-
-    if (!data || !data.cards || !Array.isArray(data.cards)) {
-      return NextResponse.json({ error: "No cards data provided" }, { status: 400 });
+    const raw = await request.json();
+    const parsed = generateSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid input", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
-    const cards: { question: string; answer: string }[] = data.cards;
-    const deckName = data.deck_name || "Smart Deck";
+    const { cards, deck_name: deckName } = parsed.data;
 
     // Generate a simple tab-separated text file for Anki import
     // (Since genanki is Python-only, we generate a TSV that Anki can import)

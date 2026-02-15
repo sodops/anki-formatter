@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logsSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   try {
     // Rate limit: 60 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`logs:${ip}`, { limit: 60, windowSec: 60 });
+    const rl = await rateLimit(`logs:${ip}`, { limit: 60, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
@@ -27,12 +28,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { level, message, data, user_agent } = body;
-
-    if (!message || !level) {
-      return NextResponse.json({ error: "Missing level or message" }, { status: 400 });
+    const raw = await request.json();
+    const parsed = logsSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid input", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const { level, message, data, user_agent } = parsed.data;
 
     const user_id = user.id;
 

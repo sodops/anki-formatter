@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { translateSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
   try {
     // Rate limit: 20 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`translate:${ip}`, { limit: 20, windowSec: 60 });
+    const rl = await rateLimit(`translate:${ip}`, { limit: 20, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -30,22 +31,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { text, target } = await request.json();
-
-    if (!text) {
-      return NextResponse.json({ error: "Text is required" }, { status: 400 });
+    const raw = await request.json();
+    const parsed = translateSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid input", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
-    // Determine target language (default to Uzbek if not specified)
-    // We will let Google detect the source language automatically.
-    // Ideally: If input is English -> Uzbek. If Uzbek -> English.
-    // Simple logic: If we send 'auto', Google handles detection.
-    // But we need to know WHICH direction to translate.
+    const { text, target } = parsed.data;
 
-    // Quick Hack: If text contains Uzbek chars (o', g') or non-english structure, target EN.
-    // Better: Translate to UZ. If result == source, translate to EN.
-
-    let targetLang = target || "uz";
+    // Determine target language (Zod defaults to 'uz' if not specified)
+    // Google auto-detects source language.
+    // Smart logic: if result unchanged, try opposite direction.
+    let targetLang = target;
 
     // Fetch translation using the public client API (Note: Use responsibly)
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;

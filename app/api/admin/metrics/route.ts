@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     // Rate limit: 30 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`admin-metrics:${ip}`, { limit: 30, windowSec: 60 });
+    const rl = await rateLimit(`admin-metrics:${ip}`, { limit: 30, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests" },

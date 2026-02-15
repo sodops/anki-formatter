@@ -30,12 +30,12 @@ jest.mock("@/lib/supabase/server", () => ({
 describe("API: /api/logs", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (rateLimit as jest.Mock).mockReturnValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    (rateLimit as jest.Mock).mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
     mockInsert.mockResolvedValue({ error: null });
   });
 
   it("should return 429 when rate limit exceeded", async () => {
-    (rateLimit as jest.Mock).mockReturnValue({ allowed: false, remaining: 0, resetAt: Date.now() + 30000 });
+    (rateLimit as jest.Mock).mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 30000 });
 
     const request = new NextRequest("http://localhost:3000/api/logs", {
       method: "POST",
@@ -61,7 +61,7 @@ describe("API: /api/logs", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe("Missing level or message");
+    expect(data.error).toBe("Invalid input");
   });
 
   it("should log successfully", async () => {

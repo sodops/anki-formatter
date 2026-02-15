@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { syncPostSchema } from "@/lib/validations";
 
 /**
  * GET /api/sync — Load user's state from cloud
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     // Rate limit: 30 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`sync-get:${ip}`, { limit: 30, windowSec: 60 });
+    const rl = await rateLimit(`sync-get:${ip}`, { limit: 30, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit: 20 requests per minute per IP
     const ip = getClientIP(request);
-    const rl = rateLimit(`sync-post:${ip}`, { limit: 20, windowSec: 60 });
+    const rl = await rateLimit(`sync-post:${ip}`, { limit: 20, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -191,8 +192,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { changes, settings, daily_progress } = body;
+    const raw = await request.json();
+    const parsed = syncPostSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid sync payload", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { changes, settings, daily_progress } = parsed.data;
 
     // Batch processing arrays
     interface DeckUpsert {
@@ -239,36 +248,38 @@ export async function POST(request: NextRequest) {
 
     if (changes && Array.isArray(changes)) {
       for (const change of changes) {
-        const { type, data, id } = change;
+        const { type, id } = change;
+        // data is Record<string, unknown> — cast fields as needed per type
+        const d = change.data as Record<string, string | number | boolean | string[] | Record<string, unknown> | undefined>;
 
         if (type === "DECK_CREATE" || type === "DECK_UPDATE") {
           deckUpserts.push({
-            id: data.id,
+            id: d.id as string,
             user_id: user.id,
-            name: data.name,
-            settings: { color: data.color },
-            is_deleted: data.isDeleted || false,
-            created_at: data.createdAt || new Date().toISOString(),
+            name: d.name as string,
+            settings: { color: d.color },
+            is_deleted: (d.isDeleted as boolean) || false,
+            created_at: (d.createdAt as string) || new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
         } else if (type === "CARD_CREATE" || type === "CARD_UPDATE") {
           // Ensure deck_id is present for new cards
-          if (!data.deckId && type === "CARD_CREATE") {
-            console.warn(`Skipping CARD_CREATE ${data.id}: Missing deckId`);
+          if (!d.deckId && type === "CARD_CREATE") {
+            console.warn(`Skipping CARD_CREATE ${d.id}: Missing deckId`);
             continue;
           }
 
           cardUpserts.push({
-            id: data.id,
-            deck_id: data.deckId, // Required
+            id: d.id as string,
+            deck_id: d.deckId as string, // Required
             user_id: user.id,
-            term: data.term,
-            definition: data.def, // Map 'def' to 'definition'
-            tags: data.tags || [],
-            review_data: data.reviewData,
-            is_suspended: data.suspended || false,
+            term: d.term as string,
+            definition: d.def as string, // Map 'def' to 'definition'
+            tags: (d.tags as string[]) || [],
+            review_data: d.reviewData as Record<string, unknown>,
+            is_suspended: (d.suspended as boolean) || false,
             is_deleted: false,
-            created_at: data.createdAt || new Date().toISOString(),
+            created_at: (d.createdAt as string) || new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
         } else if (type === "DECK_DELETE") {
@@ -277,14 +288,14 @@ export async function POST(request: NextRequest) {
           if (id) cardDeletes.push(id);
         } else if (type === "REVIEW_LOG") {
           reviewLogInserts.push({
-            id: data.id,
-            card_id: data.cardId,
+            id: d.id as string,
+            card_id: d.cardId as string,
             user_id: user.id,
-            deck_id: data.deckId,
-            grade: data.grade,
-            elapsed_time: data.elapsedTime,
-            review_state: data.reviewState,
-            created_at: data.createdAt,
+            deck_id: d.deckId as string,
+            grade: d.grade as number,
+            elapsed_time: d.elapsedTime as number,
+            review_state: d.reviewState as Record<string, unknown>,
+            created_at: d.createdAt as string,
           });
         }
       }

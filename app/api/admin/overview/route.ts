@@ -9,7 +9,7 @@ import { isAdminUser } from "@/lib/admin";
 export async function GET(request: NextRequest) {
   try {
     const ip = getClientIP(request);
-    const rl = rateLimit(`admin-overview:${ip}`, { limit: 30, windowSec: 60 });
+    const rl = await rateLimit(`admin-overview:${ip}`, { limit: 30, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }

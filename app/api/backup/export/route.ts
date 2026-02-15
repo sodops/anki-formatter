@@ -8,7 +8,7 @@ import { rateLimit, getClientIP } from "@/lib/rate-limit";
 export async function GET(request: NextRequest) {
   try {
     const ip = getClientIP(request);
-    const rl = rateLimit(`backup-export:${ip}`, { limit: 10, windowSec: 60 });
+    const rl = await rateLimit(`backup-export:${ip}`, { limit: 10, windowSec: 60 });
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }

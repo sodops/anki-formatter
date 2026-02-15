@@ -1330,8 +1330,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Toast Notification Container */}
-      <div id="toast" className="toast hidden"></div>
     </main>
   );
 }
