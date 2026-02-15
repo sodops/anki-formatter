@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/components/AuthProvider";
+import { Analytics } from "@vercel/analytics/react";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
