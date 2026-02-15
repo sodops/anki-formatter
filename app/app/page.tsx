@@ -89,6 +89,20 @@ export default function Home() {
     };
   }, [signOut]);
 
+  // Register Service Worker for offline support
+  useEffect(() => {
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
+
   if (loading || !user) {
     return (
       <main id="app-main">
