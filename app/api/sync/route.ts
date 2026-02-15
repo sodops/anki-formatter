@@ -225,10 +225,9 @@ export async function POST(request: NextRequest) {
       user_id: string;
       card_id: string;
       deck_id: string;
-      quality: number;
-      ease_factor: number;
-      interval: number;
-      next_review: string;
+      grade: number;
+      elapsed_time: number;
+      review_state: Record<string, unknown>;
       created_at: string;
     }
 
@@ -249,6 +248,7 @@ export async function POST(request: NextRequest) {
             name: data.name,
             settings: { color: data.color },
             is_deleted: data.isDeleted || false,
+            created_at: data.createdAt || new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
         } else if (type === "CARD_CREATE" || type === "CARD_UPDATE") {
@@ -268,9 +268,8 @@ export async function POST(request: NextRequest) {
             review_data: data.reviewData,
             is_suspended: data.suspended || false,
             is_deleted: false,
+            created_at: data.createdAt || new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            // Only set created_at on creation if provided, else DB default
-            ...(type === "CARD_CREATE" && data.createdAt ? { created_at: data.createdAt } : {}),
           });
         } else if (type === "DECK_DELETE") {
           if (id) deckDeletes.push(id);
