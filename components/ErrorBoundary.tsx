@@ -4,7 +4,7 @@ import { Component, ReactNode } from "react";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  fallback?: (error: Error, reset: () => void) => ReactNode;
+  fallback?: (_error: Error, _reset: () => void) => ReactNode;
 }
 
 interface ErrorBoundaryState {

@@ -208,7 +208,6 @@ export default function AdminMetrics() {
               marginBottom: "2rem"
             }}>
               {data.summary.map((metric) => {
-                const { good, poor } = getMetricThresholds(metric.name);
                 const color = getScoreColor(metric);
                 
                 return (

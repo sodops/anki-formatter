@@ -7,7 +7,13 @@ if (typeof Request === 'undefined') {
 
 if (typeof Response === 'undefined' || !Response.json) {
   global.Response = class Response {
-    constructor(public body?: any, public init?: ResponseInit) {}
+    body?: any;
+    init?: ResponseInit;
+
+    constructor(body?: any, init?: ResponseInit) {
+      this.body = body;
+      this.init = init;
+    }
     
     static json(data: any, init?: ResponseInit) {
       return new Response(JSON.stringify(data), {

@@ -35,6 +35,7 @@ export default [
       prettier,
     },
     rules: {
+      "no-unused-vars": "off",
       "prettier/prettier": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",

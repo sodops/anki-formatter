@@ -172,7 +172,7 @@ export function createErrorResponse(
  * Wrapper for API route handlers with automatic error handling
  */
 export function withErrorHandler<T>(
-  handler: (request: Request) => Promise<T>
+  handler: (_request: Request) => Promise<T>
 ): (request: Request) => Promise<T | NextResponse> {
   return async (request: Request) => {
     try {
