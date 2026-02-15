@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       sourceLang: targetLang === "en" ? "uz" : "en", // Infer source based on target
       targetLang: targetLang,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Translation Error:", err);
     return NextResponse.json({ error: "Failed to translate" }, { status: 500 });
   }

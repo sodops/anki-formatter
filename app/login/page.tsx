@@ -25,8 +25,9 @@ export default function LoginPage() {
         },
       });
       if (error) setError(error.message);
-    } catch (err: any) {
-      setError(err.message || "OAuth failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "OAuth failed";
+      setError(message);
     }
   };
 

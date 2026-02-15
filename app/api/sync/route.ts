@@ -152,9 +152,10 @@ export async function GET(request: NextRequest) {
         server_time: serverTime,
       });
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[SYNC GET]", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -194,11 +195,48 @@ export async function POST(request: NextRequest) {
     const { changes, settings, daily_progress } = body;
 
     // Batch processing arrays
-    const deckUpserts: any[] = [];
-    const cardUpserts: any[] = [];
+    interface DeckUpsert {
+      id: string;
+      user_id: string;
+      name: string;
+      description?: string;
+      settings?: Record<string, unknown>;
+      is_deleted: boolean;
+      created_at: string;
+      updated_at: string;
+    }
+
+    interface CardUpsert {
+      id: string;
+      user_id: string;
+      deck_id: string;
+      term: string;
+      definition: string;
+      tags?: string[];
+      review_data?: Record<string, unknown>;
+      is_suspended: boolean;
+      is_deleted: boolean;
+      created_at: string;
+      updated_at: string;
+    }
+
+    interface ReviewLogInsert {
+      id: string;
+      user_id: string;
+      card_id: string;
+      deck_id: string;
+      quality: number;
+      ease_factor: number;
+      interval: number;
+      next_review: string;
+      created_at: string;
+    }
+
+    const deckUpserts: DeckUpsert[] = [];
+    const cardUpserts: CardUpsert[] = [];
     const deckDeletes: string[] = [];
     const cardDeletes: string[] = [];
-    const reviewLogInserts: any[] = [];
+    const reviewLogInserts: ReviewLogInsert[] = [];
 
     if (changes && Array.isArray(changes)) {
       for (const change of changes) {
@@ -291,7 +329,12 @@ export async function POST(request: NextRequest) {
         .eq("user_id", user.id)
         .single();
 
-      const updateData: any = {
+      const updateData: {
+        user_id: string;
+        updated_at: string;
+        settings?: Record<string, unknown>;
+        daily_progress?: Record<string, unknown>;
+      } = {
         user_id: user.id,
         updated_at: new Date().toISOString(),
       };
@@ -351,8 +394,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, processed: changes?.length || 0 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[SYNC POST]", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
