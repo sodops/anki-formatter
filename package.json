@@ -19,7 +19,7 @@
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.39.7",
     "@vercel/analytics": "^1.6.1",
-    "next": "^14.1.0",
+    "next": "14.2.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ts-fsrs": "^5.2.3"

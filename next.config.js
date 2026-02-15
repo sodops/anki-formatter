@@ -47,15 +47,6 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: "/manifest.json",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/manifest+json",
-          },
-        ],
-      },
     ];
   },
   // Python API uchun proxy (development)

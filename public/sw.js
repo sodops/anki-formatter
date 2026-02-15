@@ -9,7 +9,6 @@ const STATIC_CACHE = [
   '/theme.css',
   '/js/main.js',
   '/js/theme.js',
-  '/manifest.json',
 ];
 
 // Install event - cache static assets
