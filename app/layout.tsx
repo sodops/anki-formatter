@@ -22,11 +22,20 @@ export const metadata: Metadata = {
     siteName: "AnkiFlow",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/og.svg",
+        width: 1200,
+        height: 630,
+        alt: "AnkiFlow — Smart flashcard study platform",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "AnkiFlow",
     description: "Smart flashcard study platform with spaced repetition",
+    images: ["/og.svg"],
   },
   alternates: {
     canonical: "https://anki.sodops.uz",

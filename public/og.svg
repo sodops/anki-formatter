@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="AnkiFlow Open Graph Image">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f0f23" />
+      <stop offset="100%" stop-color="#1b1b3a" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#22c55e" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="950" cy="130" r="140" fill="url(#accent)" opacity="0.25" />
+  <circle cx="140" cy="520" r="180" fill="url(#accent)" opacity="0.18" />
+  <text x="90" y="260" fill="#ffffff" font-size="72" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">
+    AnkiFlow
+  </text>
+  <text x="90" y="330" fill="#c7d2fe" font-size="30" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="500">
+    Smart flashcard study platform with spaced repetition
+  </text>
+  <g transform="translate(90 380)">
+    <rect width="220" height="54" rx="27" fill="url(#accent)" />
+    <text x="32" y="36" fill="#0f0f23" font-size="24" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">
+      Study Smarter
+    </text>
+  </g>
+  <text x="90" y="520" fill="#94a3b8" font-size="22" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif">
+    anki.sodops.uz
+  </text>
+</svg>
