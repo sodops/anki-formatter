@@ -270,7 +270,7 @@ export function createKeyboardShortcutsModal() {
     }
   };
 
-  searchInput.oninput = (e) => renderShortcuts((e.target as HTMLInputElement).value);
+  searchInput.oninput = (e) => renderShortcuts(e.target.value);
   renderShortcuts();
 
   content.appendChild(header);
@@ -284,7 +284,7 @@ export function createKeyboardShortcutsModal() {
   };
 
   // Close on Escape
-  const handleEscape = (e: KeyboardEvent) => {
+  const handleEscape = (e) => {
     if (e.key === "Escape") {
       modal.remove();
       document.removeEventListener("keydown", handleEscape);
