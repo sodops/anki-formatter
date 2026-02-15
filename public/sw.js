@@ -1,7 +1,7 @@
 // Service Worker for AnkiFlow
 // Provides offline support and caching
 
-const CACHE_NAME = 'ankiflow-v1';
+const CACHE_NAME = 'ankiflow-v2';
 const STATIC_CACHE = [
   '/',
   '/style.css',
@@ -46,9 +46,12 @@ self.addEventListener('fetch', (event) => {
   // Skip API calls (always go to network)
   if (event.request.url.includes('/api/')) return;
 
-  // Only cache same-origin requests to avoid CSP violations
+  // Only handle same-origin requests to avoid CSP violations
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) {
+    // Let browser handle external requests normally
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
