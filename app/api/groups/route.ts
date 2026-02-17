@@ -115,14 +115,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify teacher role
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
+    if (profileError) {
+      console.error("Profile query error:", profileError.message);
+      return NextResponse.json({ error: "Failed to verify role: " + profileError.message }, { status: 500 });
+    }
+
     if (profile?.role !== "teacher" && profile?.role !== "admin") {
-      return NextResponse.json({ error: "Only teachers can create groups" }, { status: 403 });
+      return NextResponse.json({ 
+        error: `Only teachers can create groups. Your current role is: "${profile?.role || 'unknown'}". Update your role to "teacher" in Supabase Dashboard → profiles table.` 
+      }, { status: 403 });
     }
 
     const body = await request.json();
@@ -144,21 +151,25 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Group insert error:", error.message, error.code);
+      return NextResponse.json({ error: "Failed to create group: " + error.message }, { status: 500 });
+    }
 
     // Auto-add teacher as a member
-    await supabase.from("group_members").insert({
+    const { error: memberError } = await supabase.from("group_members").insert({
       group_id: group.id,
       user_id: user.id,
       role: "teacher",
     });
 
+    if (memberError) {
+      console.error("Member insert error:", memberError.message);
+    }
+
     return NextResponse.json({ group }, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/groups error:", error?.message || error);
-    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
-      return NextResponse.json({ error: "Groups feature is not yet configured. Please run the database migration." }, { status: 503 });
-    }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error: " + (error?.message || "unknown") }, { status: 500 });
   }
 }
