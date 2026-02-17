@@ -21,13 +21,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    let role = "student";
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      role = profile?.role || "student";
+    } catch (profileError: any) {
+      console.warn("Profile query failed, defaulting to student role:", profileError?.message);
+    }
 
-    const role = profile?.role || "student";
     const { searchParams } = new URL(request.url);
     const groupId = searchParams.get("group_id");
 

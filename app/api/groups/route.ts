@@ -21,13 +21,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const role = profile?.role || "student";
+    let role = "student";
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      role = profile?.role || "student";
+    } catch (profileError: any) {
+      // If profiles table doesn't exist or query fails, default to student role
+      console.warn("Profile query failed, defaulting to student role:", profileError?.message);
+    }
 
     if (role === "teacher" || role === "admin") {
       // Teachers see groups they own + member counts
