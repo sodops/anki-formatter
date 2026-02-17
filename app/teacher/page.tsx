@@ -1,143 +1,138 @@
 "use client";
 
-import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
 
 interface Group {
   id: string;
   name: string;
-  description: string | null;
-  join_code: string;
+  description: string;
   color: string;
+  join_code: string;
+  max_members: number;
   member_count: number;
   assignment_count: number;
   created_at: string;
-  is_owner: boolean;
 }
 
 interface Assignment {
   id: string;
   title: string;
-  description: string | null;
+  description: string;
+  group_id: string;
+  group_name?: string;
+  group_color?: string;
   deadline: string | null;
   xp_reward: number;
-  group_id: string;
-  groups: { id: string; name: string; color: string };
-  assignment_decks: { id: string; deck_name: string; card_count: number }[];
-  progress_summary: {
+  status: string;
+  created_at: string;
+  progress_summary?: {
     total: number;
     completed: number;
     in_progress: number;
-    pending: number;
+    not_started: number;
     avg_accuracy: number;
   };
-  created_at: string;
 }
 
 interface Deck {
   id: string;
   name: string;
-  card_count?: number;
+  cards_count?: number;
 }
 
-type TeacherTab = "groups" | "assignments" | "create-group" | "create-assignment";
+const COLORS = [
+  "#6366F1", "#8B5CF6", "#EC4899", "#EF4444",
+  "#F59E0B", "#10B981", "#06B6D4", "#3B82F6",
+];
 
 export default function TeacherDashboard() {
-  const { user, loading: authLoading, role } = useAuth();
-  const [tab, setTab] = useState<TeacherTab>("groups");
+  const { user, loading, role, signOut } = useAuth();
+  const router = useRouter();
+
+  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "assignments" | "create-group" | "create-assignment">("overview");
   const [groups, setGroups] = useState<Group[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [myDecks, setMyDecks] = useState<Deck[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Create group form
   const [groupName, setGroupName] = useState("");
   const [groupDesc, setGroupDesc] = useState("");
-  const [groupColor, setGroupColor] = useState("#6366F1");
+  const [groupColor, setGroupColor] = useState(COLORS[0]);
 
   // Create assignment form
+  const [assignGroup, setAssignGroup] = useState("");
   const [assignTitle, setAssignTitle] = useState("");
   const [assignDesc, setAssignDesc] = useState("");
-  const [assignGroupId, setAssignGroupId] = useState("");
   const [assignDeadline, setAssignDeadline] = useState("");
-  const [assignXP, setAssignXP] = useState(10);
-  const [selectedDeckIds, setSelectedDeckIds] = useState<string[]>([]);
+  const [assignXP, setAssignXP] = useState(50);
+  const [assignDecks, setAssignDecks] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Copy join code handler
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setSuccess("Join code copied!");
+    setTimeout(() => setSuccess(""), 2000);
+  };
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
-      const [groupsRes, assignmentsRes] = await Promise.all([
+      const [groupsRes, assignRes, syncRes] = await Promise.all([
         fetch("/api/groups"),
         fetch("/api/assignments"),
+        fetch("/api/sync"),
       ]);
-
+      
       if (groupsRes.ok) {
-        const data = await groupsRes.json();
-        setGroups(data.groups || []);
+        const gd = await groupsRes.json();
+        setGroups(gd.groups || []);
       }
-      if (assignmentsRes.ok) {
-        const data = await assignmentsRes.json();
-        setAssignments(data.assignments || []);
+      if (assignRes.ok) {
+        const ad = await assignRes.json();
+        setAssignments(ad.assignments || []);
+      }
+      if (syncRes.ok) {
+        const sd = await syncRes.json();
+        const allDecks = sd.data?.decks || sd.decks || [];
+        setDecks(allDecks.map((d: any) => ({ id: d.id, name: d.name, cards_count: d.cards?.length || d.cards_count || 0 })));
       }
     } catch {
       setError("Failed to load data");
     } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchDecks = useCallback(async () => {
-    try {
-      const res = await fetch("/api/sync");
-      if (res.ok) {
-        const data = await res.json();
-        const state = data.state || data;
-        const decks = (state.decks || []).map((d: Record<string, unknown>) => ({
-          id: d.id,
-          name: d.name,
-          card_count: Array.isArray(d.cards) ? d.cards.length : 0,
-        }));
-        setMyDecks(decks);
-      }
-    } catch {
-      // ignore
+      setLoadingData(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!loading && user && (role === "teacher" || role === "admin")) {
       fetchData();
-      fetchDecks();
     }
-  }, [authLoading, user, fetchData, fetchDecks]);
+  }, [loading, user, role, fetchData]);
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    if (!groupName.trim()) return;
     setSubmitting(true);
-
+    setError("");
     try {
       const res = await fetch("/api/groups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: groupName, description: groupDesc, color: groupColor }),
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setSuccess(`Group "${groupName}" created! Join code: ${data.group.join_code}`);
-      setGroupName("");
-      setGroupDesc("");
-      setTab("groups");
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      setSuccess("Group created successfully!");
+      setGroupName(""); setGroupDesc(""); setGroupColor(COLORS[0]);
+      setActiveTab("groups");
       fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create group");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -145,469 +140,544 @@ export default function TeacherDashboard() {
 
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    if (!assignTitle.trim() || !assignGroup) return;
     setSubmitting(true);
-
+    setError("");
     try {
       const res = await fetch("/api/assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          group_id: assignGroupId,
+          group_id: assignGroup,
           title: assignTitle,
           description: assignDesc,
           deadline: assignDeadline || null,
           xp_reward: assignXP,
-          deck_ids: selectedDeckIds,
+          deck_ids: assignDecks,
         }),
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setSuccess(`Assignment "${assignTitle}" created!`);
-      setAssignTitle("");
-      setAssignDesc("");
-      setAssignDeadline("");
-      setSelectedDeckIds([]);
-      setTab("assignments");
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      setSuccess("Assignment created!");
+      setAssignTitle(""); setAssignDesc(""); setAssignDeadline(""); setAssignXP(50); setAssignDecks([]);
+      setActiveTab("assignments");
       fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create assignment");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const deleteGroup = async (groupId: string) => {
-    if (!confirm("Delete this group? This cannot be undone.")) return;
+  const handleDeleteGroup = async (id: string) => {
+    if (!confirm("Delete this group? All assignments and progress will be lost.")) return;
     try {
-      const res = await fetch(`/api/groups/${groupId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
+      await fetch(`/api/groups/${id}`, { method: "DELETE" });
       fetchData();
-    } catch {
-      setError("Failed to delete group");
-    }
+    } catch {}
   };
 
-  const deleteAssignment = async (assignmentId: string) => {
-    if (!confirm("Delete this assignment?")) return;
-    try {
-      const res = await fetch(`/api/assignments/${assignmentId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
-      fetchData();
-    } catch {
-      setError("Failed to delete assignment");
-    }
-  };
-
-  const copyJoinCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setSuccess("Join code copied to clipboard!");
-    setTimeout(() => setSuccess(null), 2000);
-  };
-
-  if (authLoading || loading) {
+  if (loading) {
     return (
-      <div className="teacher-loading">
-        <div className="teacher-spinner"></div>
-        <p>Loading dashboard...</p>
+      <div className="t-loading">
+        <div className="t-spinner" />
+        <span>Loading...</span>
       </div>
     );
   }
 
-  if (role !== "teacher" && role !== "admin") {
+  if (!user || (role !== "teacher" && role !== "admin")) {
     return (
-      <div className="teacher-loading">
+      <div className="t-loading">
         <h2>Access Denied</h2>
-        <p>Only teachers can access this page.</p>
-        <Link href="/app" style={{ color: "#6366F1" }}>← Back to App</Link>
+        <p>This page is only for teachers.</p>
+        <a href="/student" className="t-btn t-btn-primary">Go to Student Hub</a>
       </div>
     );
   }
 
-  const colors = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#F97316"];
+  const totalStudents = groups.reduce((s, g) => s + (g.member_count - 1), 0);
+  const activeAssignments = assignments.filter(a => a.status === "active").length;
+  const overdueCount = assignments.filter(a => a.deadline && new Date(a.deadline) < new Date() && a.status === "active").length;
 
   return (
-    <div className="teacher-container">
+    <div className="t-dashboard">
       {/* Sidebar */}
-      <aside className="teacher-sidebar">
-        <div className="teacher-sidebar-header">
-          <Link href="/app" className="teacher-logo">
-            <span className="teacher-logo-icon">⚡</span>
-            <span>AnkiFlow</span>
-          </Link>
-          <span className="teacher-role-badge">Teacher</span>
+      <aside className="t-sidebar">
+        <div className="t-brand">
+          <span className="t-brand-icon">⚡</span>
+          <span className="t-brand-name">AnkiFlow</span>
+          <span className="t-role-tag">Teacher</span>
         </div>
 
-        <nav className="teacher-nav">
-          <button className={`teacher-nav-item ${tab === "groups" ? "active" : ""}`} onClick={() => setTab("groups")}>
-            <ion-icon name="people-outline"></ion-icon>
-            <span>My Groups</span>
-            <span className="teacher-nav-count">{groups.length}</span>
+        <nav className="t-nav">
+          <button className={`t-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>Overview</span>
           </button>
-          <button className={`teacher-nav-item ${tab === "assignments" ? "active" : ""}`} onClick={() => setTab("assignments")}>
+          <button className={`t-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => setActiveTab('groups')}>
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Groups</span>
+            {groups.length > 0 && <span className="t-nav-count">{groups.length}</span>}
+          </button>
+          <button className={`t-nav-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => setActiveTab('assignments')}>
             <ion-icon name="document-text-outline"></ion-icon>
             <span>Assignments</span>
-            <span className="teacher-nav-count">{assignments.length}</span>
+            {activeAssignments > 0 && <span className="t-nav-count">{activeAssignments}</span>}
           </button>
-          <hr className="teacher-nav-divider" />
-          <button className={`teacher-nav-item teacher-nav-action ${tab === "create-group" ? "active" : ""}`} onClick={() => setTab("create-group")}>
+        </nav>
+
+        <div className="t-nav-divider"></div>
+
+        <nav className="t-nav">
+          <button className={`t-nav-item ${activeTab === 'create-group' ? 'active' : ''}`} onClick={() => setActiveTab('create-group')}>
             <ion-icon name="add-circle-outline"></ion-icon>
             <span>New Group</span>
           </button>
-          <button className={`teacher-nav-item teacher-nav-action ${tab === "create-assignment" ? "active" : ""}`} onClick={() => setTab("create-assignment")}>
+          <button className={`t-nav-item ${activeTab === 'create-assignment' ? 'active' : ''}`} onClick={() => setActiveTab('create-assignment')}>
             <ion-icon name="create-outline"></ion-icon>
             <span>New Assignment</span>
           </button>
         </nav>
 
-        <div className="teacher-sidebar-footer">
-          <Link href="/app" className="teacher-nav-item">
-            <ion-icon name="arrow-back-outline"></ion-icon>
-            <span>Back to App</span>
-          </Link>
+        <div className="t-nav-divider"></div>
+        
+        <nav className="t-nav">
+          <a href="/app/study" className="t-nav-item">
+            <ion-icon name="flash-outline"></ion-icon>
+            <span>Study Cards</span>
+          </a>
+          {role === "admin" && (
+            <a href="/admin/dashboard" className="t-nav-item">
+              <ion-icon name="settings-outline"></ion-icon>
+              <span>Admin Panel</span>
+            </a>
+          )}
+        </nav>
+
+        <div className="t-sidebar-footer">
+          <div className="t-user-info">
+            <div className="t-user-avatar">
+              {user.user_metadata?.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="" />
+              ) : (
+                <span>{(user.user_metadata?.full_name || user.email || "T").charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="t-user-details">
+              <div className="t-user-name">{user.user_metadata?.full_name || user.email?.split("@")[0] || "Teacher"}</div>
+              <div className="t-user-email">{user.email}</div>
+            </div>
+          </div>
+          <button className="t-logout-btn" onClick={signOut} title="Sign out">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="teacher-main">
+      {/* Main Content */}
+      <main className="t-main">
         {/* Alerts */}
         {error && (
-          <div className="teacher-alert teacher-alert-error">
-            <ion-icon name="alert-circle-outline"></ion-icon>
+          <div className="t-alert t-alert-error">
+            <ion-icon name="alert-circle"></ion-icon>
             <span>{error}</span>
-            <button onClick={() => setError(null)}>×</button>
+            <button onClick={() => setError("")}>×</button>
           </div>
         )}
         {success && (
-          <div className="teacher-alert teacher-alert-success">
-            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <div className="t-alert t-alert-success">
+            <ion-icon name="checkmark-circle"></ion-icon>
             <span>{success}</span>
-            <button onClick={() => setSuccess(null)}>×</button>
+            <button onClick={() => setSuccess("")}>×</button>
           </div>
         )}
 
-        {/* Groups Tab */}
-        {tab === "groups" && (
-          <div className="teacher-section">
-            <div className="teacher-section-header">
-              <h1>My Groups</h1>
-              <button className="teacher-btn teacher-btn-primary" onClick={() => setTab("create-group")}>
-                <ion-icon name="add-outline"></ion-icon> New Group
-              </button>
-            </div>
+        {loadingData ? (
+          <div className="t-loading-content">
+            <div className="t-spinner" />
+            <span>Loading your data...</span>
+          </div>
+        ) : (
+          <>
+            {/* OVERVIEW TAB */}
+            {activeTab === "overview" && (
+              <div className="t-content">
+                <div className="t-page-header">
+                  <div>
+                    <h1>Welcome back, {user.user_metadata?.full_name || user.email?.split("@")[0] || "Teacher"} 👋</h1>
+                    <p className="t-subtitle">Here&apos;s what&apos;s happening with your classes</p>
+                  </div>
+                </div>
 
-            {groups.length === 0 ? (
-              <div className="teacher-empty">
-                <ion-icon name="people-outline" style={{ fontSize: "48px", opacity: 0.3 }}></ion-icon>
-                <h3>No groups yet</h3>
-                <p>Create your first group and invite students with a join code.</p>
-                <button className="teacher-btn teacher-btn-primary" onClick={() => setTab("create-group")}>
-                  Create Group
-                </button>
-              </div>
-            ) : (
-              <div className="teacher-grid">
-                {groups.map(group => (
-                  <div key={group.id} className="teacher-card" style={{ borderTop: `3px solid ${group.color}` }}>
-                    <div className="teacher-card-header">
-                      <h3>{group.name}</h3>
-                      <button className="teacher-btn-icon" onClick={() => deleteGroup(group.id)} title="Delete group">
-                        <ion-icon name="trash-outline"></ion-icon>
-                      </button>
+                {/* Stats Row */}
+                <div className="t-stats-row">
+                  <div className="t-stat-card">
+                    <div className="t-stat-icon" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366F1' }}>
+                      <ion-icon name="people"></ion-icon>
                     </div>
-                    {group.description && <p className="teacher-card-desc">{group.description}</p>}
-                    <div className="teacher-card-stats">
-                      <div className="teacher-stat">
-                        <ion-icon name="people-outline"></ion-icon>
-                        <span>{group.member_count} members</span>
-                      </div>
-                      <div className="teacher-stat">
-                        <ion-icon name="document-text-outline"></ion-icon>
-                        <span>{group.assignment_count} assignments</span>
-                      </div>
-                    </div>
-                    <div className="teacher-card-footer">
-                      <div className="teacher-join-code">
-                        <span className="teacher-join-label">Join Code:</span>
-                        <code>{group.join_code}</code>
-                        <button className="teacher-btn-icon" onClick={() => copyJoinCode(group.join_code)} title="Copy">
-                          <ion-icon name="copy-outline"></ion-icon>
-                        </button>
-                      </div>
-                      <Link href={`/teacher/groups/${group.id}`} className="teacher-btn teacher-btn-outline">
-                        View Details
-                      </Link>
+                    <div>
+                      <div className="t-stat-value">{groups.length}</div>
+                      <div className="t-stat-label">Groups</div>
                     </div>
                   </div>
-                ))}
+                  <div className="t-stat-card">
+                    <div className="t-stat-icon" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
+                      <ion-icon name="school"></ion-icon>
+                    </div>
+                    <div>
+                      <div className="t-stat-value">{totalStudents}</div>
+                      <div className="t-stat-label">Students</div>
+                    </div>
+                  </div>
+                  <div className="t-stat-card">
+                    <div className="t-stat-icon" style={{ background: 'rgba(245,158,11,0.1)', color: '#F59E0B' }}>
+                      <ion-icon name="document-text"></ion-icon>
+                    </div>
+                    <div>
+                      <div className="t-stat-value">{activeAssignments}</div>
+                      <div className="t-stat-label">Active Tasks</div>
+                    </div>
+                  </div>
+                  <div className="t-stat-card">
+                    <div className="t-stat-icon" style={{ background: overdueCount > 0 ? 'rgba(239,68,68,0.1)' : 'rgba(107,114,128,0.1)', color: overdueCount > 0 ? '#EF4444' : '#6B7280' }}>
+                      <ion-icon name="time"></ion-icon>
+                    </div>
+                    <div>
+                      <div className="t-stat-value">{overdueCount}</div>
+                      <div className="t-stat-label">Overdue</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Quick Actions</h2>
+                  <div className="t-quick-actions">
+                    <button className="t-quick-action" onClick={() => setActiveTab("create-group")}>
+                      <ion-icon name="people-outline"></ion-icon>
+                      <span>Create Group</span>
+                    </button>
+                    <button className="t-quick-action" onClick={() => setActiveTab("create-assignment")}>
+                      <ion-icon name="create-outline"></ion-icon>
+                      <span>New Assignment</span>
+                    </button>
+                    <a href="/app/study" className="t-quick-action">
+                      <ion-icon name="flash-outline"></ion-icon>
+                      <span>Study Cards</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Recent Groups */}
+                {groups.length > 0 && (
+                  <div className="t-section">
+                    <div className="t-section-header">
+                      <h2 className="t-section-title">Your Groups</h2>
+                      <button className="t-link-btn" onClick={() => setActiveTab("groups")}>View All →</button>
+                    </div>
+                    <div className="t-card-grid">
+                      {groups.slice(0, 4).map(g => (
+                        <Link href={`/teacher/groups/${g.id}`} key={g.id} className="t-group-card" style={{ borderTopColor: g.color }}>
+                          <div className="t-group-card-header">
+                            <div className="t-group-dot" style={{ background: g.color }}></div>
+                            <h3>{g.name}</h3>
+                          </div>
+                          <p className="t-group-desc">{g.description || "No description"}</p>
+                          <div className="t-group-footer">
+                            <span><ion-icon name="people-outline"></ion-icon> {g.member_count} members</span>
+                            <span><ion-icon name="document-text-outline"></ion-icon> {g.assignment_count} tasks</span>
+                          </div>
+                          <div className="t-group-code" onClick={(e) => { e.preventDefault(); copyCode(g.join_code); }}>
+                            <span>Code: <strong>{g.join_code}</strong></span>
+                            <ion-icon name="copy-outline"></ion-icon>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Assignments */}
+                {assignments.length > 0 && (
+                  <div className="t-section">
+                    <div className="t-section-header">
+                      <h2 className="t-section-title">Recent Assignments</h2>
+                      <button className="t-link-btn" onClick={() => setActiveTab("assignments")}>View All →</button>
+                    </div>
+                    <div className="t-assign-list">
+                      {assignments.slice(0, 5).map(a => {
+                        const ps = a.progress_summary;
+                        const pct = ps && ps.total > 0 ? Math.round((ps.completed / ps.total) * 100) : 0;
+                        const isOverdue = a.deadline && new Date(a.deadline) < new Date();
+                        return (
+                          <Link href={`/teacher/assignments/${a.id}`} key={a.id} className={`t-assign-row ${isOverdue ? 'overdue' : ''}`}>
+                            <div className="t-assign-row-left">
+                              <span className="t-assign-dot" style={{ background: a.group_color || '#6366F1' }}></span>
+                              <div>
+                                <div className="t-assign-title">{a.title}</div>
+                                <div className="t-assign-meta">
+                                  {a.group_name && <span className="t-assign-group">{a.group_name}</span>}
+                                  {a.deadline && (
+                                    <span className={`t-assign-deadline ${isOverdue ? 'overdue' : ''}`}>
+                                      <ion-icon name="time-outline"></ion-icon>
+                                      {new Date(a.deadline).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                  <span className="t-assign-xp">⚡ {a.xp_reward} XP</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="t-assign-row-right">
+                              <div className="t-mini-progress">
+                                <div className="t-mini-progress-fill" style={{ width: `${pct}%` }}></div>
+                              </div>
+                              <span className="t-assign-pct">{pct}%</span>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {groups.length === 0 && (
+                  <div className="t-empty-state">
+                    <div className="t-empty-icon">📚</div>
+                    <h3>Get Started!</h3>
+                    <p>Create your first group and start assigning tasks to students.</p>
+                    <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>
+                      <ion-icon name="add-circle-outline"></ion-icon>
+                      Create First Group
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {/* Assignments Tab */}
-        {tab === "assignments" && (
-          <div className="teacher-section">
-            <div className="teacher-section-header">
-              <h1>Assignments</h1>
-              <button className="teacher-btn teacher-btn-primary" onClick={() => setTab("create-assignment")}>
-                <ion-icon name="add-outline"></ion-icon> New Assignment
-              </button>
-            </div>
+            {/* GROUPS TAB */}
+            {activeTab === "groups" && (
+              <div className="t-content">
+                <div className="t-page-header">
+                  <div>
+                    <h1>Your Groups</h1>
+                    <p className="t-subtitle">{groups.length} group{groups.length !== 1 ? 's' : ''} · {totalStudents} student{totalStudents !== 1 ? 's' : ''}</p>
+                  </div>
+                  <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>
+                    <ion-icon name="add-circle-outline"></ion-icon>
+                    New Group
+                  </button>
+                </div>
 
-            {assignments.length === 0 ? (
-              <div className="teacher-empty">
-                <ion-icon name="document-text-outline" style={{ fontSize: "48px", opacity: 0.3 }}></ion-icon>
-                <h3>No assignments yet</h3>
-                <p>Create assignments and assign decks to your groups.</p>
-                <button className="teacher-btn teacher-btn-primary" onClick={() => setTab("create-assignment")}>
-                  Create Assignment
-                </button>
-              </div>
-            ) : (
-              <div className="teacher-assignments-list">
-                {assignments.map(assignment => {
-                  const deadline = assignment.deadline ? new Date(assignment.deadline) : null;
-                  const isOverdue = deadline && deadline < new Date();
-                  const progress = assignment.progress_summary;
-                  const completionRate = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
-
-                  return (
-                    <div key={assignment.id} className="teacher-assignment-card">
-                      <div className="teacher-assignment-header">
-                        <div>
-                          <h3>{assignment.title}</h3>
-                          <div className="teacher-assignment-meta">
-                            <span className="teacher-group-tag" style={{ background: assignment.groups?.color || "#6366F1" }}>
-                              {assignment.groups?.name}
-                            </span>
-                            {deadline && (
-                              <span className={`teacher-deadline ${isOverdue ? "overdue" : ""}`}>
-                                <ion-icon name="time-outline"></ion-icon>
-                                {deadline.toLocaleDateString()}
-                              </span>
-                            )}
-                            <span className="teacher-xp-badge">+{assignment.xp_reward} XP</span>
-                          </div>
+                {groups.length === 0 ? (
+                  <div className="t-empty-state">
+                    <div className="t-empty-icon">👥</div>
+                    <h3>No groups yet</h3>
+                    <p>Create a group and share the join code with your students.</p>
+                    <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>Create Group</button>
+                  </div>
+                ) : (
+                  <div className="t-card-grid">
+                    {groups.map(g => (
+                      <div key={g.id} className="t-group-card" style={{ borderTopColor: g.color }}>
+                        <div className="t-group-card-header">
+                          <div className="t-group-dot" style={{ background: g.color }}></div>
+                          <h3>{g.name}</h3>
                         </div>
-                        <div className="teacher-assignment-actions">
-                          <Link href={`/teacher/assignments/${assignment.id}`} className="teacher-btn teacher-btn-outline teacher-btn-sm">
-                            Details
+                        <p className="t-group-desc">{g.description || "No description"}</p>
+                        <div className="t-group-footer">
+                          <span><ion-icon name="people-outline"></ion-icon> {g.member_count} members</span>
+                          <span><ion-icon name="document-text-outline"></ion-icon> {g.assignment_count} tasks</span>
+                        </div>
+                        <div className="t-group-code" onClick={() => copyCode(g.join_code)}>
+                          <span>Join Code: <strong>{g.join_code}</strong></span>
+                          <ion-icon name="copy-outline"></ion-icon>
+                        </div>
+                        <div className="t-group-actions">
+                          <Link href={`/teacher/groups/${g.id}`} className="t-btn t-btn-sm t-btn-outline">
+                            <ion-icon name="eye-outline"></ion-icon> Details
                           </Link>
-                          <button className="teacher-btn-icon" onClick={() => deleteAssignment(assignment.id)}>
-                            <ion-icon name="trash-outline"></ion-icon>
+                          <button className="t-btn t-btn-sm t-btn-danger" onClick={() => handleDeleteGroup(g.id)}>
+                            <ion-icon name="trash-outline"></ion-icon> Delete
                           </button>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-                      {assignment.description && <p className="teacher-assignment-desc">{assignment.description}</p>}
+            {/* ASSIGNMENTS TAB */}
+            {activeTab === "assignments" && (
+              <div className="t-content">
+                <div className="t-page-header">
+                  <div>
+                    <h1>Assignments</h1>
+                    <p className="t-subtitle">{assignments.length} total · {activeAssignments} active</p>
+                  </div>
+                  <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-assignment")}>
+                    <ion-icon name="add-circle-outline"></ion-icon>
+                    New Assignment
+                  </button>
+                </div>
 
-                      <div className="teacher-assignment-decks">
-                        {assignment.assignment_decks?.map(d => (
-                          <span key={d.id} className="teacher-deck-chip">
-                            <ion-icon name="albums-outline"></ion-icon>
-                            {d.deck_name} ({d.card_count} cards)
-                          </span>
+                {assignments.length === 0 ? (
+                  <div className="t-empty-state">
+                    <div className="t-empty-icon">📝</div>
+                    <h3>No assignments yet</h3>
+                    <p>Create an assignment and assign it to one of your groups.</p>
+                    <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-assignment")}>Create Assignment</button>
+                  </div>
+                ) : (
+                  <div className="t-assign-list">
+                    {assignments.map(a => {
+                      const ps = a.progress_summary;
+                      const pct = ps && ps.total > 0 ? Math.round((ps.completed / ps.total) * 100) : 0;
+                      const isOverdue = a.deadline && new Date(a.deadline) < new Date() && a.status === "active";
+                      return (
+                        <Link href={`/teacher/assignments/${a.id}`} key={a.id} className={`t-assign-card-full ${isOverdue ? 'overdue' : ''}`}>
+                          <div className="t-assign-card-top">
+                            <div>
+                              <div className="t-assign-title-lg">{a.title}</div>
+                              <div className="t-assign-meta">
+                                {a.group_name && (
+                                  <span className="t-group-chip" style={{ background: a.group_color || '#6366F1' }}>{a.group_name}</span>
+                                )}
+                                {a.deadline && (
+                                  <span className={`t-assign-deadline ${isOverdue ? 'overdue' : ''}`}>
+                                    <ion-icon name="time-outline"></ion-icon>
+                                    {isOverdue ? 'Overdue: ' : 'Due: '}{new Date(a.deadline).toLocaleDateString()}
+                                  </span>
+                                )}
+                                <span className="t-assign-xp">⚡ {a.xp_reward} XP</span>
+                              </div>
+                            </div>
+                            <span className={`t-status-badge ${a.status}`}>{a.status}</span>
+                          </div>
+                          {ps && (
+                            <div className="t-assign-progress-section">
+                              <div className="t-progress-bar-lg">
+                                <div className="t-progress-fill-lg" style={{ width: `${pct}%` }}></div>
+                              </div>
+                              <div className="t-progress-stats">
+                                <span className="t-progress-done">{ps.completed} completed</span>
+                                <span className="t-progress-wip">{ps.in_progress} in progress</span>
+                                <span className="t-progress-pending">{ps.not_started} not started</span>
+                                {ps.avg_accuracy > 0 && <span className="t-progress-acc">{Math.round(ps.avg_accuracy)}% avg accuracy</span>}
+                              </div>
+                            </div>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CREATE GROUP TAB */}
+            {activeTab === "create-group" && (
+              <div className="t-content">
+                <div className="t-page-header">
+                  <h1>Create New Group</h1>
+                </div>
+                <div className="t-form-card">
+                  <form onSubmit={handleCreateGroup}>
+                    <div className="t-form-group">
+                      <label>Group Name *</label>
+                      <input type="text" value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="e.g., English 101" required />
+                    </div>
+                    <div className="t-form-group">
+                      <label>Description</label>
+                      <textarea value={groupDesc} onChange={e => setGroupDesc(e.target.value)} placeholder="Describe the group purpose..." rows={3} />
+                    </div>
+                    <div className="t-form-group">
+                      <label>Color</label>
+                      <div className="t-color-picker">
+                        {COLORS.map(c => (
+                          <button key={c} type="button" className={`t-color-swatch ${groupColor === c ? 'active' : ''}`}
+                            style={{ background: c }} onClick={() => setGroupColor(c)} />
                         ))}
                       </div>
+                    </div>
+                    <button type="submit" className="t-btn t-btn-primary t-btn-lg" disabled={submitting || !groupName.trim()}>
+                      {submitting ? "Creating..." : "Create Group"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
 
-                      {/* Progress Bar */}
-                      <div className="teacher-progress-section">
-                        <div className="teacher-progress-header">
-                          <span>Student Progress</span>
-                          <span>{progress.completed}/{progress.total} completed ({completionRate}%)</span>
+            {/* CREATE ASSIGNMENT TAB */}
+            {activeTab === "create-assignment" && (
+              <div className="t-content">
+                <div className="t-page-header">
+                  <h1>Create New Assignment</h1>
+                </div>
+                {groups.length === 0 ? (
+                  <div className="t-empty-state">
+                    <div className="t-empty-icon">⚠️</div>
+                    <h3>Create a group first</h3>
+                    <p>You need at least one group before creating assignments.</p>
+                    <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>Create Group</button>
+                  </div>
+                ) : (
+                  <div className="t-form-card">
+                    <form onSubmit={handleCreateAssignment}>
+                      <div className="t-form-group">
+                        <label>Group *</label>
+                        <select value={assignGroup} onChange={e => setAssignGroup(e.target.value)} required>
+                          <option value="">Select a group...</option>
+                          {groups.map(g => (
+                            <option key={g.id} value={g.id}>{g.name} ({g.member_count} members)</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="t-form-group">
+                        <label>Title *</label>
+                        <input type="text" value={assignTitle} onChange={e => setAssignTitle(e.target.value)} placeholder="e.g., Week 1 Vocabulary" required />
+                      </div>
+                      <div className="t-form-group">
+                        <label>Description</label>
+                        <textarea value={assignDesc} onChange={e => setAssignDesc(e.target.value)} placeholder="Instructions for students..." rows={3} />
+                      </div>
+                      <div className="t-form-row">
+                        <div className="t-form-group">
+                          <label>Deadline</label>
+                          <input type="datetime-local" value={assignDeadline} onChange={e => setAssignDeadline(e.target.value)} />
                         </div>
-                        <div className="teacher-progress-bar">
-                          <div className="teacher-progress-fill completed" style={{ width: `${(progress.completed / Math.max(progress.total, 1)) * 100}%` }}></div>
-                          <div className="teacher-progress-fill in-progress" style={{ width: `${(progress.in_progress / Math.max(progress.total, 1)) * 100}%` }}></div>
-                        </div>
-                        <div className="teacher-progress-legend">
-                          <span><span className="dot completed"></span> Completed: {progress.completed}</span>
-                          <span><span className="dot in-progress"></span> In Progress: {progress.in_progress}</span>
-                          <span><span className="dot pending"></span> Pending: {progress.pending}</span>
-                          {progress.avg_accuracy > 0 && <span>Avg Accuracy: {progress.avg_accuracy}%</span>}
+                        <div className="t-form-group">
+                          <label>XP Reward</label>
+                          <input type="number" value={assignXP} onChange={e => setAssignXP(Number(e.target.value))} min={0} max={1000} />
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Create Group Tab */}
-        {tab === "create-group" && (
-          <div className="teacher-section">
-            <div className="teacher-section-header">
-              <h1>Create New Group</h1>
-            </div>
-            <form onSubmit={handleCreateGroup} className="teacher-form">
-              <div className="teacher-field">
-                <label>Group Name *</label>
-                <input
-                  type="text"
-                  value={groupName}
-                  onChange={e => setGroupName(e.target.value)}
-                  placeholder="e.g., English Vocabulary - Grade 10"
-                  required
-                  maxLength={100}
-                />
-              </div>
-              <div className="teacher-field">
-                <label>Description</label>
-                <textarea
-                  value={groupDesc}
-                  onChange={e => setGroupDesc(e.target.value)}
-                  placeholder="A brief description of this group..."
-                  rows={3}
-                  maxLength={500}
-                />
-              </div>
-              <div className="teacher-field">
-                <label>Color</label>
-                <div className="teacher-color-picker">
-                  {colors.map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`teacher-color-swatch ${groupColor === c ? "selected" : ""}`}
-                      style={{ background: c }}
-                      onClick={() => setGroupColor(c)}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="teacher-form-actions">
-                <button type="button" className="teacher-btn teacher-btn-outline" onClick={() => setTab("groups")}>
-                  Cancel
-                </button>
-                <button type="submit" className="teacher-btn teacher-btn-primary" disabled={submitting}>
-                  {submitting ? "Creating..." : "Create Group"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Create Assignment Tab */}
-        {tab === "create-assignment" && (
-          <div className="teacher-section">
-            <div className="teacher-section-header">
-              <h1>Create New Assignment</h1>
-            </div>
-
-            {groups.length === 0 ? (
-              <div className="teacher-empty">
-                <p>You need at least one group to create an assignment.</p>
-                <button className="teacher-btn teacher-btn-primary" onClick={() => setTab("create-group")}>
-                  Create a Group First
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleCreateAssignment} className="teacher-form">
-                <div className="teacher-field">
-                  <label>Group *</label>
-                  <select
-                    value={assignGroupId}
-                    onChange={e => setAssignGroupId(e.target.value)}
-                    required
-                  >
-                    <option value="">Select a group...</option>
-                    {groups.map(g => (
-                      <option key={g.id} value={g.id}>{g.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="teacher-field">
-                  <label>Assignment Title *</label>
-                  <input
-                    type="text"
-                    value={assignTitle}
-                    onChange={e => setAssignTitle(e.target.value)}
-                    placeholder="e.g., Unit 5 Vocabulary"
-                    required
-                    maxLength={200}
-                  />
-                </div>
-                <div className="teacher-field">
-                  <label>Description</label>
-                  <textarea
-                    value={assignDesc}
-                    onChange={e => setAssignDesc(e.target.value)}
-                    placeholder="Instructions for students..."
-                    rows={3}
-                    maxLength={1000}
-                  />
-                </div>
-                <div className="teacher-form-row">
-                  <div className="teacher-field">
-                    <label>Deadline</label>
-                    <input
-                      type="datetime-local"
-                      value={assignDeadline}
-                      onChange={e => setAssignDeadline(e.target.value)}
-                      min={new Date().toISOString().slice(0, 16)}
-                    />
-                  </div>
-                  <div className="teacher-field">
-                    <label>XP Reward</label>
-                    <input
-                      type="number"
-                      value={assignXP}
-                      onChange={e => setAssignXP(Number(e.target.value))}
-                      min={1}
-                      max={100}
-                    />
-                  </div>
-                </div>
-                <div className="teacher-field">
-                  <label>Select Decks *</label>
-                  <p className="teacher-field-hint">Choose which decks to assign. Students will receive copies of these cards.</p>
-                  {myDecks.length === 0 ? (
-                    <p className="teacher-field-hint">No decks found. Create some flashcard decks first in the main app.</p>
-                  ) : (
-                    <div className="teacher-deck-select">
-                      {myDecks.map(deck => (
-                        <label key={deck.id} className={`teacher-deck-option ${selectedDeckIds.includes(deck.id) ? "selected" : ""}`}>
-                          <input
-                            type="checkbox"
-                            checked={selectedDeckIds.includes(deck.id)}
-                            onChange={e => {
-                              if (e.target.checked) {
-                                setSelectedDeckIds([...selectedDeckIds, deck.id]);
-                              } else {
-                                setSelectedDeckIds(selectedDeckIds.filter(id => id !== deck.id));
-                              }
-                            }}
-                          />
-                          <div>
-                            <span className="teacher-deck-name">{deck.name}</span>
-                            <span className="teacher-deck-count">{deck.card_count || 0} cards</span>
+                      {decks.length > 0 && (
+                        <div className="t-form-group">
+                          <label>Decks to Study ({assignDecks.length} selected)</label>
+                          <div className="t-deck-select">
+                            {decks.map(d => (
+                              <label key={d.id} className={`t-deck-option ${assignDecks.includes(d.id) ? 'selected' : ''}`}>
+                                <input type="checkbox" checked={assignDecks.includes(d.id)}
+                                  onChange={e => {
+                                    if (e.target.checked) setAssignDecks(prev => [...prev, d.id]);
+                                    else setAssignDecks(prev => prev.filter(id => id !== d.id));
+                                  }} />
+                                <span className="t-deck-option-name">{d.name}</span>
+                                {d.cards_count !== undefined && <span className="t-deck-option-count">{d.cards_count} cards</span>}
+                              </label>
+                            ))}
                           </div>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="teacher-form-actions">
-                  <button type="button" className="teacher-btn teacher-btn-outline" onClick={() => setTab("assignments")}>
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="teacher-btn teacher-btn-primary"
-                    disabled={submitting || selectedDeckIds.length === 0}
-                  >
-                    {submitting ? "Creating..." : "Create Assignment"}
-                  </button>
-                </div>
-              </form>
+                        </div>
+                      )}
+                      <button type="submit" className="t-btn t-btn-primary t-btn-lg" disabled={submitting || !assignTitle.trim() || !assignGroup}>
+                        {submitting ? "Creating..." : "Create Assignment"}
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </div>

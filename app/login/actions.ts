@@ -48,7 +48,7 @@ export async function login(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: validation.data.email,
     password: validation.data.password,
   });
@@ -57,7 +57,22 @@ export async function login(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/app");
+  // Redirect based on user role
+  const userId = data.user?.id;
+  if (userId) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
+
+    const role = profile?.role || data.user?.user_metadata?.role || "student";
+    if (role === "teacher" || role === "admin") {
+      redirect("/teacher");
+    }
+  }
+
+  redirect("/student");
 }
 
 export async function signup(formData: FormData) {

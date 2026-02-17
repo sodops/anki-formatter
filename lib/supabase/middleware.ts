@@ -62,22 +62,35 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from login page
+  // Helper to get user role
+  const getUserRoleFromDB = async () => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user!.id)
+      .single();
+    return profile?.role || "student";
+  };
+
+  // Redirect logged-in users away from login page → role-based dashboard
   if (user && request.nextUrl.pathname === "/login") {
+    const role = await getUserRoleFromDB();
     const url = request.nextUrl.clone();
-    url.pathname = "/app";
+    url.pathname = (role === "teacher" || role === "admin") ? "/teacher" : "/student";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect /app to role-based dashboard (the old app is now at /app/study)
+  if (user && request.nextUrl.pathname === "/app") {
+    const role = await getUserRoleFromDB();
+    const url = request.nextUrl.clone();
+    url.pathname = (role === "teacher" || role === "admin") ? "/teacher" : "/student";
     return NextResponse.redirect(url);
   }
 
   // Role-based route protection for teacher/admin routes
   if (user && (request.nextUrl.pathname.startsWith("/teacher") || request.nextUrl.pathname.startsWith("/admin"))) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const role = profile?.role || "student";
+    const role = await getUserRoleFromDB();
     const isTeacherRoute = request.nextUrl.pathname.startsWith("/teacher");
     const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
 
@@ -88,13 +101,13 @@ export async function updateSession(request: NextRequest) {
 
     if (isAdminRoute && role !== "admin" && !isEnvAdmin) {
       const url = request.nextUrl.clone();
-      url.pathname = "/app";
+      url.pathname = "/student";
       return NextResponse.redirect(url);
     }
 
     if (isTeacherRoute && role !== "teacher" && role !== "admin" && !isEnvAdmin) {
       const url = request.nextUrl.clone();
-      url.pathname = "/app";
+      url.pathname = "/student";
       return NextResponse.redirect(url);
     }
   }
