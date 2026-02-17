@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
 /**
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
     const body = await request.json();
     const { join_code } = body;
 
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find group by join code
-    const { data: group, error: groupError } = await supabase
+    const { data: group, error: groupError } = await admin
       .from("groups")
       .select("id, name, max_members, is_active, owner_id")
       .eq("join_code", join_code.trim().toLowerCase())
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already a member
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from("group_members")
       .select("id")
       .eq("group_id", group.id)
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check member limit
-    const { count } = await supabase
+    const { count } = await admin
       .from("group_members")
       .select("id", { count: "exact", head: true })
       .eq("group_id", group.id);
@@ -69,14 +71,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user role
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
     // Add member
-    const { error: joinError } = await supabase
+    const { error: joinError } = await admin
       .from("group_members")
       .insert({
         group_id: group.id,
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
     if (joinError) throw joinError;
 
     // Create pending progress for all active assignments
-    const { data: assignments } = await supabase
+    const { data: assignments } = await admin
       .from("assignments")
       .select(`
         id,
@@ -106,11 +108,11 @@ export async function POST(request: NextRequest) {
         ),
       }));
 
-      await supabase.from("student_progress").insert(progressRecords);
+      await admin.from("student_progress").insert(progressRecords);
     }
 
     // Create notification for group owner
-    await supabase.from("notifications").insert({
+    await admin.from("notifications").insert({
       user_id: group.owner_id,
       type: "group_invite",
       title: "New member joined",

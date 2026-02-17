@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
 export const dynamic = 'force-dynamic';
@@ -25,8 +26,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get group with members and assignments
-    const { data: group, error } = await supabase
+    const admin = createAdminClient();
+
+    // Get group
+    const { data: group, error } = await admin
       .from("groups")
       .select("*")
       .eq("id", id)
@@ -39,7 +42,7 @@ export async function GET(
     // Check membership
     const isOwner = group.owner_id === user.id;
     if (!isOwner) {
-      const { data: membership } = await supabase
+      const { data: membership } = await admin
         .from("group_members")
         .select("id")
         .eq("group_id", id)
@@ -52,7 +55,7 @@ export async function GET(
     }
 
     // Get members with profiles
-    const { data: members, error: membersError } = await supabase
+    const { data: members, error: membersError } = await admin
       .from("group_members")
       .select(`
         id, user_id, role, joined_at,
@@ -66,7 +69,7 @@ export async function GET(
     }
 
     // Get assignments
-    const { data: assignments } = await supabase
+    const { data: assignments } = await admin
       .from("assignments")
       .select(`
         *,
@@ -80,7 +83,7 @@ export async function GET(
     let progressMap: Record<string, unknown[]> = {};
     if (isOwner && assignments?.length) {
       const assignmentIds = assignments.map(a => a.id);
-      const { data: progress } = await supabase
+      const { data: progress } = await admin
         .from("student_progress")
         .select("*")
         .in("assignment_id", assignmentIds);
@@ -123,7 +126,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: group } = await supabase
+    const admin = createAdminClient();
+
+    const { data: group } = await admin
       .from("groups")
       .select("owner_id")
       .eq("id", id)
@@ -140,7 +145,7 @@ export async function PATCH(
     if (body.color !== undefined) updates.color = body.color;
     if (body.is_active !== undefined) updates.is_active = body.is_active;
 
-    const { data: updated, error } = await supabase
+    const { data: updated, error } = await admin
       .from("groups")
       .update(updates)
       .eq("id", id)
@@ -171,7 +176,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { error } = await supabase
+    const admin = createAdminClient();
+    const { error } = await admin
       .from("groups")
       .delete()
       .eq("id", id)

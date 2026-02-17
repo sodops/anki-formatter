@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * DELETE /api/groups/[id]/members/[userId] — Remove member or leave group
@@ -16,8 +17,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
+
     // Check if it's the group owner or the user themselves
-    const { data: group } = await supabase
+    const { data: group } = await admin
       .from("groups")
       .select("owner_id, name")
       .eq("id", groupId)
@@ -40,7 +43,7 @@ export async function DELETE(
     }
 
     // Remove member
-    const { error } = await supabase
+    const { error } = await admin
       .from("group_members")
       .delete()
       .eq("group_id", groupId)

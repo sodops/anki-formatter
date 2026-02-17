@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -12,8 +13,9 @@ export async function GET() {
       return NextResponse.json({ user: null, role: "student" });
     }
 
-    // Fetch role from profiles
-    const { data: profile, error: profileError } = await supabase
+    // Use admin client to bypass RLS
+    const admin = createAdminClient();
+    const { data: profile, error: profileError } = await admin
       .from("profiles")
       .select("role, display_name, avatar_url, total_xp, current_streak")
       .eq("id", user.id)

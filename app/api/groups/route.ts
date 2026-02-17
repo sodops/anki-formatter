@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/groups — List groups for the current user
- * Teachers see groups they own; Students see groups they've joined
+ * Uses admin client (service role) to bypass RLS for reads
  */
 export async function GET(request: NextRequest) {
   try {
@@ -14,82 +17,88 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
+    // Auth check with user's session
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user role
-    let role = "student";
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      role = profile?.role || "student";
-    } catch (profileError: any) {
-      // If profiles table doesn't exist or query fails, default to student role
-      console.warn("Profile query failed, defaulting to student role:", profileError?.message);
+    // Use admin client for all DB queries (bypasses RLS)
+    const admin = createAdminClient();
+
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    const role = profile?.role || "student";
+
+    // Query owned groups
+    const { data: ownedGroups, error: ownedError } = await admin
+      .from("groups")
+      .select(`
+        *,
+        group_members(count),
+        assignments(count)
+      `)
+      .eq("owner_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (ownedError) {
+      console.error("[/api/groups] Owned groups error:", ownedError.message);
     }
 
-    if (role === "teacher" || role === "admin") {
-      // Teachers see groups they own + member counts
-      const { data: ownedGroups, error } = await supabase
-        .from("groups")
-        .select(`
-          *,
+    // Query joined groups
+    const { data: memberships, error: memberError } = await admin
+      .from("group_members")
+      .select(`
+        group_id,
+        joined_at,
+        groups (
+          id, name, description, color, join_code, owner_id, created_at, is_active,
           group_members(count),
           assignments(count)
-        `)
-        .eq("owner_id", user.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        )
+      `)
+      .eq("user_id", user.id);
 
-      if (error) throw error;
+    if (memberError) {
+      console.error("[/api/groups] Memberships error:", memberError.message);
+    }
 
-      const groups = (ownedGroups || []).map(g => ({
+    // Deduplicate
+    const groupMap = new Map<string, any>();
+
+    (ownedGroups || []).forEach(g => {
+      groupMap.set(g.id, {
         ...g,
         member_count: g.group_members?.[0]?.count || 0,
         assignment_count: g.assignments?.[0]?.count || 0,
         is_owner: true,
-      }));
+      });
+    });
 
-      return NextResponse.json({ groups, role });
-    } else {
-      // Students see groups they've joined
-      const { data: memberships, error } = await supabase
-        .from("group_members")
-        .select(`
-          group_id,
-          joined_at,
-          groups (
-            id, name, description, color, join_code, owner_id, created_at,
-            group_members(count),
-            assignments(count)
-          )
-        `)
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-
-      const groups = (memberships || []).map(m => {
-        const g = m.groups as any;
-        return {
+    (memberships || []).forEach(m => {
+      const g = m.groups as any;
+      if (g && g.id && !groupMap.has(g.id) && g.is_active !== false) {
+        groupMap.set(g.id, {
           ...g,
           member_count: g?.group_members?.[0]?.count || 0,
           assignment_count: g?.assignments?.[0]?.count || 0,
           joined_at: m.joined_at,
-          is_owner: false,
-        };
-      });
+          is_owner: g.owner_id === user.id,
+        });
+      }
+    });
 
-      return NextResponse.json({ groups, role });
-    }
+    const groups = Array.from(groupMap.values());
+    console.log(`[/api/groups] user=${user.id}, role=${role}, owned=${ownedGroups?.length || 0}, joined=${memberships?.length || 0}, total=${groups.length}`);
+
+    return NextResponse.json({ groups, role });
   } catch (error: any) {
     console.error("GET /api/groups error:", error?.message || error);
-    // If table doesn't exist yet, return empty
     if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
       return NextResponse.json({ groups: [], role: 'student' });
     }
@@ -114,8 +123,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
+
     // Verify teacher role
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
@@ -128,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     if (profile?.role !== "teacher" && profile?.role !== "admin") {
       return NextResponse.json({ 
-        error: `Only teachers can create groups. Your current role is: "${profile?.role || 'unknown'}". Update your role to "teacher" in Supabase Dashboard → profiles table.` 
+        error: `Only teachers can create groups. Your current role is: "${profile?.role || 'unknown'}".` 
       }, { status: 403 });
     }
 
@@ -140,7 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the group
-    const { data: group, error } = await supabase
+    const { data: group, error } = await admin
       .from("groups")
       .insert({
         name: name.trim(),
@@ -157,7 +168,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Auto-add teacher as a member
-    const { error: memberError } = await supabase.from("group_members").insert({
+    const { error: memberError } = await admin.from("group_members").insert({
       group_id: group.id,
       user_id: user.id,
       role: "teacher",
