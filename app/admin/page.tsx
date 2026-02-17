@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "@/components/AuthProvider";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-/* ================================================================
-   TYPES
-   ================================================================ */
+export default function AdminRedirect() {
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.push("/admin/dashboard");
+  }, [router]);
+  
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚡</div>
+        <p>Redirecting to new admin panel...</p>
+      </div>
+    </div>
+  );
+}
 interface OverviewData {
   counts: { decks: number; cards: number; logs: number; webVitals: number; totalReviews: number; todayReviews: number; dueCards: number };
   cardStates: { new: number; learning: number; review: number; relearning: number };
