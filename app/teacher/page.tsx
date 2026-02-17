@@ -655,9 +655,9 @@ export default function TeacherDashboard() {
                           <input type="number" value={assignXP} onChange={e => setAssignXP(Number(e.target.value))} min={0} max={1000} />
                         </div>
                       </div>
-                      {decks.length > 0 && (
-                        <div className="t-form-group">
-                          <label>Decks to Study ({assignDecks.length} selected)</label>
+                      <div className="t-form-group">
+                        <label>Decks to Study {assignDecks.length > 0 && `(${assignDecks.length} selected)`}</label>
+                        {decks.length > 0 ? (
                           <div className="t-deck-select">
                             {decks.map(d => (
                               <label key={d.id} className={`t-deck-option ${assignDecks.includes(d.id) ? 'selected' : ''}`}>
@@ -671,9 +671,15 @@ export default function TeacherDashboard() {
                               </label>
                             ))}
                           </div>
-                        </div>
-                      )}
-                      <button type="submit" className="t-btn t-btn-primary t-btn-lg" disabled={submitting || !assignTitle.trim() || !assignGroup}>
+                        ) : (
+                          <div className="t-deck-select-empty">
+                            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '14px' }}>
+                              No decks available. Go to <Link href="/app" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Study Cards</Link> to create or import decks first.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <button type="submit" className="t-btn t-btn-primary t-btn-lg" disabled={submitting || !assignTitle.trim() || !assignGroup || assignDecks.length === 0}>
                         {submitting ? "Creating..." : "Create Assignment"}
                       </button>
                     </form>
