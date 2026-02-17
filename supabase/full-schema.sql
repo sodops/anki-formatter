@@ -364,6 +364,8 @@ CREATE POLICY "Users can view groups" ON groups FOR SELECT USING (
 
 -- Group Members
 ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
+
+-- Owners can manage all members in their groups
 CREATE POLICY "Group owners manage members" ON group_members
     FOR ALL USING (
         EXISTS (
@@ -372,7 +374,17 @@ CREATE POLICY "Group owners manage members" ON group_members
             AND groups.owner_id = auth.uid()
         )
     );
-CREATE POLICY "Users can view their memberships" ON group_members FOR SELECT USING (auth.uid() = user_id);
+
+-- Members can view other members in their groups
+CREATE POLICY "Members can view group members" ON group_members 
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM group_members gm2
+            WHERE gm2.group_id = group_members.group_id
+            AND gm2.user_id = auth.uid()
+        )
+    );
+
 CREATE POLICY "Users can join groups" ON group_members FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can leave groups" ON group_members FOR DELETE USING (auth.uid() = user_id);
 

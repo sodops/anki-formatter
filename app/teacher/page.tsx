@@ -73,6 +73,12 @@ export default function TeacherDashboard() {
   const [assignXP, setAssignXP] = useState(50);
   const [assignDecks, setAssignDecks] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const switchTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSidebarOpen(false);
+  };
 
   // Copy join code handler
   const copyCode = (code: string) => {
@@ -99,7 +105,7 @@ export default function TeacherDashboard() {
       }
       if (syncRes.ok) {
         const sd = await syncRes.json();
-        const allDecks = sd.data?.decks || sd.decks || [];
+        const allDecks = sd.state?.decks || sd.data?.decks || sd.decks || [];
         setDecks(allDecks.map((d: any) => ({ id: d.id, name: d.name, cards_count: d.cards?.length || d.cards_count || 0 })));
       }
     } catch {
@@ -201,8 +207,21 @@ export default function TeacherDashboard() {
 
   return (
     <div className="t-dashboard">
+      {/* Mobile Header */}
+      <div className="t-mobile-header">
+        <button className="t-hamburger" onClick={() => setSidebarOpen(true)}>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <span className="t-brand-icon">⚡</span>
+        <span className="t-brand-name">AnkiFlow</span>
+        <span className="t-role-tag">Teacher</span>
+      </div>
+      
+      {/* Mobile Overlay */}
+      <div className={`t-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}></div>
+
       {/* Sidebar */}
-      <aside className="t-sidebar">
+      <aside className={`t-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="t-brand">
           <span className="t-brand-icon">⚡</span>
           <span className="t-brand-name">AnkiFlow</span>
@@ -210,16 +229,16 @@ export default function TeacherDashboard() {
         </div>
 
         <nav className="t-nav">
-          <button className={`t-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+          <button className={`t-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => switchTab('overview')}>
             <ion-icon name="grid-outline"></ion-icon>
             <span>Overview</span>
           </button>
-          <button className={`t-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => setActiveTab('groups')}>
+          <button className={`t-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => switchTab('groups')}>
             <ion-icon name="people-outline"></ion-icon>
             <span>Groups</span>
             {groups.length > 0 && <span className="t-nav-count">{groups.length}</span>}
           </button>
-          <button className={`t-nav-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => setActiveTab('assignments')}>
+          <button className={`t-nav-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => switchTab('assignments')}>
             <ion-icon name="document-text-outline"></ion-icon>
             <span>Assignments</span>
             {activeAssignments > 0 && <span className="t-nav-count">{activeAssignments}</span>}
@@ -229,11 +248,11 @@ export default function TeacherDashboard() {
         <div className="t-nav-divider"></div>
 
         <nav className="t-nav">
-          <button className={`t-nav-item ${activeTab === 'create-group' ? 'active' : ''}`} onClick={() => setActiveTab('create-group')}>
+          <button className={`t-nav-item ${activeTab === 'create-group' ? 'active' : ''}`} onClick={() => switchTab('create-group')}>
             <ion-icon name="add-circle-outline"></ion-icon>
             <span>New Group</span>
           </button>
-          <button className={`t-nav-item ${activeTab === 'create-assignment' ? 'active' : ''}`} onClick={() => setActiveTab('create-assignment')}>
+          <button className={`t-nav-item ${activeTab === 'create-assignment' ? 'active' : ''}`} onClick={() => switchTab('create-assignment')}>
             <ion-icon name="create-outline"></ion-icon>
             <span>New Assignment</span>
           </button>
@@ -246,7 +265,7 @@ export default function TeacherDashboard() {
             <ion-icon name="flash-outline"></ion-icon>
             <span>Study Cards</span>
           </a>
-          <button className={`t-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+          <button className={`t-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => switchTab('settings')}>
             <ion-icon name="settings-outline"></ion-icon>
             <span>Settings</span>
           </button>
@@ -761,6 +780,30 @@ export default function TeacherDashboard() {
           </>
         )}
       </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="t-bottom-nav">
+        <button className={`t-bottom-nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+          <ion-icon name="grid-outline"></ion-icon>
+          <span>Home</span>
+        </button>
+        <button className={`t-bottom-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => setActiveTab('groups')}>
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Groups</span>
+        </button>
+        <button className={`t-bottom-nav-item ${activeTab === 'create-assignment' ? 'active' : ''}`} onClick={() => setActiveTab('create-assignment')}>
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>New Task</span>
+        </button>
+        <a href="/app/study" className="t-bottom-nav-item">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>Study</span>
+        </a>
+        <button className={`t-bottom-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+          <ion-icon name="settings-outline"></ion-icon>
+          <span>Settings</span>
+        </button>
+      </nav>
     </div>
   );
 }

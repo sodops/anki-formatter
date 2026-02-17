@@ -2,13 +2,21 @@
    Teacher Dashboard - Professional UI
    =========================================== */
 
-/* Layout */
+/* Layout - Override body overflow:hidden from style.css for dashboard pages */
 .t-dashboard {
   display: flex;
   min-height: 100vh;
   background: var(--bg-primary, #0f0f14);
   color: var(--text-primary, #e5e7eb);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Teacher/Student dashboard pages need scroll */
+body:has(.t-dashboard),
+body:has(.s-dashboard),
+body:has(.teacher-container) {
+  overflow: auto;
+  height: auto;
 }
 
 .teacher-loading {
@@ -761,30 +769,129 @@
 .t-deck-option-name { font-size: 14px; flex: 1; }
 .t-deck-option-count { font-size: 12px; color: var(--text-tertiary, #6b7280); }
 
+/* Mobile Header Bar */
+.t-mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--bg-secondary, #16161e);
+  border-bottom: 1px solid var(--border, #2a2a3a);
+  z-index: 50;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+}
+.t-mobile-header .t-brand-icon { font-size: 22px; }
+.t-mobile-header .t-brand-name { font-size: 17px; font-weight: 700; color: var(--text-primary, #e5e7eb); }
+.t-mobile-header .t-role-tag { font-size: 9px; }
+
+.t-hamburger {
+  background: none;
+  border: none;
+  color: var(--text-primary, #e5e7eb);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.t-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 90;
+}
+.t-overlay.visible { display: block; }
+
+/* Mobile Bottom Nav */
+.t-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--bg-secondary, #16161e);
+  border-top: 1px solid var(--border, #2a2a3a);
+  z-index: 50;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 4px;
+}
+.t-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary, #6b7280);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: inherit;
+}
+.t-bottom-nav-item ion-icon { font-size: 22px; }
+.t-bottom-nav-item.active { color: #6366F1; }
+.t-bottom-nav-item:hover { color: var(--text-primary, #e5e7eb); }
+
 /* Responsive */
 @media (max-width: 768px) {
+  .t-dashboard { flex-direction: column; }
+  
+  .t-mobile-header { display: flex; }
+  .t-bottom-nav { display: flex; }
+  
   .t-sidebar {
     position: fixed;
     left: -280px;
-    transition: left 0.3s;
+    top: 0;
+    bottom: 0;
+    transition: left 0.3s ease;
     width: 260px;
+    z-index: 100;
   }
-  
   .t-sidebar.open { left: 0; }
   
-  .t-content { padding: 20px 16px; }
+  .t-main {
+    margin-left: 0;
+    padding-top: 68px;
+    padding-bottom: 76px;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
   
-  .t-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .t-content { padding: 16px; }
   
-  .t-quick-actions { grid-template-columns: 1fr; }
+  .t-page-header h1 { font-size: 22px; }
   
-  .t-card-grid { grid-template-columns: 1fr; }
+  .t-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .t-stat-card { padding: 14px 12px; }
+  .t-stat-value { font-size: 22px; }
+  
+  .t-quick-actions { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .t-quick-action { padding: 16px 12px; }
+  
+  .t-card-grid { grid-template-columns: 1fr; gap: 12px; }
   
   .t-form-row { grid-template-columns: 1fr; }
+  .t-form-card { padding: 16px; }
   
   .t-assign-row { flex-direction: column; gap: 10px; align-items: flex-start; }
   .t-assign-row-right { width: 100%; }
   .t-mini-progress { flex: 1; }
+  
+  .t-sidebar-footer { display: none; }
+  .t-page-header { flex-direction: column; gap: 10px; }
+  .t-page-header .t-btn { width: 100%; justify-content: center; }
 }
 
 /* ============================================
@@ -890,12 +997,47 @@
 [data-theme="dark"] .teacher-container { --bg-primary: #0f172a; --card-bg: #1e293b; --border: #334155; --text-primary: #f1f5f9; }
 [data-theme="dark"] .teacher-sidebar { background: #0c0c1d; }
 
+/* Mobile back button for sub-pages */
+.teacher-mobile-back {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--bg-primary, #f8f9fb);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  z-index: 50;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+.teacher-mobile-back a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #6366F1;
+  font-weight: 600;
+  font-size: 14px;
+}
+[data-theme="dark"] .teacher-mobile-back {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
 /* Responsive for sub-pages */
 @media (max-width: 768px) {
   .teacher-sidebar { display: none; }
-  .teacher-main { margin-left: 0; padding: 20px 16px; }
+  .teacher-mobile-back { display: flex; }
+  .teacher-main { margin-left: 0; padding: 72px 16px 24px; }
   .teacher-group-header { flex-direction: column; }
   .teacher-join-code-large { flex-wrap: wrap; }
-  .teacher-progress-table { font-size: 11px; }
-  .teacher-progress-table th, .teacher-progress-table td { padding: 6px 8px; }
+  .teacher-progress-table { font-size: 11px; display: block; overflow-x: auto; }
+  .teacher-progress-table th, .teacher-progress-table td { padding: 6px 8px; white-space: nowrap; }
+  .teacher-stats-row { grid-template-columns: 1fr 1fr; }
 }

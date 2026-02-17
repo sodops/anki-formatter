@@ -121,6 +121,14 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="teacher-container">
+      {/* Mobile Back Header */}
+      <div className="teacher-mobile-back">
+        <Link href="/teacher">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Dashboard
+        </Link>
+      </div>
+
       <aside className="teacher-sidebar">
         <div className="teacher-sidebar-header">
           <Link href="/teacher" className="teacher-logo">

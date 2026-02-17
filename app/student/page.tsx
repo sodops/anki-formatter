@@ -70,6 +70,12 @@ export default function StudentDashboard() {
   const [joinError, setJoinError] = useState("");
   const [joinSuccess, setJoinSuccess] = useState("");
   const [joiningGroup, setJoiningGroup] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const switchTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSidebarOpen(false);
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -164,8 +170,21 @@ export default function StudentDashboard() {
 
   return (
     <div className="s-dashboard">
+      {/* Mobile Header */}
+      <div className="s-mobile-header">
+        <button className="s-hamburger" onClick={() => setSidebarOpen(true)}>
+          <ion-icon name="menu-outline"></ion-icon>
+        </button>
+        <span className="s-brand-icon">⚡</span>
+        <span className="s-brand-name">AnkiFlow</span>
+        <span className="s-role-tag">Student</span>
+      </div>
+      
+      {/* Mobile Overlay */}
+      <div className={`s-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}></div>
+
       {/* Sidebar */}
-      <aside className="s-sidebar">
+      <aside className={`s-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="s-brand">
           <span className="s-brand-icon">⚡</span>
           <span className="s-brand-name">AnkiFlow</span>
@@ -189,25 +208,25 @@ export default function StudentDashboard() {
         </div>
 
         <nav className="s-nav">
-          <button className={`s-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+          <button className={`s-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => switchTab('dashboard')}>
             <ion-icon name="home-outline"></ion-icon>
             <span>Dashboard</span>
           </button>
-          <button className={`s-nav-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => setActiveTab('assignments')}>
+          <button className={`s-nav-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => switchTab('assignments')}>
             <ion-icon name="document-text-outline"></ion-icon>
             <span>Assignments</span>
             {activeAssignments.length > 0 && <span className="s-nav-count">{activeAssignments.length}</span>}
           </button>
-          <button className={`s-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => setActiveTab('groups')}>
+          <button className={`s-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => switchTab('groups')}>
             <ion-icon name="people-outline"></ion-icon>
             <span>My Groups</span>
             {groups.length > 0 && <span className="s-nav-count">{groups.length}</span>}
           </button>
-          <button className={`s-nav-item ${activeTab === 'progress' ? 'active' : ''}`} onClick={() => setActiveTab('progress')}>
+          <button className={`s-nav-item ${activeTab === 'progress' ? 'active' : ''}`} onClick={() => switchTab('progress')}>
             <ion-icon name="trophy-outline"></ion-icon>
             <span>XP &amp; Progress</span>
           </button>
-          <button className={`s-nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => setActiveTab('notifications')}>
+          <button className={`s-nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => switchTab('notifications')}>
             <ion-icon name="notifications-outline"></ion-icon>
             <span>Notifications</span>
             {unreadCount > 0 && <span className="s-nav-count s-nav-count-alert">{unreadCount}</span>}
@@ -221,7 +240,7 @@ export default function StudentDashboard() {
             <ion-icon name="flash-outline"></ion-icon>
             <span>Study Cards</span>
           </a>
-          <button className={`s-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+          <button className={`s-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => switchTab('settings')}>
             <ion-icon name="settings-outline"></ion-icon>
             <span>Settings</span>
           </button>
@@ -702,6 +721,30 @@ export default function StudentDashboard() {
           </>
         )}
       </main>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="s-bottom-nav">
+        <button className={`s-bottom-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => switchTab('dashboard')}>
+          <ion-icon name="home-outline"></ion-icon>
+          <span>Home</span>
+        </button>
+        <button className={`s-bottom-nav-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => switchTab('assignments')}>
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span>Tasks</span>
+        </button>
+        <button className={`s-bottom-nav-item ${activeTab === 'groups' ? 'active' : ''}`} onClick={() => switchTab('groups')}>
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Groups</span>
+        </button>
+        <a href="/app/study" className="s-bottom-nav-item">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>Study</span>
+        </a>
+        <button className={`s-bottom-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => switchTab('settings')}>
+          <ion-icon name="settings-outline"></ion-icon>
+          <span>Settings</span>
+        </button>
+      </nav>
     </div>
   );
 }
