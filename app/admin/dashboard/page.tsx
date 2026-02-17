@@ -214,7 +214,6 @@ export default function ModernAdminDashboard() {
             <div className="admin-header-left">
               <button 
                 className="admin-icon-btn"
-                style={{ display: "none", "@media (max-width: 1024px)": { display: "flex" } }}
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >
                 <ion-icon name="menu-outline"></ion-icon>
