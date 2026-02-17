@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/AuthProvider";
-import { useEffect, useState, useCallback, use } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 interface GroupDetail {
@@ -52,8 +52,8 @@ interface Assignment {
   created_at: string;
 }
 
-export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: groupId } = use(params);
+export default function GroupDetailPage({ params }: { params: { id: string } }) {
+  const groupId = params.id;
   const { user, loading: authLoading } = useAuth();
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
