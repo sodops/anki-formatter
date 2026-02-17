@@ -61,8 +61,11 @@ export async function GET(request: NextRequest) {
       last_activity_date: profile?.last_activity_date,
       recent_events: recentEvents || [],
     });
-  } catch (error) {
-    console.error("GET /api/xp error:", error);
+  } catch (error: any) {
+    console.error("GET /api/xp error:", error?.message || error);
+    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ total_xp: 0, today_xp: 0, level: 1, xp_to_next: 100, current_streak: 0, longest_streak: 0, recent_events: [] });
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -161,8 +164,11 @@ export async function POST(request: NextRequest) {
       xp_awarded: xp_amount,
       level: Math.floor(newTotal / 100) + 1,
     });
-  } catch (error) {
-    console.error("POST /api/xp error:", error);
+  } catch (error: any) {
+    console.error("POST /api/xp error:", error?.message || error);
+    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ error: "XP system is not yet configured." }, { status: 503 });
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

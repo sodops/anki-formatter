@@ -140,14 +140,17 @@ export async function GET(request: NextRequest) {
         role,
       });
     }
-  } catch (error) {
-    console.error("GET /api/assignments error:", error);
+  } catch (error: any) {
+    console.error("GET /api/assignments error:", error?.message || error);
+    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ assignments: [], role: 'student' });
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 /**
- * POST /api/assignments — Create a new assignment (Teachers only)
+ * POST /api/assignments
  * Body: { group_id, title, description, deadline, xp_reward, deck_ids: string[] }
  */
 export async function POST(request: NextRequest) {
@@ -274,8 +277,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ assignment }, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/assignments error:", error);
+  } catch (error: any) {
+    console.error("POST /api/assignments error:", error?.message || error);
+    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ error: "Assignments feature is not yet configured. Please run the database migration." }, { status: 503 });
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

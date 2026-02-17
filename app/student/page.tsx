@@ -59,7 +59,7 @@ export default function StudentDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "progress" | "notifications">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "progress" | "notifications" | "settings">("dashboard");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [xp, setXP] = useState<XPData>({ total_xp: 0, today_xp: 0, level: 1, xp_to_next: 100, current_streak: 0, longest_streak: 0, recent_events: [] });
@@ -221,6 +221,10 @@ export default function StudentDashboard() {
             <ion-icon name="flash-outline"></ion-icon>
             <span>Study Cards</span>
           </a>
+          <button className={`s-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+            <ion-icon name="settings-outline"></ion-icon>
+            <span>Settings</span>
+          </button>
         </nav>
 
         <div className="s-sidebar-footer">
@@ -621,6 +625,78 @@ export default function StudentDashboard() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* SETTINGS TAB */}
+            {activeTab === "settings" && (
+              <div className="s-content">
+                <div className="s-page-header">
+                  <h1>Settings</h1>
+                  <p className="s-subtitle">Manage your account and preferences</p>
+                </div>
+
+                {/* Account Info */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Account</h2>
+                  <div className="s-card" style={{ padding: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div className="s-user-avatar" style={{ width: 48, height: 48, fontSize: 20 }}>
+                        {user.user_metadata?.avatar_url ? (
+                          <img src={user.user_metadata.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <span>{(user.user_metadata?.full_name || user.email || "S").charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 16 }}>{user.user_metadata?.full_name || user.email?.split("@")[0]}</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>{user.email}</div>
+                        <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600, marginTop: 2 }}>Role: {role?.toUpperCase()}</div>
+                      </div>
+                    </div>
+                    <button className="s-btn s-btn-danger" onClick={signOut} style={{ marginTop: 16 }}>
+                      <ion-icon name="log-out-outline"></ion-icon>
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+
+                {/* Appearance */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Appearance</h2>
+                  <div className="s-card" style={{ padding: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Theme</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Choose light or dark mode</div>
+                      </div>
+                      <button className="s-btn s-btn-outline" onClick={() => {
+                        if (typeof window !== "undefined" && (window as any).toggleTheme) {
+                          (window as any).toggleTheme();
+                        }
+                      }}>
+                        <ion-icon name="sunny-outline"></ion-icon>
+                        Toggle Theme
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Data Management */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Data</h2>
+                  <div className="s-card" style={{ padding: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Export all data</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Download all your decks and cards as JSON backup</div>
+                      </div>
+                      <a href="/api/backup/export" className="s-btn s-btn-outline s-btn-sm">
+                        <ion-icon name="download-outline"></ion-icon> Export
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </>

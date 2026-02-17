@@ -52,7 +52,7 @@ export default function TeacherDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "assignments" | "create-group" | "create-assignment">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "assignments" | "create-group" | "create-assignment" | "settings">("overview");
   const [groups, setGroups] = useState<Group[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -246,6 +246,10 @@ export default function TeacherDashboard() {
             <ion-icon name="flash-outline"></ion-icon>
             <span>Study Cards</span>
           </a>
+          <button className={`t-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+            <ion-icon name="settings-outline"></ion-icon>
+            <span>Settings</span>
+          </button>
           {role === "admin" && (
             <a href="/admin/dashboard" className="t-nav-item">
               <ion-icon name="settings-outline"></ion-icon>
@@ -675,6 +679,77 @@ export default function TeacherDashboard() {
                     </form>
                   </div>
                 )}
+              </div>
+            )}
+            {/* SETTINGS TAB */}
+            {activeTab === "settings" && (
+              <div className="t-content">
+                <div className="t-page-header">
+                  <h1>Settings</h1>
+                  <p className="t-subtitle">Manage your account and preferences</p>
+                </div>
+
+                {/* Account Info */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Account</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-account">
+                      <div className="t-user-avatar" style={{ width: 48, height: 48, fontSize: 20 }}>
+                        {user.user_metadata?.avatar_url ? (
+                          <img src={user.user_metadata.avatar_url} alt="" />
+                        ) : (
+                          <span>{(user.user_metadata?.full_name || user.email || "T").charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 16 }}>{user.user_metadata?.full_name || user.email?.split("@")[0]}</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>{user.email}</div>
+                        <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600, marginTop: 2 }}>Role: {role?.toUpperCase()}</div>
+                      </div>
+                    </div>
+                    <button className="t-btn t-btn-danger" onClick={signOut} style={{ marginTop: 16 }}>
+                      <ion-icon name="log-out-outline"></ion-icon>
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+
+                {/* Appearance */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Appearance</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Theme</div>
+                        <div className="t-settings-sublabel">Choose light or dark mode</div>
+                      </div>
+                      <button className="t-btn t-btn-outline" onClick={() => {
+                        if (typeof window !== "undefined" && (window as any).toggleTheme) {
+                          (window as any).toggleTheme();
+                        }
+                      }}>
+                        <ion-icon name="sunny-outline"></ion-icon>
+                        Toggle Theme
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Data Management */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Data</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Export all data</div>
+                        <div className="t-settings-sublabel">Download all your decks and cards as JSON backup</div>
+                      </div>
+                      <a href="/api/backup/export" className="t-btn t-btn-outline t-btn-sm">
+                        <ion-icon name="download-outline"></ion-icon> Export
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </>

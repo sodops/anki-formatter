@@ -82,8 +82,12 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ groups, role });
     }
-  } catch (error) {
-    console.error("GET /api/groups error:", error);
+  } catch (error: any) {
+    console.error("GET /api/groups error:", error?.message || error);
+    // If table doesn't exist yet, return empty
+    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ groups: [], role: 'student' });
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -145,8 +149,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ group }, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/groups error:", error);
+  } catch (error: any) {
+    console.error("POST /api/groups error:", error?.message || error);
+    if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+      return NextResponse.json({ error: "Groups feature is not yet configured. Please run the database migration." }, { status: 503 });
+    }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
