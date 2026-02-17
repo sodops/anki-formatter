@@ -661,11 +661,11 @@ export default function StudentDashboard() {
                   <p className="s-subtitle">Manage your account and preferences</p>
                 </div>
 
-                {/* Account Info */}
+                {/* Account */}
                 <div className="s-section">
                   <h2 className="s-section-title">Account</h2>
-                  <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div className="t-settings-card">
+                    <div className="t-settings-account">
                       <div className="s-user-avatar" style={{ width: 48, height: 48, fontSize: 20 }}>
                         {user.user_metadata?.avatar_url ? (
                           <img src={user.user_metadata.avatar_url} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
@@ -674,42 +674,44 @@ export default function StudentDashboard() {
                         )}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 16 }}>{user.user_metadata?.full_name || user.email?.split("@")[0]}</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>{user.email}</div>
-                        <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600, marginTop: 2 }}>Role: {role?.toUpperCase()}</div>
+                        <div className="t-settings-account-name">{user.user_metadata?.full_name || user.email?.split("@")[0]}</div>
+                        <div className="t-settings-account-email">{user.email}</div>
+                        <div className="t-settings-account-role">Role: {role?.toUpperCase()}</div>
                       </div>
                     </div>
-                    <button className="s-btn s-btn-danger" onClick={signOut} style={{ marginTop: 16 }}>
-                      <ion-icon name="log-out-outline"></ion-icon>
-                      Sign Out
-                    </button>
+                    <div style={{ marginTop: 16 }}>
+                      <button className="s-btn s-btn-danger" onClick={signOut}>
+                        <ion-icon name="log-out-outline"></ion-icon>
+                        Sign Out
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Study Preferences */}
                 <div className="s-section">
                   <h2 className="s-section-title">Study Preferences</h2>
-                  <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Daily Goal</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Cards to study per day</div>
+                        <div className="t-settings-label">Daily Goal</div>
+                        <div className="t-settings-sublabel">Cards to study per day</div>
                       </div>
-                      <input type="number" defaultValue={20} min={5} max={200} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                      <input type="number" className="t-settings-input" defaultValue={20} min={5} max={200} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>New Cards / Day</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Max new cards introduced</div>
+                        <div className="t-settings-label">New Cards / Day</div>
+                        <div className="t-settings-sublabel">Max new cards introduced</div>
                       </div>
-                      <input type="number" defaultValue={20} min={0} max={100} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                      <input type="number" className="t-settings-input" defaultValue={20} min={0} max={100} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Max Reviews / Day</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Maximum reviews per session</div>
+                        <div className="t-settings-label">Max Reviews / Day</div>
+                        <div className="t-settings-sublabel">Max reviews per session</div>
                       </div>
-                      <input type="number" defaultValue={100} min={10} max={500} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                      <input type="number" className="t-settings-input" defaultValue={100} min={10} max={500} />
                     </div>
                   </div>
                 </div>
@@ -717,11 +719,11 @@ export default function StudentDashboard() {
                 {/* Appearance */}
                 <div className="s-section">
                   <h2 className="s-section-title">Appearance</h2>
-                  <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Theme</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Choose light or dark mode</div>
+                        <div className="t-settings-label">Theme</div>
+                        <div className="t-settings-sublabel">Light or dark mode</div>
                       </div>
                       <button className="s-btn s-btn-outline" onClick={() => {
                         if (typeof window !== "undefined" && (window as any).toggleTheme) {
@@ -729,13 +731,13 @@ export default function StudentDashboard() {
                         }
                       }}>
                         <ion-icon name="sunny-outline"></ion-icon>
-                        Toggle Theme
+                        Toggle
                       </button>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Card Font Size</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Adjust flashcard text size</div>
+                        <div className="t-settings-label">Card Font Size</div>
+                        <div className="t-settings-sublabel">Adjust flashcard text</div>
                       </div>
                       <input type="range" defaultValue={32} min={16} max={64} style={{ width: 120 }} onChange={e => {
                         document.documentElement.style.setProperty('--card-font-size', e.target.value + 'px');
@@ -747,26 +749,20 @@ export default function StudentDashboard() {
                 {/* Audio & TTS */}
                 <div className="s-section">
                   <h2 className="s-section-title">Audio & TTS</h2>
-                  <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Text-to-Speech</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Auto-read cards aloud</div>
+                        <div className="t-settings-label">Text-to-Speech</div>
+                        <div className="t-settings-sublabel">Auto-read cards aloud</div>
                       </div>
-                      <label className="t-toggle">
-                        <input type="checkbox" defaultChecked />
-                        <span className="t-toggle-slider"></span>
-                      </label>
+                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Sound Effects</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Sounds on correct/wrong answers</div>
+                        <div className="t-settings-label">Sound Effects</div>
+                        <div className="t-settings-sublabel">Sounds on correct/wrong</div>
                       </div>
-                      <label className="t-toggle">
-                        <input type="checkbox" />
-                        <span className="t-toggle-slider"></span>
-                      </label>
+                      <label className="t-toggle"><input type="checkbox" /><span className="t-toggle-slider"></span></label>
                     </div>
                   </div>
                 </div>
@@ -774,13 +770,13 @@ export default function StudentDashboard() {
                 {/* Algorithm */}
                 <div className="s-section">
                   <h2 className="s-section-title">Algorithm</h2>
-                  <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Spaced Repetition</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>SM-2 or FSRS algorithm</div>
+                        <div className="t-settings-label">Spaced Repetition</div>
+                        <div className="t-settings-sublabel">SM-2 or FSRS algorithm</div>
                       </div>
-                      <select defaultValue="sm-2" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14 }}>
+                      <select className="t-settings-select" defaultValue="sm-2">
                         <option value="sm-2">SM-2 (Classic)</option>
                         <option value="fsrs">FSRS (Modern)</option>
                       </select>
@@ -788,23 +784,23 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* Data Management */}
+                {/* Data */}
                 <div className="s-section">
-                  <h2 className="s-section-title">Data</h2>
-                  <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <h2 className="s-section-title">Data Management</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Export all data</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Download decks as JSON backup</div>
+                        <div className="t-settings-label">Export data</div>
+                        <div className="t-settings-sublabel">Download decks as JSON</div>
                       </div>
                       <a href="/api/backup/export" className="s-btn s-btn-outline s-btn-sm">
                         <ion-icon name="download-outline"></ion-icon> Export
                       </a>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="t-settings-row">
                       <div>
-                        <div style={{ fontWeight: 600 }}>Import data</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Restore from backup file</div>
+                        <div className="t-settings-label">Import data</div>
+                        <div className="t-settings-sublabel">Restore from backup</div>
                       </div>
                       <a href="/app" className="s-btn s-btn-outline s-btn-sm">
                         <ion-icon name="cloud-upload-outline"></ion-icon> Import

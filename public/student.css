@@ -3,19 +3,43 @@
    Prefix: s-
    ============================================ */
 
-/* Layout */
+/* CSS Variables for student dashboard theming */
 .s-dashboard {
+  --s-bg: #0f0f14;
+  --s-bg-card: #16161e;
+  --s-bg-input: #1a1a26;
+  --s-border: #2a2a3a;
+  --s-text: #e5e7eb;
+  --s-text-secondary: #9ca3af;
+  --s-text-muted: #6b7280;
+  --s-accent: #6366F1;
+  --s-hover: #1e1e2e;
+  --s-sidebar-bg: #1a1a2e;
   display: flex;
   min-height: 100vh;
-  background: var(--bg-primary, #0f0f14);
-  color: var(--text-primary, #e5e7eb);
+  background: var(--s-bg);
+  color: var(--s-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Light theme */
+[data-theme="light"] .s-dashboard {
+  --s-bg: #f5f5f7;
+  --s-bg-card: #ffffff;
+  --s-bg-input: #f9fafb;
+  --s-border: #e5e7eb;
+  --s-text: #111827;
+  --s-text-secondary: #6b7280;
+  --s-text-muted: #9ca3af;
+  --s-hover: #f3f4f6;
+  --s-sidebar-bg: #ffffff;
 }
 
 /* Sidebar */
 .s-sidebar {
+  border-right: 1px solid var(--s-border);
   width: 260px;
-  background: var(--sidebar-bg, #1a1a2e);
+  background: var(--s-sidebar-bg);
   color: #e2e8f0;
   display: flex;
   flex-direction: column;
@@ -931,6 +955,7 @@
   --input-bg: #1e293b;
 }
 [data-theme="dark"] .s-sidebar {
+  border-right: 1px solid var(--s-border);
   background: #0c0c1d;
 }
 [data-theme="dark"] .s-join-input {
@@ -946,7 +971,7 @@
   left: 0;
   right: 0;
   height: 56px;
-  background: var(--sidebar-bg, #1a1a2e);
+  background: var(--s-sidebar-bg);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   z-index: 50;
   align-items: center;
@@ -985,7 +1010,7 @@
   left: 0;
   right: 0;
   height: 64px;
-  background: var(--sidebar-bg, #1a1a2e);
+  background: var(--s-sidebar-bg);
   border-top: 1px solid rgba(255,255,255,0.08);
   z-index: 50;
   justify-content: space-around;
@@ -1010,7 +1035,26 @@
 }
 .s-bottom-nav-item ion-icon { font-size: 22px; }
 .s-bottom-nav-item.active { color: #6366F1; }
-.s-bottom-nav-item:hover { color: #e2e8f0; }
+.s-bottom-nav-item:hover { color: var(--s-text); }
+
+/* ============ Light Theme Overrides ============ */
+[data-theme="light"] .s-sidebar { background: var(--s-sidebar-bg); border-right: 1px solid var(--s-border); }
+[data-theme="light"] .s-sidebar,
+[data-theme="light"] .s-nav-item { color: var(--s-text-secondary); }
+[data-theme="light"] .s-brand-name { color: var(--s-text); }
+[data-theme="light"] .s-nav-item:hover { background: var(--s-hover); color: var(--s-text); }
+[data-theme="light"] .s-nav-item.active { background: rgba(99,102,241,0.1); color: #6366F1; }
+[data-theme="light"] .s-nav-divider { background: var(--s-border); }
+[data-theme="light"] .s-sidebar-footer { border-top-color: var(--s-border); }
+[data-theme="light"] .s-user-name { color: var(--s-text); }
+[data-theme="light"] .s-user-email { color: var(--s-text-muted); }
+[data-theme="light"] .s-xp-total { color: var(--s-text-secondary); }
+[data-theme="light"] .s-xp-bar-mini { background: #e5e7eb; }
+[data-theme="light"] .s-mobile-header { background: var(--s-bg-card); border-color: var(--s-border); }
+[data-theme="light"] .s-mobile-header .s-brand-name { color: var(--s-text); }
+[data-theme="light"] .s-hamburger { color: var(--s-text); }
+[data-theme="light"] .s-bottom-nav { background: var(--s-bg-card); border-color: var(--s-border); }
+[data-theme="light"] .s-bottom-nav-item:hover { color: var(--s-text); }
 
 /* ============ Responsive ============ */
 @media (max-width: 768px) {
@@ -1020,6 +1064,7 @@
   .s-bottom-nav { display: flex; }
   
   .s-sidebar {
+  border-right: 1px solid var(--s-border);
     left: -280px;
     transition: left 0.3s ease;
   }

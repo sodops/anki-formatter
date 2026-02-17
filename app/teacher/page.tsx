@@ -725,7 +725,7 @@ export default function TeacherDashboard() {
                   <p className="t-subtitle">Manage your account and preferences</p>
                 </div>
 
-                {/* Account Info */}
+                {/* Account */}
                 <div className="t-section">
                   <h2 className="t-section-title">Account</h2>
                   <div className="t-settings-card">
@@ -738,15 +738,17 @@ export default function TeacherDashboard() {
                         )}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 16 }}>{user.user_metadata?.full_name || user.email?.split("@")[0]}</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>{user.email}</div>
-                        <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600, marginTop: 2 }}>Role: {role?.toUpperCase()}</div>
+                        <div className="t-settings-account-name">{user.user_metadata?.full_name || user.email?.split("@")[0]}</div>
+                        <div className="t-settings-account-email">{user.email}</div>
+                        <div className="t-settings-account-role">Role: {role?.toUpperCase()}</div>
                       </div>
                     </div>
-                    <button className="t-btn t-btn-danger" onClick={signOut} style={{ marginTop: 16 }}>
-                      <ion-icon name="log-out-outline"></ion-icon>
-                      Sign Out
-                    </button>
+                    <div style={{ marginTop: 16 }}>
+                      <button className="t-btn t-btn-danger" onClick={signOut}>
+                        <ion-icon name="log-out-outline"></ion-icon>
+                        Sign Out
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -757,23 +759,23 @@ export default function TeacherDashboard() {
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Daily Goal</div>
-                        <div className="t-settings-sublabel">Number of cards to study per day</div>
+                        <div className="t-settings-sublabel">Cards to study per day</div>
                       </div>
-                      <input type="number" defaultValue={20} min={5} max={200} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                      <input type="number" className="t-settings-input" defaultValue={20} min={5} max={200} />
                     </div>
-                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                    <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">New Cards / Day</div>
-                        <div className="t-settings-sublabel">Maximum new cards introduced daily</div>
+                        <div className="t-settings-sublabel">Max new cards introduced daily</div>
                       </div>
-                      <input type="number" defaultValue={20} min={0} max={100} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                      <input type="number" className="t-settings-input" defaultValue={20} min={0} max={100} />
                     </div>
-                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                    <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Max Reviews / Day</div>
-                        <div className="t-settings-sublabel">Maximum review cards per session</div>
+                        <div className="t-settings-sublabel">Max review cards per session</div>
                       </div>
-                      <input type="number" defaultValue={100} min={10} max={500} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                      <input type="number" className="t-settings-input" defaultValue={100} min={10} max={500} />
                     </div>
                   </div>
                 </div>
@@ -785,7 +787,7 @@ export default function TeacherDashboard() {
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Theme</div>
-                        <div className="t-settings-sublabel">Choose light or dark mode</div>
+                        <div className="t-settings-sublabel">Light or dark mode</div>
                       </div>
                       <button className="t-btn t-btn-outline" onClick={() => {
                         if (typeof window !== "undefined" && (window as any).toggleTheme) {
@@ -793,10 +795,10 @@ export default function TeacherDashboard() {
                         }
                       }}>
                         <ion-icon name="sunny-outline"></ion-icon>
-                        Toggle Theme
+                        Toggle
                       </button>
                     </div>
-                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                    <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Card Font Size</div>
                         <div className="t-settings-sublabel">Adjust flashcard text size</div>
@@ -817,20 +819,14 @@ export default function TeacherDashboard() {
                         <div className="t-settings-label">Text-to-Speech</div>
                         <div className="t-settings-sublabel">Auto-read cards aloud</div>
                       </div>
-                      <label className="t-toggle">
-                        <input type="checkbox" defaultChecked />
-                        <span className="t-toggle-slider"></span>
-                      </label>
+                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
                     </div>
-                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                    <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Sound Effects</div>
-                        <div className="t-settings-sublabel">Play sounds on correct/wrong answers</div>
+                        <div className="t-settings-sublabel">Sounds on correct/wrong</div>
                       </div>
-                      <label className="t-toggle">
-                        <input type="checkbox" />
-                        <span className="t-toggle-slider"></span>
-                      </label>
+                      <label className="t-toggle"><input type="checkbox" /><span className="t-toggle-slider"></span></label>
                     </div>
                   </div>
                 </div>
@@ -844,45 +840,14 @@ export default function TeacherDashboard() {
                         <div className="t-settings-label">Study Reminders</div>
                         <div className="t-settings-sublabel">Get notified when it&apos;s time to review</div>
                       </div>
-                      <label className="t-toggle">
-                        <input type="checkbox" defaultChecked />
-                        <span className="t-toggle-slider"></span>
-                      </label>
+                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
                     </div>
-                    <div className="t-settings-row" style={{ marginTop: 12 }}>
-                      <div>
-                        <div className="t-settings-label">Assignment Updates</div>
-                        <div className="t-settings-sublabel">Notify when students complete tasks</div>
-                      </div>
-                      <label className="t-toggle">
-                        <input type="checkbox" defaultChecked />
-                        <span className="t-toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Data Management */}
-                <div className="t-section">
-                  <h2 className="t-section-title">Data</h2>
-                  <div className="t-settings-card">
                     <div className="t-settings-row">
                       <div>
-                        <div className="t-settings-label">Export all data</div>
-                        <div className="t-settings-sublabel">Download all your decks and cards as JSON backup</div>
+                        <div className="t-settings-label">Assignment Updates</div>
+                        <div className="t-settings-sublabel">Notify on student completions</div>
                       </div>
-                      <a href="/api/backup/export" className="t-btn t-btn-outline t-btn-sm">
-                        <ion-icon name="download-outline"></ion-icon> Export
-                      </a>
-                    </div>
-                    <div className="t-settings-row" style={{ marginTop: 12 }}>
-                      <div>
-                        <div className="t-settings-label">Import data</div>
-                        <div className="t-settings-sublabel">Restore from a JSON backup file</div>
-                      </div>
-                      <a href="/app" className="t-btn t-btn-outline t-btn-sm">
-                        <ion-icon name="cloud-upload-outline"></ion-icon> Import
-                      </a>
+                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
                     </div>
                   </div>
                 </div>
@@ -894,12 +859,37 @@ export default function TeacherDashboard() {
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Spaced Repetition</div>
-                        <div className="t-settings-sublabel">Choose between SM-2 and FSRS algorithms</div>
+                        <div className="t-settings-sublabel">Choose between SM-2 and FSRS</div>
                       </div>
-                      <select defaultValue="sm-2" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14 }}>
+                      <select className="t-settings-select" defaultValue="sm-2">
                         <option value="sm-2">SM-2 (Classic)</option>
                         <option value="fsrs">FSRS (Modern)</option>
                       </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Data */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Data Management</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Export data</div>
+                        <div className="t-settings-sublabel">Download decks as JSON</div>
+                      </div>
+                      <a href="/api/backup/export" className="t-btn t-btn-outline t-btn-sm">
+                        <ion-icon name="download-outline"></ion-icon> Export
+                      </a>
+                    </div>
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Import data</div>
+                        <div className="t-settings-sublabel">Restore from backup</div>
+                      </div>
+                      <a href="/app" className="t-btn t-btn-outline t-btn-sm">
+                        <ion-icon name="cloud-upload-outline"></ion-icon> Import
+                      </a>
                     </div>
                   </div>
                 </div>

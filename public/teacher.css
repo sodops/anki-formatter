@@ -2,13 +2,34 @@
    Teacher Dashboard - Professional UI
    =========================================== */
 
-/* Layout - Override body overflow:hidden from style.css for dashboard pages */
+/* CSS Variables for dashboard theming */
 .t-dashboard {
+  --t-bg: #0f0f14;
+  --t-bg-card: #16161e;
+  --t-bg-input: #1a1a26;
+  --t-border: #2a2a3a;
+  --t-text: #e5e7eb;
+  --t-text-secondary: #9ca3af;
+  --t-text-muted: #6b7280;
+  --t-accent: #6366F1;
+  --t-hover: #1e1e2e;
   display: flex;
   min-height: 100vh;
-  background: var(--bg-primary, #0f0f14);
-  color: var(--text-primary, #e5e7eb);
+  background: var(--t-bg);
+  color: var(--t-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Light theme overrides */
+[data-theme="light"] .t-dashboard {
+  --t-bg: #f5f5f7;
+  --t-bg-card: #ffffff;
+  --t-bg-input: #f9fafb;
+  --t-border: #e5e7eb;
+  --t-text: #111827;
+  --t-text-secondary: #6b7280;
+  --t-text-muted: #9ca3af;
+  --t-hover: #f3f4f6;
 }
 
 /* Teacher/Student dashboard pages need scroll */
@@ -26,13 +47,13 @@ body:has(.teacher-container) {
   justify-content: center;
   min-height: 100vh;
   gap: 12px;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
 }
 
 .teacher-spinner {
   width: 28px;
   height: 28px;
-  border: 3px solid var(--border, #2a2a3a);
+  border: 3px solid var(--t-border);
   border-top-color: #6366F1;
   border-radius: 50%;
   animation: t-spin 0.7s linear infinite;
@@ -43,8 +64,8 @@ body:has(.teacher-container) {
 /* Sidebar */
 .t-sidebar {
   width: 260px;
-  background: var(--bg-secondary, #16161e);
-  border-right: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border-right: 1px solid var(--t-border);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -60,7 +81,7 @@ body:has(.teacher-container) {
   align-items: center;
   gap: 8px;
   padding: 18px 20px;
-  border-bottom: 1px solid var(--border, #2a2a3a);
+  border-bottom: 1px solid var(--t-border);
 }
 
 .t-brand-icon {
@@ -99,7 +120,7 @@ body:has(.teacher-container) {
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
   background: none;
   border: none;
   cursor: pointer;
@@ -110,8 +131,8 @@ body:has(.teacher-container) {
 }
 
 .t-nav-item:hover {
-  background: var(--bg-tertiary, #1e1e2e);
-  color: var(--text-primary, #e5e7eb);
+  background: var(--t-hover);
+  color: var(--t-text);
 }
 
 .t-nav-item.active {
@@ -130,21 +151,21 @@ body:has(.teacher-container) {
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 10px;
-  background: var(--bg-tertiary, #1e1e2e);
+  background: var(--t-hover);
   min-width: 20px;
   text-align: center;
 }
 
 .t-nav-divider {
   height: 1px;
-  background: var(--border, #2a2a3a);
+  background: var(--t-border);
   margin: 4px 16px;
 }
 
 .t-sidebar-footer {
   margin-top: auto;
   padding: 12px 14px;
-  border-top: 1px solid var(--border, #2a2a3a);
+  border-top: 1px solid var(--t-border);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -197,7 +218,7 @@ body:has(.teacher-container) {
 
 .t-user-email {
   font-size: 11px;
-  color: var(--text-tertiary, #6b7280);
+  color: var(--t-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -205,11 +226,11 @@ body:has(.teacher-container) {
 
 .t-logout-btn {
   background: none;
-  border: 1px solid var(--border, #2a2a3a);
+  border: 1px solid var(--t-border);
   border-radius: 6px;
   padding: 6px;
   cursor: pointer;
-  color: var(--text-tertiary, #6b7280);
+  color: var(--t-text-muted);
   display: flex;
   transition: all 0.15s;
   flex-shrink: 0;
@@ -240,7 +261,7 @@ body:has(.teacher-container) {
   justify-content: center;
   height: 60vh;
   gap: 12px;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
 }
 
 /* Alerts */
@@ -287,7 +308,7 @@ body:has(.teacher-container) {
 
 .t-subtitle {
   font-size: 14px;
-  color: var(--text-tertiary, #6b7280);
+  color: var(--t-text-muted);
   margin-top: 4px;
 }
 
@@ -304,8 +325,8 @@ body:has(.teacher-container) {
   align-items: center;
   gap: 14px;
   padding: 18px;
-  background: var(--bg-secondary, #16161e);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border: 1px solid var(--t-border);
   border-radius: 12px;
 }
 
@@ -327,7 +348,7 @@ body:has(.teacher-container) {
 
 .t-stat-label {
   font-size: 12px;
-  color: var(--text-tertiary, #6b7280);
+  color: var(--t-text-muted);
 }
 
 /* Section */
@@ -370,11 +391,11 @@ body:has(.teacher-container) {
   align-items: center;
   gap: 10px;
   padding: 24px 16px;
-  background: var(--bg-secondary, #16161e);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border: 1px solid var(--t-border);
   border-radius: 12px;
   cursor: pointer;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
   transition: all 0.15s;
   text-decoration: none;
   font-size: 14px;
@@ -398,8 +419,8 @@ body:has(.teacher-container) {
 
 /* Group Card */
 .t-group-card {
-  background: var(--bg-secondary, #16161e);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border: 1px solid var(--t-border);
   border-radius: 12px;
   border-top: 3px solid #6366F1;
   padding: 18px;
@@ -433,7 +454,7 @@ body:has(.teacher-container) {
 
 .t-group-desc {
   font-size: 13px;
-  color: var(--text-tertiary, #6b7280);
+  color: var(--t-text-muted);
   line-height: 1.4;
 }
 
@@ -441,7 +462,7 @@ body:has(.teacher-container) {
   display: flex;
   gap: 14px;
   font-size: 12px;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
 }
 
 .t-group-footer span {
@@ -458,7 +479,7 @@ body:has(.teacher-container) {
   justify-content: space-between;
   padding: 8px 12px;
   border-radius: 6px;
-  background: var(--bg-tertiary, #1e1e2e);
+  background: var(--t-hover);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
@@ -485,8 +506,8 @@ body:has(.teacher-container) {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: var(--bg-secondary, #16161e);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border: 1px solid var(--t-border);
   border-radius: 10px;
   text-decoration: none;
   color: inherit;
@@ -520,7 +541,7 @@ body:has(.teacher-container) {
   flex-wrap: wrap;
 }
 
-.t-assign-group { font-size: 12px; color: var(--text-secondary, #9ca3af); }
+.t-assign-group { font-size: 12px; color: var(--t-text-secondary); }
 
 .t-group-chip {
   font-size: 11px;
@@ -535,7 +556,7 @@ body:has(.teacher-container) {
   align-items: center;
   gap: 3px;
   font-size: 12px;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
 }
 
 .t-assign-deadline.overdue { color: #f87171; font-weight: 600; }
@@ -556,7 +577,7 @@ body:has(.teacher-container) {
 .t-mini-progress {
   width: 80px;
   height: 6px;
-  background: var(--bg-tertiary, #1e1e2e);
+  background: var(--t-hover);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -570,7 +591,7 @@ body:has(.teacher-container) {
 .t-assign-pct {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
   min-width: 32px;
   text-align: right;
 }
@@ -578,8 +599,8 @@ body:has(.teacher-container) {
 /* Assignment Card Full */
 .t-assign-card-full {
   padding: 18px;
-  background: var(--bg-secondary, #16161e);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border: 1px solid var(--t-border);
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
@@ -612,7 +633,7 @@ body:has(.teacher-container) {
 
 .t-progress-bar-lg {
   height: 8px;
-  background: var(--bg-tertiary, #1e1e2e);
+  background: var(--t-hover);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -633,7 +654,7 @@ body:has(.teacher-container) {
 
 .t-progress-done { color: #10B981; }
 .t-progress-wip { color: #F59E0B; }
-.t-progress-pending { color: var(--text-tertiary, #6b7280); }
+.t-progress-pending { color: var(--t-text-muted); }
 .t-progress-acc { color: #6366F1; }
 
 /* Buttons */
@@ -655,7 +676,7 @@ body:has(.teacher-container) {
 .t-btn-primary:hover { background: #5558e8; }
 .t-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.t-btn-outline { background: none; border: 1px solid var(--border, #2a2a3a); color: var(--text-secondary, #9ca3af); }
+.t-btn-outline { background: none; border: 1px solid var(--t-border); color: var(--t-text-secondary); }
 .t-btn-outline:hover { border-color: #6366F1; color: #6366F1; }
 
 .t-btn-danger { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
@@ -669,17 +690,17 @@ body:has(.teacher-container) {
 .t-empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
 }
 
 .t-empty-icon { font-size: 48px; margin-bottom: 8px; }
-.t-empty-state h3 { font-size: 18px; color: var(--text-primary, #e5e7eb); margin-bottom: 6px; }
+.t-empty-state h3 { font-size: 18px; color: var(--t-text); margin-bottom: 6px; }
 .t-empty-state p { margin-bottom: 20px; }
 
 /* Forms */
 .t-form-card {
-  background: var(--bg-secondary, #16161e);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border: 1px solid var(--t-border);
   border-radius: 14px;
   padding: 28px;
   max-width: 600px;
@@ -694,7 +715,7 @@ body:has(.teacher-container) {
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 6px;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--t-text-secondary);
 }
 
 .t-form-group input,
@@ -703,9 +724,9 @@ body:has(.teacher-container) {
   width: 100%;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid var(--border, #2a2a3a);
-  background: var(--bg-primary, #0f0f14);
-  color: var(--text-primary, #e5e7eb);
+  border: 1px solid var(--t-border);
+  background: var(--t-bg);
+  color: var(--t-text);
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s;
@@ -758,8 +779,8 @@ body:has(.teacher-container) {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--bg-primary, #0f0f14);
-  border: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg);
+  border: 1px solid var(--t-border);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -767,7 +788,7 @@ body:has(.teacher-container) {
 .t-deck-option.selected { border-color: #6366F1; background: rgba(99, 102, 241, 0.05); }
 .t-deck-option input { accent-color: #6366F1; }
 .t-deck-option-name { font-size: 14px; flex: 1; }
-.t-deck-option-count { font-size: 12px; color: var(--text-tertiary, #6b7280); }
+.t-deck-option-count { font-size: 12px; color: var(--t-text-muted); }
 
 /* Mobile Header Bar */
 .t-mobile-header {
@@ -777,21 +798,21 @@ body:has(.teacher-container) {
   left: 0;
   right: 0;
   height: 56px;
-  background: var(--bg-secondary, #16161e);
-  border-bottom: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border-bottom: 1px solid var(--t-border);
   z-index: 50;
   align-items: center;
   padding: 0 16px;
   gap: 12px;
 }
 .t-mobile-header .t-brand-icon { font-size: 22px; }
-.t-mobile-header .t-brand-name { font-size: 17px; font-weight: 700; color: var(--text-primary, #e5e7eb); }
+.t-mobile-header .t-brand-name { font-size: 17px; font-weight: 700; color: var(--t-text); }
 .t-mobile-header .t-role-tag { font-size: 9px; }
 
 .t-hamburger {
   background: none;
   border: none;
-  color: var(--text-primary, #e5e7eb);
+  color: var(--t-text);
   font-size: 24px;
   cursor: pointer;
   padding: 4px;
@@ -847,8 +868,8 @@ body:has(.teacher-container) {
   left: 0;
   right: 0;
   height: 64px;
-  background: var(--bg-secondary, #16161e);
-  border-top: 1px solid var(--border, #2a2a3a);
+  background: var(--t-bg-card);
+  border-top: 1px solid var(--t-border);
   z-index: 50;
   justify-content: space-around;
   align-items: center;
@@ -861,7 +882,7 @@ body:has(.teacher-container) {
   gap: 2px;
   background: none;
   border: none;
-  color: var(--text-tertiary, #6b7280);
+  color: var(--t-text-muted);
   font-size: 10px;
   font-weight: 500;
   cursor: pointer;
@@ -872,7 +893,93 @@ body:has(.teacher-container) {
 }
 .t-bottom-nav-item ion-icon { font-size: 22px; }
 .t-bottom-nav-item.active { color: #6366F1; }
-.t-bottom-nav-item:hover { color: var(--text-primary, #e5e7eb); }
+.t-bottom-nav-item:hover { color: var(--t-text); }
+
+/* ============ Light Theme Overrides ============ */
+[data-theme="light"] .t-mobile-header { background: var(--t-bg-card); border-color: var(--t-border); }
+[data-theme="light"] .t-mobile-header .t-brand-name { color: var(--t-text); }
+[data-theme="light"] .t-hamburger { color: var(--t-text); }
+[data-theme="light"] .t-bottom-nav { background: var(--t-bg-card); border-color: var(--t-border); }
+[data-theme="light"] .t-bottom-nav-item:hover { color: var(--t-text); }
+[data-theme="light"] .t-sidebar { background: var(--t-bg-card); border-color: var(--t-border); }
+[data-theme="light"] .t-toggle-slider { background: #d1d5db; }
+
+/* ============ Settings Styles ============ */
+/* These styles are shared between teacher and student dashboards */
+.t-settings-card {
+  background: var(--t-bg-card, var(--s-bg-card, #16161e));
+  border: 1px solid var(--t-border, var(--s-border, #2a2a3a));
+  border-radius: 14px;
+  padding: 24px;
+}
+.t-settings-account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.t-settings-account-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--t-text);
+}
+.t-settings-account-email {
+  font-size: 13px;
+  color: var(--t-text-muted);
+}
+.t-settings-account-role {
+  font-size: 12px;
+  color: #6366F1;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.t-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--t-border, var(--s-border, #2a2a3a));
+  gap: 16px;
+}
+.t-settings-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.t-settings-row:first-child {
+  padding-top: 0;
+}
+.t-settings-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--t-text, var(--s-text, #e5e7eb));
+}
+.t-settings-sublabel {
+  font-size: 13px;
+  color: var(--t-text-muted, var(--s-text-muted, #6b7280));
+  margin-top: 2px;
+}
+.t-settings-input {
+  width: 80px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--t-border, var(--s-border, #2a2a3a));
+  background: var(--t-bg-input, var(--s-bg-input, #1a1a26));
+  color: var(--t-text, var(--s-text, #e5e7eb));
+  font-size: 14px;
+  text-align: center;
+}
+.t-settings-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--t-border, var(--s-border, #2a2a3a));
+  background: var(--t-bg-input, var(--s-bg-input, #1a1a26));
+  color: var(--t-text, var(--s-text, #e5e7eb));
+  font-size: 14px;
+}
+@media (max-width: 768px) {
+  .t-settings-card { padding: 16px; }
+  .t-settings-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .t-settings-row > *:last-child { align-self: flex-start; }
+}
 
 /* Responsive */
 @media (max-width: 768px) {
