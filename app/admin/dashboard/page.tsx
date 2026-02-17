@@ -82,6 +82,7 @@ export default function ModernAdminDashboard() {
   const [recentDecks, setRecentDecks] = useState<RecentDeck[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [dueCards, setDueCards] = useState(0);
+  const [logsCount, setLogsCount] = useState(0);
   const [isForbidden, setIsForbidden] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,6 +90,22 @@ export default function ModernAdminDashboard() {
   useEffect(() => {
     if (!loading && !user) router.push("/login");
   }, [loading, user, router]);
+
+  // Load Ionicons
+  useEffect(() => {
+    const id = "ionicons-esm";
+    if (!document.getElementById(id)) {
+      const s = document.createElement("script");
+      s.id = id;
+      s.type = "module";
+      s.src = "https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js";
+      document.head.appendChild(s);
+      const fb = document.createElement("script");
+      fb.setAttribute("nomodule", "");
+      fb.src = "https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js";
+      document.head.appendChild(fb);
+    }
+  }, []);
 
   const fetchDashboard = useCallback(async () => {
     if (!user) return;
@@ -116,6 +133,7 @@ export default function ModernAdminDashboard() {
         if (data.recentDecks) setRecentDecks(data.recentDecks);
         if (data.user) setUserProfile(data.user);
         if (data.counts?.dueCards !== undefined) setDueCards(data.counts.dueCards);
+        if (data.counts?.logs !== undefined) setLogsCount(data.counts.logs);
 
         // Generate activity feed from recent logs
         if (data.recentLogs) {
@@ -225,7 +243,6 @@ export default function ModernAdminDashboard() {
               >
                 <ion-icon name="people-outline"></ion-icon>
                 Users
-                <span className="admin-nav-badge">2</span>
               </button>
               <button
                 className={`admin-nav-item ${tab === "content" ? "active" : ""}`}
@@ -312,19 +329,9 @@ export default function ModernAdminDashboard() {
             </div>
 
             <div className="admin-header-right">
-              <div className="admin-search">
-                <ion-icon name="search-outline" className="admin-search-icon"></ion-icon>
-                <input type="text" className="admin-search-input" placeholder="Search..." />
-              </div>
-
               <div className="admin-header-actions">
                 <button className="admin-icon-btn" onClick={fetchDashboard} title="Refresh">
                   <ion-icon name="refresh-outline"></ion-icon>
-                </button>
-
-                <button className="admin-icon-btn" title="Notifications">
-                  <ion-icon name="notifications-outline"></ion-icon>
-                  <span className="admin-icon-btn-badge"></span>
                 </button>
 
                 <div
@@ -349,31 +356,7 @@ export default function ModernAdminDashboard() {
                   <div className="admin-stat-card">
                     <div className="admin-stat-card-header">
                       <div className="admin-stat-card-icon">
-                        <ion-icon name="people"></ion-icon>
-                      </div>
-                      <div className="admin-stat-card-trend up">
-                        <ion-icon name="trending-up"></ion-icon>
-                        +12%
-                      </div>
-                    </div>
-                    <div className="admin-stat-card-label">Total Users</div>
-                    <div className="admin-stat-card-value">
-                      {stats.users.total.toLocaleString()}
-                    </div>
-                    <div className="admin-stat-card-footer">
-                      <ion-icon name="time-outline"></ion-icon>
-                      {stats.users.active} active today
-                    </div>
-                  </div>
-
-                  <div className="admin-stat-card success">
-                    <div className="admin-stat-card-header">
-                      <div className="admin-stat-card-icon">
                         <ion-icon name="albums"></ion-icon>
-                      </div>
-                      <div className="admin-stat-card-trend up">
-                        <ion-icon name="trending-up"></ion-icon>
-                        +8%
                       </div>
                     </div>
                     <div className="admin-stat-card-label">Total Decks</div>
@@ -381,19 +364,15 @@ export default function ModernAdminDashboard() {
                       {stats.decks.total.toLocaleString()}
                     </div>
                     <div className="admin-stat-card-footer">
-                      <ion-icon name="add-circle-outline"></ion-icon>
-                      {stats.decks.created_today} created today
+                      <ion-icon name="layers-outline"></ion-icon>
+                      {stats.cards.total.toLocaleString()} cards total
                     </div>
                   </div>
 
-                  <div className="admin-stat-card warning">
+                  <div className="admin-stat-card success">
                     <div className="admin-stat-card-header">
                       <div className="admin-stat-card-icon">
                         <ion-icon name="library"></ion-icon>
-                      </div>
-                      <div className="admin-stat-card-trend up">
-                        <ion-icon name="trending-up"></ion-icon>
-                        +24%
                       </div>
                     </div>
                     <div className="admin-stat-card-label">Total Cards</div>
@@ -401,28 +380,38 @@ export default function ModernAdminDashboard() {
                       {stats.cards.total.toLocaleString()}
                     </div>
                     <div className="admin-stat-card-footer">
-                      <ion-icon name="flash-outline"></ion-icon>
-                      {stats.cards.created_today} created today
+                      <ion-icon name="alarm-outline"></ion-icon>
+                      {dueCards} due for review
                     </div>
                   </div>
 
-                  <div className="admin-stat-card danger">
+                  <div className="admin-stat-card warning">
                     <div className="admin-stat-card-header">
                       <div className="admin-stat-card-icon">
                         <ion-icon name="checkmark-done"></ion-icon>
                       </div>
-                      <div className="admin-stat-card-trend up">
-                        <ion-icon name="trending-up"></ion-icon>
-                        +18%
-                      </div>
                     </div>
-                    <div className="admin-stat-card-label">Reviews</div>
+                    <div className="admin-stat-card-label">Total Reviews</div>
                     <div className="admin-stat-card-value">
                       {stats.reviews.total.toLocaleString()}
                     </div>
                     <div className="admin-stat-card-footer">
                       <ion-icon name="today-outline"></ion-icon>
                       {stats.reviews.today} today
+                    </div>
+                  </div>
+
+                  <div className="admin-stat-card danger">
+                    <div className="admin-stat-card-header">
+                      <div className="admin-stat-card-icon">
+                        <ion-icon name="document-text"></ion-icon>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card-label">System Logs</div>
+                    <div className="admin-stat-card-value">{logsCount.toLocaleString()}</div>
+                    <div className="admin-stat-card-footer">
+                      <ion-icon name="pulse-outline"></ion-icon>
+                      {stats.webVitals.count} web vitals
                     </div>
                   </div>
                 </div>
@@ -443,9 +432,9 @@ export default function ModernAdminDashboard() {
                         <ion-icon name="pulse"></ion-icon>
                         Recent Activity
                       </h2>
-                      <button className="admin-btn admin-btn-secondary admin-btn-sm">
-                        View All
-                      </button>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
+                        Last {activities.length} entries
+                      </span>
                     </div>
 
                     <div className="admin-activity-feed">
@@ -504,6 +493,7 @@ export default function ModernAdminDashboard() {
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                      {/* Card States Breakdown */}
                       <div
                         style={{
                           padding: "1rem",
@@ -514,39 +504,62 @@ export default function ModernAdminDashboard() {
                       >
                         <div
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "0.5rem",
+                            fontSize: "0.875rem",
+                            color: "var(--text-secondary)",
+                            marginBottom: "0.75rem",
+                            fontWeight: 600,
                           }}
                         >
-                          <span style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-                            Storage Used
-                          </span>
-                          <span style={{ fontSize: "0.875rem", fontWeight: 700 }}>2.4 GB</span>
+                          Card States
                         </div>
-                        <div
-                          style={{
-                            height: "8px",
-                            background: "var(--border)",
-                            borderRadius: "4px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "45%",
-                              height: "100%",
-                              background: "var(--admin-primary)",
-                              borderRadius: "4px",
-                            }}
-                          ></div>
-                        </div>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
-                          45% of 5 GB
-                        </span>
+                        {[
+                          { label: "New", value: cardStates.new, color: "#6366f1" },
+                          { label: "Learning", value: cardStates.learning, color: "#f59e0b" },
+                          { label: "Review", value: cardStates.review, color: "#10b981" },
+                          { label: "Relearning", value: cardStates.relearning, color: "#ef4444" },
+                        ].map((s) => {
+                          const total =
+                            cardStates.new +
+                              cardStates.learning +
+                              cardStates.review +
+                              cardStates.relearning || 1;
+                          return (
+                            <div key={s.label} style={{ marginBottom: "0.5rem" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  marginBottom: "0.2rem",
+                                }}
+                              >
+                                <span style={{ fontSize: "0.75rem" }}>{s.label}</span>
+                                <span style={{ fontSize: "0.75rem", fontWeight: 700 }}>
+                                  {s.value}
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  height: "6px",
+                                  background: "var(--border)",
+                                  borderRadius: "3px",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: `${(s.value / total) * 100}%`,
+                                    height: "100%",
+                                    background: s.color,
+                                    borderRadius: "3px",
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
 
+                      {/* Due Cards */}
                       <div
                         style={{
                           padding: "1rem",
@@ -562,18 +575,29 @@ export default function ModernAdminDashboard() {
                             marginBottom: "0.5rem",
                           }}
                         >
-                          API Calls (24h)
+                          Cards Due for Review
                         </div>
                         <div
-                          style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "0.25rem" }}
+                          style={{
+                            fontSize: "1.75rem",
+                            fontWeight: 700,
+                            marginBottom: "0.25rem",
+                            color: dueCards > 0 ? "var(--admin-warning)" : "var(--admin-success)",
+                          }}
                         >
-                          12,847
+                          {dueCards}
                         </div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--admin-success)" }}>
-                          <ion-icon name="trending-up"></ion-icon> +5.2% from yesterday
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: dueCards === 0 ? "var(--admin-success)" : "var(--text-tertiary)",
+                          }}
+                        >
+                          {dueCards === 0 ? "✅ All caught up!" : "Cards waiting for review"}
                         </div>
                       </div>
 
+                      {/* Today's Grades */}
                       <div
                         style={{
                           padding: "1rem",
@@ -589,18 +613,23 @@ export default function ModernAdminDashboard() {
                             marginBottom: "0.5rem",
                           }}
                         >
-                          Avg Response Time
+                          Today&apos;s Reviews
                         </div>
                         <div
                           style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "0.25rem" }}
                         >
-                          142ms
+                          {todayGrades.again +
+                            todayGrades.hard +
+                            todayGrades.good +
+                            todayGrades.easy}
                         </div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--admin-success)" }}>
-                          <ion-icon name="checkmark-circle"></ion-icon> Excellent
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
+                          {todayGrades.good + todayGrades.easy} passed ·{" "}
+                          {todayGrades.again + todayGrades.hard} need work
                         </div>
                       </div>
 
+                      {/* Pass Rate */}
                       <div
                         style={{
                           padding: "1rem",
@@ -616,16 +645,38 @@ export default function ModernAdminDashboard() {
                             marginBottom: "0.5rem",
                           }}
                         >
-                          Error Rate
+                          Mastery Rate
                         </div>
-                        <div
-                          style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "0.25rem" }}
-                        >
-                          0.03%
-                        </div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--admin-success)" }}>
-                          <ion-icon name="shield-checkmark"></ion-icon> Within threshold
-                        </div>
+                        {(() => {
+                          const total =
+                            cardStates.new +
+                              cardStates.learning +
+                              cardStates.review +
+                              cardStates.relearning || 1;
+                          const rate = Math.round((cardStates.review / total) * 100);
+                          return (
+                            <>
+                              <div
+                                style={{
+                                  fontSize: "1.75rem",
+                                  fontWeight: 700,
+                                  marginBottom: "0.25rem",
+                                  color:
+                                    rate >= 70
+                                      ? "var(--admin-success)"
+                                      : rate >= 40
+                                        ? "var(--admin-warning)"
+                                        : "var(--admin-danger)",
+                                }}
+                              >
+                                {rate}%
+                              </div>
+                              <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
+                                {cardStates.review} of {total} cards mastered
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -1790,7 +1841,7 @@ export default function ModernAdminDashboard() {
                           { table: "Decks", count: stats?.decks.total || 0 },
                           { table: "Cards", count: stats?.cards.total || 0 },
                           { table: "Review Logs", count: stats?.reviews.total || 0 },
-                          { table: "System Logs", count: stats?.webVitals.count || 0 },
+                          { table: "System Logs", count: logsCount },
                           { table: "Web Vitals", count: stats?.webVitals.count || 0 },
                         ].map((item) => (
                           <tr key={item.table}>
