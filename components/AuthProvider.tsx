@@ -54,47 +54,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Safety timeout — if auth takes longer than 5 seconds, stop loading
     const timeout = setTimeout(() => {
-      console.warn("Auth timeout — forcing loading=false");
+      console.warn("[Auth] timeout — forcing loading=false");
       setLoading(false);
     }, 5000);
 
-    // Fetch user role from profiles table
-    const fetchRole = async (userId: string): Promise<UserRole> => {
+    // Fetch user role via server API (avoids RLS issues with client-side Supabase)
+    const fetchRole = async (): Promise<UserRole> => {
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", userId)
-          .single();
-        
-        if (error) {
-          console.warn("Role fetch error:", error.message);
+        const res = await fetch("/api/me");
+        if (!res.ok) {
+          console.warn("[Auth] /api/me returned", res.status);
           return "student";
         }
+        const data = await res.json();
+        console.log("[Auth] /api/me result:", { role: data.role, email: data.user?.email });
         
-        if (data?.role) {
+        if (data.role) {
           const r = data.role as UserRole;
           setRole(r);
           return r;
         }
       } catch (err) {
-        console.warn("Role fetch failed:", err);
+        console.warn("[Auth] /api/me fetch failed:", err);
       }
       return "student";
     };
 
-    // Primary: get initial session explicitly
+    // Primary: get initial session from Supabase client, then fetch role from server
     const initAuth = async () => {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
         if (error) {
-          console.warn("getSession error:", error.message);
+          console.warn("[Auth] getSession error:", error.message);
         }
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         
         if (initialSession?.user) {
-          await fetchRole(initialSession.user.id);
+          // Fetch role from server API (reliable, uses server-side Supabase)
+          await fetchRole();
+        } else {
+          console.log("[Auth] No session — user not logged in");
         }
       } catch (err) {
         console.warn("Auth init failed:", err);
@@ -115,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       let currentRole: UserRole = "student";
       if (session?.user) {
-        currentRole = await fetchRole(session.user.id);
+        currentRole = await fetchRole();
       } else {
         setRole("student");
       }
