@@ -52,10 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Safety timeout — if auth takes longer than 8 seconds, stop loading
+    // Safety timeout — if auth takes longer than 5 seconds, stop loading
     const timeout = setTimeout(() => {
+      console.warn("Auth timeout — forcing loading=false");
       setLoading(false);
-    }, 8000);
+    }, 5000);
 
     // Fetch user role from profiles table
     const fetchRole = async (userId: string): Promise<UserRole> => {
@@ -82,8 +83,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return "student";
     };
 
-    // Use onAuthStateChange as the single source of truth
-    // It fires with INITIAL_SESSION on first load
+    // Primary: get initial session explicitly
+    const initAuth = async () => {
+      try {
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn("getSession error:", error.message);
+        }
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        
+        if (initialSession?.user) {
+          await fetchRole(initialSession.user.id);
+        }
+      } catch (err) {
+        console.warn("Auth init failed:", err);
+      } finally {
+        setLoading(false);
+        clearTimeout(timeout);
+      }
+    };
+
+    initAuth();
+
+    // Secondary: listen for subsequent auth changes (sign in/out, token refresh)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -96,8 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setRole("student");
       }
-      setLoading(false);
-      clearTimeout(timeout);
 
       // Notify vanilla JS modules about auth state change
       window.dispatchEvent(
