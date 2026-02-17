@@ -4,10 +4,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
+export type UserRole = "student" | "teacher" | "admin";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  role: UserRole;
   signOut: () => Promise<void>;
 }
 
@@ -15,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  role: "student",
   signOut: async () => {},
 });
 
@@ -26,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<UserRole>("student");
 
   // Check if Supabase is configured
   const isConfigured = !!(
@@ -47,11 +52,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Fetch user role from profiles table
+    const fetchRole = async (userId: string) => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .single();
+        if (data?.role) setRole(data.role as UserRole);
+      } catch {
+        // Default to student
+      }
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (session?.user) {
+        fetchRole(session.user.id).then(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes
@@ -60,6 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchRole(session.user.id);
+      } else {
+        setRole("student");
+      }
       setLoading(false);
 
       // Notify vanilla JS modules about auth state change
@@ -68,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           detail: {
             user: session?.user ?? null,
             accessToken: session?.access_token ?? null,
+            role: session?.user ? role : "student",
           },
         })
       );
@@ -95,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, role, signOut }}>
       {children}
     </AuthContext.Provider>
   );

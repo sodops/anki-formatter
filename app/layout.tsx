@@ -80,6 +80,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <link rel="stylesheet" href="/style.css" />
         <link rel="stylesheet" href="/about.css" />
+        <link rel="stylesheet" href="/teacher.css" />
+        <link rel="stylesheet" href="/student.css" />
         {/* Inline theme detection — must run before paint to prevent FOUC */}
         <script
           dangerouslySetInnerHTML={{
@@ -113,6 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz"
           crossOrigin="anonymous"
         ></script>
+        <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
       </head>
       <body suppressHydrationWarning>
         <ErrorBoundary>

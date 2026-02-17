@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [selectedRole, setSelectedRole] = useState<"student" | "teacher">("student");
 
   // OAuth handler still needs client-side SDK because it redirects the browser
   const handleOAuth = async (provider: "google" | "github") => {
@@ -37,6 +38,9 @@ export default function LoginPage() {
     setMessage(null);
 
     const formData = new FormData(event.currentTarget);
+    if (mode === "signup") {
+      formData.set("role", selectedRole);
+    }
 
     startTransition(async () => {
       let result;
@@ -168,6 +172,57 @@ export default function LoginPage() {
                   <span>or</span>
                 </div>
               </>
+            )}
+
+            {/* Role Selector (Only for Signup) */}
+            {mode === "signup" && (
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>I am a</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('student')}
+                    style={{
+                      padding: '14px 12px',
+                      borderRadius: '10px',
+                      border: `2px solid ${selectedRole === 'student' ? '#6366F1' : 'var(--border)'}`,
+                      background: selectedRole === 'student' ? 'rgba(99,102,241,0.08)' : 'var(--bg-secondary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column' as const,
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <span style={{ fontSize: '24px' }}>🎓</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Student</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Learn & study</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('teacher')}
+                    style={{
+                      padding: '14px 12px',
+                      borderRadius: '10px',
+                      border: `2px solid ${selectedRole === 'teacher' ? '#10B981' : 'var(--border)'}`,
+                      background: selectedRole === 'teacher' ? 'rgba(16,185,129,0.08)' : 'var(--bg-secondary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column' as const,
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <span style={{ fontSize: '24px' }}>👨‍🏫</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Teacher</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Create & assign</span>
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Form */}

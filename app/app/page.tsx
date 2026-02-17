@@ -7,7 +7,7 @@ import { AppSkeleton } from "@/components/app/AppSkeleton";
 import { reportWebVitals } from "@/lib/web-vitals";
 
 export default function Home() {
-  const { user, session, loading, signOut } = useAuth();
+  const { user, session, loading, signOut, role } = useAuth();
   const router = useRouter();
 
   // Report Web Vitals on mount
@@ -51,6 +51,7 @@ export default function Home() {
           }
         : null,
       accessToken: session?.access_token || null,
+      role: role || 'student',
     };
 
     // Fire auth event so store.js can pick it up
@@ -194,6 +195,31 @@ export default function Home() {
               <ion-icon name="pie-chart-outline"></ion-icon> Statistics
             </button>
           </div>
+
+          {/* Role-based Dashboard Link */}
+          {role && (
+            <div className="sidebar-section">
+              <h3>Dashboard</h3>
+              <a
+                href={role === 'teacher' ? '/teacher' : '/student'}
+                className="new-deck-btn"
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <ion-icon name={role === 'teacher' ? 'school-outline' : 'book-outline'}></ion-icon>
+                {role === 'teacher' ? 'Teacher Dashboard' : 'Student Hub'}
+              </a>
+              {role === 'admin' && (
+                <a
+                  href="/admin/dashboard"
+                  className="new-deck-btn"
+                  style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <ion-icon name="settings-outline"></ion-icon>
+                  Admin Panel
+                </a>
+              )}
+            </div>
+          )}
 
           <div className="sidebar-footer">
             {/* User Account — only show when authenticated */}

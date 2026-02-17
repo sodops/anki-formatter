@@ -1,6 +1,7 @@
 /**
  * Supabase Middleware Client
  * Refreshes auth tokens on every request
+ * Handles role-based route protection
  */
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -42,8 +43,6 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Redirect unauthenticated users away from protected routes
-  // But allow access to login, auth callback, and public assets
-  // API routes are NOT public — they need auth but shouldn't redirect (return 401 instead)
   const isPublicPath =
     request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname.startsWith("/login") ||
@@ -51,6 +50,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/js") ||
     request.nextUrl.pathname.startsWith("/style.css") ||
     request.nextUrl.pathname.startsWith("/about.css") ||
+    request.nextUrl.pathname.startsWith("/privacy") ||
+    request.nextUrl.pathname.startsWith("/terms") ||
     request.nextUrl.pathname === "/favicon.ico";
 
   const isApiPath = request.nextUrl.pathname.startsWith("/api");
@@ -66,6 +67,36 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
+  }
+
+  // Role-based route protection for teacher/admin routes
+  if (user && (request.nextUrl.pathname.startsWith("/teacher") || request.nextUrl.pathname.startsWith("/admin"))) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const role = profile?.role || "student";
+    const isTeacherRoute = request.nextUrl.pathname.startsWith("/teacher");
+    const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+
+    // Check env-var based admin access (legacy)
+    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+    const adminUserIds = (process.env.ADMIN_USER_IDS || "").split(",").map(id => id.trim()).filter(Boolean);
+    const isEnvAdmin = (user.email && adminEmails.includes(user.email.toLowerCase())) || adminUserIds.includes(user.id);
+
+    if (isAdminRoute && role !== "admin" && !isEnvAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/app";
+      return NextResponse.redirect(url);
+    }
+
+    if (isTeacherRoute && role !== "teacher" && role !== "admin" && !isEnvAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/app";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

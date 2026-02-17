@@ -74,6 +74,12 @@ export async function signup(formData: FormData) {
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const role = (formData.get("role") as string) || "student";
+
+  // Validate role
+  if (!["student", "teacher"].includes(role)) {
+    return { error: "Invalid role selected." };
+  }
 
   // Validate input
   const validation = signupSchema.safeParse({ email, password });
@@ -90,6 +96,9 @@ export async function signup(formData: FormData) {
     password: validation.data.password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: {
+        role: role,
+      },
     },
   });
 
