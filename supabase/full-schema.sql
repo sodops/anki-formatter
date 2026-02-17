@@ -345,19 +345,18 @@ CREATE POLICY "Users can view their own web vitals" ON web_vitals FOR SELECT USI
 
 -- Groups
 ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Teachers can create groups" ON groups;
 CREATE POLICY "Teachers can create groups" ON groups FOR INSERT WITH CHECK (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Group owners can update" ON groups;
 CREATE POLICY "Group owners can update" ON groups FOR UPDATE USING (auth.uid() = owner_id);
+
+DROP POLICY IF EXISTS "Group owners can delete" ON groups;
 CREATE POLICY "Group owners can delete" ON groups FOR DELETE USING (auth.uid() = owner_id);
-CREATE POLICY "Members can view their groups" ON groups
-    FOR SELECT USING (
-        auth.uid() = owner_id
-        OR EXISTS (
-            SELECT 1 FROM group_members
-            WHERE group_members.group_id = groups.id
-            AND group_members.user_id = auth.uid()
-        )
-    );
-CREATE POLICY "Anyone can look up by join code" ON groups FOR SELECT USING (join_code IS NOT NULL);
+
+DROP POLICY IF EXISTS "Members can view their groups" ON groups;
+CREATE POLICY "Members can view their groups" ON groups FOR SELECT USING (auth.uid() = owner_id);
 
 -- Group Members
 ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
