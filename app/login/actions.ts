@@ -68,7 +68,7 @@ export async function signup(formData: FormData) {
   if (!rateLimitResult.allowed) {
     const retryMinutes = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
     return { 
-      error: `Haddan tashqari ko'p ro'yxatdan o'tish urinishi. ${retryMinutes} daqiqadan keyin qaytadan urinib ko'ring.` 
+      error: `Too many signup attempts. Please try again in ${retryMinutes} minutes.` 
     };
   }
 
@@ -108,7 +108,7 @@ export async function resetPassword(formData: FormData) {
   if (!rateLimitResult.allowed) {
     const retryMinutes = Math.ceil((rateLimitResult.resetAt - Date.now()) / 60000);
     return { 
-      error: `Haddan tashqari ko'p urinish. ${retryMinutes} daqiqadan keyin qaytadan urinib ko'ring.` 
+      error: `Too many attempts. Please try again in ${retryMinutes} minutes.` 
     };
   }
 

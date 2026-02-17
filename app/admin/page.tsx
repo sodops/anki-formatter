@@ -44,76 +44,76 @@ interface ApiResult {
 const API_ENDPOINTS: ApiEndpoint[] = [
   {
     id: "sync-get", method: "GET", path: "/api/sync", name: "Sync — Load State",
-    description: "Barcha deck, card va settingslarni clouddan yuklaydi. since parametri berilsa faqat o'sha vaqtdan keyingi o'zgarishlarni qaytaradi (delta sync).",
+    description: "Loads all decks, cards, and settings from the cloud. If the 'since' parameter is provided, only changes after that time are returned (delta sync).",
     category: "sync", rateLimit: "30/min", auth: "Required",
-    params: [{ name: "since", type: "string", required: false, description: "ISO timestamp — faqat shu vaqtdan keyingi o'zgarishlar (delta sync)", default: "" }],
+    params: [{ name: "since", type: "string", required: false, description: "ISO timestamp — only changes after this time (delta sync)", default: "" }],
   },
   {
     id: "sync-post", method: "POST", path: "/api/sync", name: "Sync — Save Changes",
-    description: "O'zgarishlarni cloudga saqlaydi. Change types: DECK_CREATE, DECK_UPDATE, CARD_CREATE, CARD_UPDATE, DECK_DELETE, CARD_DELETE, REVIEW_LOG",
+    description: "Saves changes to the cloud. Change types: DECK_CREATE, DECK_UPDATE, CARD_CREATE, CARD_UPDATE, DECK_DELETE, CARD_DELETE, REVIEW_LOG",
     category: "sync", rateLimit: "20/min", auth: "Required",
     bodyExample: JSON.stringify({ changes: [{ type: "DECK_CREATE", data: { id: "example-uuid", name: "Test Deck" }, timestamp: new Date().toISOString() }], lastSyncedAt: null }, null, 2),
   },
   {
     id: "generate", method: "POST", path: "/api/generate", name: "Generate TSV",
-    description: "Flashcard ma'lumotlaridan Anki import uchun TSV fayl generatsiya qiladi.",
+    description: "Generates TSV file from flashcard data for Anki import.",
     category: "tools", rateLimit: "30/min", auth: "Required",
     bodyExample: JSON.stringify({ cards: [{ term: "Hello", definition: "Salom" }], deckName: "Test" }, null, 2),
   },
   {
     id: "parse", method: "POST", path: "/api/parse", name: "Parse Text → Cards",
-    description: "Matnni flashcard juftliklariga parse qiladi. Separatorlar: ==, ->, =>, :, tab. Google Docs URL ham qo'llab-quvvatlanadi.",
+    description: "Parses text into flashcard pairs. Separators: ==, ->, =>, :, tab. Google Docs URLs are also supported.",
     category: "tools", rateLimit: "30/min", auth: "Required",
     bodyExample: JSON.stringify({ text: "Hello == Salom\nWorld == Dunyo\nBook == Kitob", separator: "==" }, null, 2),
   },
   {
     id: "translate", method: "POST", path: "/api/translate", name: "Translate Text",
-    description: "Matnni tarjima qiladi (Google Translate). Avtomatik til aniqlash, Uzbek ↔ English.",
+    description: "Translates text (Google Translate). Automatic language detection, Uzbek ↔ English.",
     category: "tools", rateLimit: "20/min", auth: "Required",
     bodyExample: JSON.stringify({ text: "Hello, how are you?", target: "uz" }, null, 2),
   },
   {
     id: "logs", method: "POST", path: "/api/logs", name: "System Log",
-    description: "System logga yozadi. Levellar: INFO, WARN, ERROR, DEBUG",
+    description: "Writes to system log. Levels: INFO, WARN, ERROR, DEBUG",
     category: "monitoring", rateLimit: "60/min", auth: "Required",
     bodyExample: JSON.stringify({ level: "INFO", message: "Admin panel test log", data: { source: "admin" } }, null, 2),
   },
   {
     id: "analytics", method: "POST", path: "/api/analytics", name: "Web Vitals",
-    description: "Web Vitals metrikalarini saqlaydi (LCP, CLS, FCP, TTFB, INP). Avtomatik yuboriladi.",
+    description: "Saves Web Vitals metrics (LCP, CLS, FCP, TTFB, INP). Sent automatically.",
     category: "monitoring", rateLimit: "100/min", auth: "Required",
     bodyExample: JSON.stringify({ name: "LCP", value: 1200, rating: "good", delta: 1200, id: "v4-test", navigationType: "navigate" }, null, 2),
   },
   {
     id: "backup-export", method: "GET", path: "/api/backup/export", name: "Export Backup",
-    description: "Barcha ma'lumotlarni JSON formatida eksport qiladi (decks, cards, review logs, settings).",
+    description: "Exports all data in JSON format (decks, cards, review logs, settings).",
     category: "backup", rateLimit: "10/min", auth: "Required",
-    params: [{ name: "include_logs", type: "string", required: false, description: "Review loglarni qo'shish (true/false)", default: "true" }],
+    params: [{ name: "include_logs", type: "string", required: false, description: "Include review logs (true/false)", default: "true" }],
   },
   {
     id: "backup-import", method: "POST", path: "/api/backup/import", name: "Import Backup",
-    description: "⚠️ XAVFLI: JSON backupdan restore qiladi. Barcha mavjud ma'lumotlar O'CHIRILADI va yangilanadi!",
+    description: "⚠️ DANGEROUS: Restores from JSON backup. All existing data will be DELETED and replaced!",
     category: "backup", rateLimit: "5/min", auth: "Required", dangerous: true,
     bodyExample: '{ "version": 1, "decks": [...], "cards": [...] }',
   },
   {
     id: "admin-overview", method: "GET", path: "/api/admin/overview", name: "Admin Overview",
-    description: "Dashboard uchun umumiy statistika — decklar, cardlar, loglar, bugungi reviewlar, card holatlari.",
+    description: "Dashboard overview statistics — decks, cards, logs, today's reviews, card states.",
     category: "admin", rateLimit: "30/min", auth: "Admin only",
   },
   {
     id: "admin-metrics", method: "GET", path: "/api/admin/metrics", name: "Admin Metrics",
-    description: "Web Vitals metrikalarining statistik tahlili — o'rtacha, median, p75, p95, reyting taqsimoti.",
+    description: "Statistical analysis of Web Vitals metrics — average, median, p75, p95, rating distribution.",
     category: "admin", rateLimit: "30/min", auth: "Admin only",
     params: [
-      { name: "days", type: "number", required: false, description: "Necha kunlik ma'lumot (default: 7)", default: "7" },
-      { name: "metric", type: "string", required: false, description: "Metrika nomi filtri (LCP, CLS, FCP, TTFB, INP)", default: "" },
+      { name: "days", type: "number", required: false, description: "Number of days of data (default: 7)", default: "7" },
+      { name: "metric", type: "string", required: false, description: "Metric name filter (LCP, CLS, FCP, TTFB, INP)", default: "" },
     ],
   },
 ];
 
 const CATEGORIES = [
-  { id: "all", label: "📋 Hammasi", count: API_ENDPOINTS.length },
+  { id: "all", label: "📋 All", count: API_ENDPOINTS.length },
   { id: "sync", label: "🔄 Sync", count: API_ENDPOINTS.filter(e => e.category === "sync").length },
   { id: "tools", label: "🛠️ Tools", count: API_ENDPOINTS.filter(e => e.category === "tools").length },
   { id: "backup", label: "💾 Backup", count: API_ENDPOINTS.filter(e => e.category === "backup").length },
@@ -566,10 +566,10 @@ export default function AdminDashboard() {
                   <div style={S.card}>
                     <h3 style={S.h3}>🔄 Cloud Sync</h3>
                     <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: "0 0 0.75rem" }}>
-                      Supabase'dan barcha ma'lumotlarni yuklash (GET /api/sync)
+                      Load all data from Supabase (GET /api/sync)
                     </p>
                     <button onClick={doFullSync} disabled={syncLoading} style={S.btnPrimary}>
-                      {syncLoading ? "⏳ Yuklanmoqda..." : "🔄 Full Sync"}
+                      {syncLoading ? "⏳ Loading..." : "🔄 Full Sync"}
                     </button>
                     {syncResult && (
                       <pre style={{ ...S.codeBlock, marginTop: "0.75rem", maxHeight: 300 }}>
@@ -582,15 +582,15 @@ export default function AdminDashboard() {
                     <h3 style={S.h3}>💾 Backup</h3>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                       <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: 0 }}>
-                        Barcha ma'lumotlarni JSON faylga eksport qilish
+                        Export all data to JSON file
                       </p>
                       <button onClick={doExportBackup} style={S.btnPrimary}>💾 Export JSON</button>
                       <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", marginTop: "0.25rem" }}>
                         <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.5rem", fontWeight: 600 }}>
-                          ⚠️ Import — barcha mavjud ma'lumotlar o'chiriladi!
+                          ⚠️ Import — all existing data will be deleted!
                         </p>
                         <button onClick={() => { setTab("api"); setSelectedEndpoint("backup-import"); }} style={{ ...S.actionBtn, color: "#ef4444", borderColor: "#ef444440" }}>
-                          📥 Import sahifasiga o'tish
+                          📥 Go to Import page
                         </button>
                       </div>
                     </div>
@@ -599,16 +599,16 @@ export default function AdminDashboard() {
 
                 {/* DB Tables overview */}
                 <div style={S.card}>
-                  <h3 style={S.h3}>🗃️ Database jadvallari</h3>
+                  <h3 style={S.h3}>🗃️ Database Tables</h3>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem" }}>
                     {[
-                      { name: "decks", desc: "Flashcard decklari", count: data?.counts.decks },
-                      { name: "cards", desc: "Flashcardlar", count: data?.counts.cards },
-                      { name: "review_logs", desc: "Review tarixi", count: data?.counts.totalReviews },
+                      { name: "decks", desc: "Flashcard decks", count: data?.counts.decks },
+                      { name: "cards", desc: "Flashcards", count: data?.counts.cards },
+                      { name: "review_logs", desc: "Review history", count: data?.counts.totalReviews },
                       { name: "user_data", desc: "Settings & progress", count: 1 },
-                      { name: "system_logs", desc: "Tizim loglari", count: data?.counts.logs },
-                      { name: "web_vitals", desc: "Performance metrikalari", count: data?.counts.webVitals },
-                      { name: "profiles", desc: "Foydalanuvchi profili", count: 1 },
+                      { name: "system_logs", desc: "System logs", count: data?.counts.logs },
+                      { name: "web_vitals", desc: "Performance metrics", count: data?.counts.webVitals },
+                      { name: "profiles", desc: "User profile", count: 1 },
                     ].map(t => (
                       <div key={t.name} style={{ padding: "0.75rem", background: "var(--bg-primary)", border: "1px solid var(--border)", borderRadius: "0.5rem" }}>
                         <div style={{ fontWeight: 600, fontSize: "0.85rem", fontFamily: "monospace" }}>{t.name}</div>
@@ -626,7 +626,7 @@ export default function AdminDashboard() {
               <div style={S.card}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                   <h3 style={{ ...S.h3, margin: 0 }}>📋 System Logs</h3>
-                  <button onClick={fetchOverview} style={{ ...S.actionBtn, width: "auto", padding: "0.4rem 0.75rem" }}>🔄 Yangilash</button>
+                  <button onClick={fetchOverview} style={{ ...S.actionBtn, width: "auto", padding: "0.4rem 0.75rem" }}>🔄 Refresh</button>
                 </div>
                 {data?.recentLogs?.length ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -661,9 +661,9 @@ export default function AdminDashboard() {
                 ) : (
                   <div style={{ textAlign: "center", padding: "3rem" }}>
                     <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>✨</div>
-                    <p style={S.muted}>Loglar yo'q — tizim toza ishlayapti</p>
+                    <p style={S.muted}>No logs — system running clean</p>
                     <button onClick={() => { setTab("api"); setSelectedEndpoint("logs"); }} style={{ ...S.actionBtn, width: "auto", display: "inline-flex", marginTop: "0.5rem" }}>
-                      📝 Test log yuborish
+                      📝 Send test log
                     </button>
                   </div>
                 )}
@@ -676,7 +676,7 @@ export default function AdminDashboard() {
                 {/* System Info */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.25rem" }}>
                   <div style={S.card}>
-                    <h3 style={S.h3}>🏗️ Tizim arxitekturasi</h3>
+                    <h3 style={S.h3}>🏭 System Architecture</h3>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.8rem" }}>
                       {[
                         ["Framework", "Next.js 14 (App Router)"],
@@ -695,15 +695,15 @@ export default function AdminDashboard() {
                   </div>
 
                   <div style={S.card}>
-                    <h3 style={S.h3}>🔐 Xavfsizlik</h3>
+                    <h3 style={S.h3}>🔐 Security</h3>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.8rem" }}>
                       {[
-                        { label: "API Auth", status: "✅", desc: "Barcha API'lar auth talab qiladi" },
-                        { label: "RLS", status: "✅", desc: "Row Level Security barcha jadvallarda" },
-                        { label: "Rate Limiting", status: "⚠️", desc: "In-memory (serverless da cheklangan)" },
-                        { label: "CSP Headers", status: "✅", desc: "next.config.js da sozlangan" },
-                        { label: "Admin Access", status: "✅", desc: "ADMIN_EMAILS bilan cheklangan" },
-                        { label: "HTTPS", status: "✅", desc: "Vercel tomonidan" },
+                        { label: "API Auth", status: "✅", desc: "All APIs require authentication" },
+                        { label: "RLS", status: "✅", desc: "Row Level Security on all tables" },
+                        { label: "Rate Limiting", status: "⚠️", desc: "In-memory (limited in serverless)" },
+                        { label: "CSP Headers", status: "✅", desc: "Configured in next.config.js" },
+                        { label: "Admin Access", status: "✅", desc: "Restricted by ADMIN_EMAILS" },
+                        { label: "HTTPS", status: "✅", desc: "Provided by Vercel" },
                       ].map(s => (
                         <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", borderBottom: "1px solid var(--border)" }}>
                           <span>{s.status}</span>
@@ -717,7 +717,7 @@ export default function AdminDashboard() {
 
                 {/* API Endpoints summary table */}
                 <div style={S.card}>
-                  <h3 style={S.h3}>📡 Barcha API Endpoints</h3>
+                  <h3 style={S.h3}>📡 All API Endpoints</h3>
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
                       <thead>

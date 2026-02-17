@@ -21,47 +21,47 @@ interface ErrorLogEntry {
  */
 const ERROR_MESSAGES: Record<string, string> = {
   // Auth errors
-  "Invalid login credentials": "Email yoki parol noto'g'ri. Iltimos, qaytadan urinib ko'ring.",
-  "User already registered": "Bu email allaqachon ro'yxatdan o'tgan. Login qiling.",
-  "Email not confirmed": "Email tasdiqlanmagan. Pochta qutingizni tekshiring.",
-  "Password is too short": "Parol kamida 6 ta belgidan iborat bo'lishi kerak.",
-  "Invalid email": "Email manzil noto'g'ri formatda.",
+  "Invalid login credentials": "Incorrect email or password. Please try again.",
+  "User already registered": "This email is already registered. Please log in.",
+  "Email not confirmed": "Email not confirmed. Please check your inbox.",
+  "Password is too short": "Password must be at least 6 characters long.",
+  "Invalid email": "Invalid email format.",
   
   // Database errors
-  "duplicate key value": "Bu ma'lumot allaqachon mavjud.",
-  "foreign key constraint": "Bog'liq ma'lumot topilmadi.",
-  "null value": "Majburiy maydon to'ldirilmagan.",
-  "syntax error": "Ma'lumotlar formatida xatolik.",
+  "duplicate key value": "This data already exists.",
+  "foreign key constraint": "Related data not found.",
+  "null value": "Required field is missing.",
+  "syntax error": "Data format error.",
   
   // Network errors
-  "Failed to fetch": "Internetga ulanishda xatolik. Tarmoqni tekshiring.",
-  "NetworkError": "Tarmoq xatosi. Iltimos, qaytadan urinib ko'ring.",
-  "timeout": "So'rov vaqti tugadi. Qaytadan urinib ko'ring.",
+  "Failed to fetch": "Network connection error. Please check your internet.",
+  "NetworkError": "Network error. Please try again.",
+  "timeout": "Request timed out. Please try again.",
   
   // Rate limiting
-  "Too many requests": "Haddan tashqari ko'p so'rov yuborildi. Biroz kutib turing.",
-  "Rate limit exceeded": "Limitdan o'tdingiz. Iltimos, keyinroq urinib ko'ring.",
+  "Too many requests": "Too many requests sent. Please wait a moment.",
+  "Rate limit exceeded": "Rate limit exceeded. Please try again later.",
   
   // Permission errors
-  "Unauthorized": "Tizimga kirish talab qilinadi. Login qiling.",
-  "Forbidden": "Sizda bu amalni bajarish uchun ruxsat yo'q.",
-  "Access denied": "Kirish rad etildi. Admindan ruxsat so'rang.",
+  "Unauthorized": "Authentication required. Please log in.",
+  "Forbidden": "You don't have permission to perform this action.",
+  "Access denied": "Access denied. Please contact an administrator.",
   
   // Validation errors
-  "Invalid input": "Kiritilgan ma'lumotlar noto'g'ri formatda.",
-  "Required field": "Bu maydon to'ldirilishi shart.",
-  "Invalid format": "Noto'g'ri format. Namunadagi kabi kiriting.",
+  "Invalid input": "Invalid data format.",
+  "Required field": "This field is required.",
+  "Invalid format": "Invalid format. Please follow the example.",
   
   // Generic fallbacks
-  "Internal server error": "Server xatosi yuz berdi. Iltimos, keyinroq qaytadan urinib ko'ring.",
-  "Something went wrong": "Kutilmagan xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+  "Internal server error": "A server error occurred. Please try again later.",
+  "Something went wrong": "An unexpected error occurred. Please try again.",
 };
 
 /**
  * Get user-friendly error message in Uzbek
  */
 export function getUserFriendlyMessage(error: unknown): string {
-  if (!error) return "Noma'lum xatolik yuz berdi.";
+  if (!error) return "An unknown error occurred.";
   
   const errorStr = String(error);
   const errorMsg = error instanceof Error ? error.message : errorStr;
@@ -75,12 +75,12 @@ export function getUserFriendlyMessage(error: unknown): string {
   
   // Check for Supabase auth errors
   if (errorMsg.includes("AuthApiError") || errorMsg.includes("AuthError")) {
-    return "Autentifikatsiya xatosi. Iltimos, qaytadan login qiling.";
+    return "Authentication error. Please log in again.";
   }
   
   // Check for Postgres errors
   if (errorMsg.includes("PostgrestError") || errorMsg.includes("23")) {
-    return "Ma'lumotlar bazasi xatosi. Iltimos, qaytadan urinib ko'ring.";
+    return "Database error. Please try again.";
   }
   
   // Return sanitized original message (avoid exposing internal details)
@@ -88,7 +88,7 @@ export function getUserFriendlyMessage(error: unknown): string {
     return errorMsg;
   }
   
-  return "Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.";
+  return "An error occurred. Please try again.";
 }
 
 /**
@@ -204,7 +204,7 @@ export function createValidationError(field: string, message: string): NextRespo
  */
 export function createRateLimitError(retryAfterSeconds: number): NextResponse {
   return NextResponse.json(
-    { error: `Haddan tashqari ko'p so'rov. ${Math.ceil(retryAfterSeconds / 60)} daqiqadan keyin urinib ko'ring.` },
+    { error: `Too many requests. Please try again in ${Math.ceil(retryAfterSeconds / 60)} minutes.` },
     { 
       status: 429,
       headers: {
@@ -220,7 +220,7 @@ export function createRateLimitError(retryAfterSeconds: number): NextResponse {
  */
 export function createAuthError(message?: string): NextResponse {
   return NextResponse.json(
-    { error: message || "Tizimga kirish talab qilinadi. Login qiling." },
+    { error: message || "Authentication required. Please log in." },
     { status: 401 }
   );
 }
@@ -230,7 +230,7 @@ export function createAuthError(message?: string): NextResponse {
  */
 export function createPermissionError(message?: string): NextResponse {
   return NextResponse.json(
-    { error: message || "Sizda bu amalni bajarish uchun ruxsat yo'q." },
+    { error: message || "You don't have permission to perform this action." },
     { status: 403 }
   );
 }

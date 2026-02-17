@@ -67,7 +67,7 @@ export default function LoginPage() {
       <div className="login-orb login-orb-3"></div>
 
       <Link href="/" className="login-back-home">
-        ← Bosh sahifa
+        ← Home
       </Link>
 
       <div className="login-wrapper">

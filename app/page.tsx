@@ -19,9 +19,9 @@ export default function LandingPage() {
           ⚡ AnkiFlow
         </Link>
         <div className="about-nav-links">
-          <a href="#features">Imkoniyatlar</a>
-          <a href="#algorithm">Algoritm</a>
-          <a href="#roadmap">Reja</a>
+          <a href="#features">Features</a>
+          <a href="#algorithm">Algorithm</a>
+          <a href="#roadmap">Roadmap</a>
           {!loading &&
             (user ? (
               <>
@@ -47,14 +47,14 @@ export default function LandingPage() {
                       📊 Dashboard
                     </Link>
                     <button className="about-nav-dropdown-item danger" onClick={signOut}>
-                      🚪 Chiqish
+                      🚪 Sign Out
                     </button>
                   </div>
                 </div>
               </>
             ) : (
               <Link href="/login" className="about-nav-cta">
-                Kirish →
+                Sign In →
               </Link>
             ))}
         </div>
@@ -64,16 +64,16 @@ export default function LandingPage() {
       <section className="about-hero">
         <div className="about-hero-badge">⚡ SM-2 Spaced Repetition</div>
         <h1 className="about-hero-title">
-          Xotirangizni <span className="about-gradient-text">ilmiy usulda</span> kuchaytiring
+          Strengthen Your Memory <span className="about-gradient-text">Scientifically</span>
         </h1>
         <p className="about-hero-subtitle">
-          AnkiFlow — flashcard yaratish, import qilish va ilmiy asoslangan takrorlash algoritmiga
-          asoslangan o&#39;rganish platformasi. Bir marta yozing, umrbod eslab qoling.
+          AnkiFlow — create flashcards, import content, and study with scientifically proven spaced repetition algorithms. 
+          Write once, remember forever.
         </p>
         <div className="about-hero-actions">
           {user ? (
             <Link href="/app" className="about-btn-primary">
-              <span>Dashboard ga o&#39;tish</span>
+              <span>Go to Dashboard</span>
               <svg
                 width="20"
                 height="20"
@@ -87,7 +87,7 @@ export default function LandingPage() {
             </Link>
           ) : (
             <Link href="/login" className="about-btn-primary">
-              <span>Bepul boshlash</span>
+              <span>Start Free</span>
               <svg
                 width="20"
                 height="20"
@@ -101,7 +101,7 @@ export default function LandingPage() {
             </Link>
           )}
           <a href="#algorithm" className="about-btn-secondary">
-            Qanday ishlaydi?
+            How It Works?
           </a>
         </div>
 
@@ -109,17 +109,17 @@ export default function LandingPage() {
         <div className="about-stats-bar">
           <div className="about-stat">
             <span className="about-stat-value">SM-2</span>
-            <span className="about-stat-label">Algoritm</span>
+            <span className="about-stat-label">Algorithm</span>
           </div>
           <div className="about-stat-divider"></div>
           <div className="about-stat">
             <span className="about-stat-value">95%</span>
-            <span className="about-stat-label">Eslab qolish</span>
+            <span className="about-stat-label">Retention</span>
           </div>
           <div className="about-stat-divider"></div>
           <div className="about-stat">
             <span className="about-stat-value">∞</span>
-            <span className="about-stat-label">Bepul kartalar</span>
+            <span className="about-stat-label">Free Cards</span>
           </div>
           <div className="about-stat-divider"></div>
           <div className="about-stat">
@@ -132,13 +132,12 @@ export default function LandingPage() {
       {/* ============ FEATURES SECTION ============ */}
       <section className="about-section" id="features">
         <div className="about-section-header">
-          <span className="about-section-badge">Imkoniyatlar</span>
+          <span className="about-section-badge">Features</span>
           <h2 className="about-section-title">
-            O&#39;rganish uchun kerak bo&#39;lgan <em>hamma narsa</em>
+            Everything You Need <em>to Learn</em>
           </h2>
           <p className="about-section-subtitle">
-            AnkiFlow flashcard yaratishdan tortib, ilg&#39;or takrorlash algoritmigacha — bir
-            platformada jamlangan.
+            From smart flashcard creation to advanced spaced repetition algorithms — all in one platform.
           </p>
         </div>
 
@@ -147,9 +146,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">📥</div>
             <h3>Smart Import</h3>
             <p>
-              TXT, CSV, DOCX fayllarni yoki Google Docs havolasini paste qiling — AnkiFlow avtomatik
-              term va definitionni ajratadi. Hatto <code>so&#39;z = tarjima</code> formatida ham
-              ishlaydi.
+              Paste TXT, CSV, DOCX files or Google Docs links — AnkiFlow automatically separates terms and definitions. 
+              Even works with <code>word = translation</code> format.
             </p>
           </div>
 
@@ -157,8 +155,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">🧠</div>
             <h3>Spaced Repetition (SRS)</h3>
             <p>
-              SM-2 algoritmiga asoslangan. Bilganingizni kamroq, bilmaganingizni ko&#39;proq
-              ko&#39;rsatadi. Vaqtingizni tejaydi, samarangizni oshiradi.
+              Based on SM-2 algorithm. Shows what you don't know more often, what you know less frequently. 
+              Saves your time, increases efficiency.
             </p>
           </div>
 
@@ -166,8 +164,8 @@ export default function LandingPage() {
             <div className="about-feature-icon">📋</div>
             <h3>Bulk Paste</h3>
             <p>
-              Ko&#39;p qatorli matnni bir marta paste qiling — har bir qator alohida karta
-              bo&#39;ladi. 20+ kartani bir zumda import qiling.
+              Paste multi-line text at once — each line becomes a separate card. 
+              Import 20+ cards instantly.
             </p>
           </div>
 
@@ -175,8 +173,7 @@ export default function LandingPage() {
             <div className="about-feature-icon">🔊</div>
             <h3>Text-to-Speech</h3>
             <p>
-              Kartalarni eshitib o&#39;rganing. Har qanday tilda talaffuzni tinglang — til
-              o&#39;rganish uchun ideal.
+              Learn by listening. Hear pronunciation in any language — ideal for language learning.
             </p>
           </div>
 
@@ -184,17 +181,15 @@ export default function LandingPage() {
             <div className="about-feature-icon">☁️</div>
             <h3>Cloud Sync</h3>
             <p>
-              Barcha kartalaringiz avtomatik saqlanadi. Kompyuterda yarating, telefonda
-              o&#39;rganing — hamma joyda sinxron.
+              All your cards are automatically saved. Create on computer, study on phone — synced everywhere.
             </p>
           </div>
 
           <div className="about-feature-card">
             <div className="about-feature-icon">📊</div>
-            <h3>Statistika</h3>
+            <h3>Statistics</h3>
             <p>
-              Kunlik maqsad, streak, review tarix, aniqlik foizi — o&#39;z progressingizni kuzatib
-              boring.
+              Daily goals, streaks, review history, accuracy percentage — track your progress.
             </p>
           </div>
         </div>
@@ -203,43 +198,42 @@ export default function LandingPage() {
       {/* ============ SRS ALGORITHM SECTION ============ */}
       <section className="about-section about-algo-section" id="algorithm">
         <div className="about-section-header">
-          <span className="about-section-badge">Ilmiy asos</span>
+          <span className="about-section-badge">Scientific Foundation</span>
           <h2 className="about-section-title">
-            SM-2: Xotira <em>ilmi</em> asosdagi algoritm
+            SM-2: <em>Science-Based</em> Memory Algorithm
           </h2>
           <p className="about-section-subtitle">
-            1987-yilda olim Piotr Woźniak tomonidan ishlab chiqilgan. Ebbinghaus ning unutish egri
-            chizig&#39;iga asoslangan.
+            Developed by scientist Piotr Woźniak in 1987. Based on Ebbinghaus's forgetting curve.
           </p>
         </div>
 
         {/* Forgetting Curve Visual */}
         <div className="about-algo-visual">
           <div className="about-algo-card">
-            <h3>🧪 Muammo: Unutish egri chizig&#39;i</h3>
-            <p>Inson biror narsani o&#39;rgangandan keyin, takrorlamasdan:</p>
+            <h3>🧪 Problem: The Forgetting Curve</h3>
+            <p>After learning something, without review:</p>
             <div className="about-forget-bars">
               <div className="about-forget-row">
-                <span className="about-forget-label">1 soatdan keyin</span>
+                <span className="about-forget-label">After 1 hour</span>
                 <div className="about-forget-bar">
                   <div className="about-forget-fill" style={{ width: "50%" }}>
-                    50% unutiladi
+                    50% forgotten
                   </div>
                 </div>
               </div>
               <div className="about-forget-row">
-                <span className="about-forget-label">1 kundan keyin</span>
+                <span className="about-forget-label">After 1 day</span>
                 <div className="about-forget-bar">
                   <div className="about-forget-fill about-forget-warn" style={{ width: "70%" }}>
-                    70% unutiladi
+                    70% forgotten
                   </div>
                 </div>
               </div>
               <div className="about-forget-row">
-                <span className="about-forget-label">1 haftadan keyin</span>
+                <span className="about-forget-label">After 1 week</span>
                 <div className="about-forget-bar">
                   <div className="about-forget-fill about-forget-danger" style={{ width: "90%" }}>
-                    90% unutiladi
+                    90% forgotten
                   </div>
                 </div>
               </div>
@@ -247,44 +241,44 @@ export default function LandingPage() {
           </div>
 
           <div className="about-algo-card about-algo-solution">
-            <h3>✅ Yechim: Optimal takrorlash</h3>
+            <h3>✅ Solution: Optimal Repetition</h3>
             <p>
-              SM-2 algoritmi kartani <strong>unutishdan oldin</strong> ko&#39;rsatadi:
+              SM-2 algorithm shows cards <strong>before you forget</strong>:
             </p>
             <div className="about-review-steps">
               <div className="about-step">
                 <div className="about-step-number">1</div>
                 <div className="about-step-text">
-                  <strong>Yangi karta</strong>
-                  <span>1 daqiqa → 10 daqiqa → Graduate</span>
+                  <strong>New card</strong>
+                  <span>1 minute → 10 minutes → Graduate</span>
                 </div>
               </div>
               <div className="about-step">
                 <div className="about-step-number">2</div>
                 <div className="about-step-text">
-                  <strong>1-chi review</strong>
-                  <span>1 kun keyin</span>
+                  <strong>1st review</strong>
+                  <span>After 1 day</span>
                 </div>
               </div>
               <div className="about-step">
                 <div className="about-step-number">3</div>
                 <div className="about-step-text">
-                  <strong>2-chi review</strong>
-                  <span>6 kun keyin</span>
+                  <strong>2nd review</strong>
+                  <span>After 6 days</span>
                 </div>
               </div>
               <div className="about-step">
                 <div className="about-step-number">4</div>
                 <div className="about-step-text">
-                  <strong>3-chi review</strong>
-                  <span>15 kun keyin</span>
+                  <strong>3rd review</strong>
+                  <span>After 15 days</span>
                 </div>
               </div>
               <div className="about-step">
                 <div className="about-step-number">5</div>
                 <div className="about-step-text">
-                  <strong>4-chi review</strong>
-                  <span>38 kun keyin...</span>
+                  <strong>4th review</strong>
+                  <span>After 38 days...</span>
                 </div>
               </div>
             </div>
@@ -293,38 +287,38 @@ export default function LandingPage() {
 
         {/* Rating buttons explanation */}
         <div className="about-ratings-explain">
-          <h3>Baholash tugmalari qanday ishlaydi?</h3>
+          <h3>How Do Rating Buttons Work?</h3>
           <div className="about-ratings-grid">
             <div className="about-rating-card about-rating-again">
               <div className="about-rating-btn-label">Again</div>
-              <p>Umuman eslay olmadim</p>
+              <p>Couldn't remember at all</p>
               <span className="about-rating-effect">
-                → 1 daqiqadan qayta boshlanadi
-                <br />→ Session ichida 3-8 kartadan keyin qaytadi
+                → Restarts after 1 minute
+                <br />→ Returns after 3-8 cards in session
               </span>
             </div>
             <div className="about-rating-card about-rating-hard">
               <div className="about-rating-btn-label">Hard</div>
-              <p>Qiyinchilik bilan esladim</p>
+              <p>Remembered with difficulty</p>
               <span className="about-rating-effect">
-                → Tezroq takrorlanadi
-                <br />→ Session ichida 5-12 kartadan keyin qaytadi
+                → Reviews sooner
+                <br />→ Returns after 5-12 cards in session
               </span>
             </div>
             <div className="about-rating-card about-rating-good">
               <div className="about-rating-btn-label">Good</div>
-              <p>Normal esladim</p>
+              <p>Remembered normally</p>
               <span className="about-rating-effect">
-                → Keyingi step ga o&#39;tadi
-                <br />→ 1 kun → 6 kun → 15 kun...
+                → Moves to next step
+                <br />→ 1 day → 6 days → 15 days...
               </span>
             </div>
             <div className="about-rating-card about-rating-easy">
               <div className="about-rating-btn-label">Easy</div>
-              <p>Juda oson edi</p>
+              <p>Very easy</p>
               <span className="about-rating-effect">
-                → Tez graduate bo&#39;ladi
-                <br />→ Interval 1.3x bonus bilan oshadi
+                → Graduates faster
+                <br />→ Interval increases with 1.3x bonus
               </span>
             </div>
           </div>
@@ -334,43 +328,40 @@ export default function LandingPage() {
       {/* ============ BENEFITS SECTION ============ */}
       <section className="about-section about-benefits-section">
         <div className="about-section-header">
-          <span className="about-section-badge">Nima uchun?</span>
+          <span className="about-section-badge">Why?</span>
           <h2 className="about-section-title">
-            Oddiy takrorlash <em>emas</em>, aqlli takrorlash
+            Not Just Repetition, <em>Smart</em> Repetition
           </h2>
         </div>
 
         <div className="about-benefits-grid">
           <div className="about-benefit">
             <div className="about-benefit-icon">⏱️</div>
-            <h3>Vaqtni tejang</h3>
+            <h3>Save Time</h3>
             <p>
-              Faqat unutish arafasidagi kartalarni ko&#39;rasiz. Bilganlaringiz bilan vaqtingizni
-              behuda sarflamaysiz.
+              Only see cards you're about to forget. Don't waste time on what you already know.
             </p>
           </div>
           <div className="about-benefit">
             <div className="about-benefit-icon">📈</div>
-            <h3>95% samaradorlik</h3>
+            <h3>95% Efficiency</h3>
             <p>
-              Tadqiqotlar shuni ko&#39;rsatadiki, SRS bilan o&#39;rgangan odamlar ma&#39;lumotning
-              95% ini uzoq muddatga eslab qoladi.
+              Research shows people who learn with SRS retain 95% of information
+              over the long term.
             </p>
           </div>
           <div className="about-benefit">
             <div className="about-benefit-icon">🎯</div>
-            <h3>Shaxsiy moslashgan</h3>
+            <h3>Personalized</h3>
             <p>
-              Ease Factor har bir kartaga alohida moslashadi. Sizga qiyin bo&#39;lgan so&#39;zlar
-              ko&#39;proq, osonlari kamroq takrorlanadi.
+              Ease Factor adapts to each card individually. Words you find difficult repeat more often, easy ones less frequently.
             </p>
           </div>
           <div className="about-benefit">
             <div className="about-benefit-icon">🌍</div>
-            <h3>Har qanday fan uchun</h3>
+            <h3>For Any Subject</h3>
             <p>
-              Chet tili, tibbiyot, dasturlash, tarix — flashcard bilan o&#39;rganish mumkin
-              bo&#39;lgan har qanday soha uchun.
+              Languages, medicine, programming, history — any field that can be learned with flashcards.
             </p>
           </div>
         </div>
@@ -379,12 +370,12 @@ export default function LandingPage() {
       {/* ============ ROADMAP SECTION ============ */}
       <section className="about-section about-roadmap-section" id="roadmap">
         <div className="about-section-header">
-          <span className="about-section-badge">Kelajak</span>
+          <span className="about-section-badge">Future</span>
           <h2 className="about-section-title">
-            Rejalashtirilgan <em>yangi</em> imkoniyatlar
+            Planned <em>New</em> Features
           </h2>
           <p className="about-section-subtitle">
-            AnkiFlow doimiy rivojlanmoqda. Mana, keyingi qadam:
+            AnkiFlow is constantly evolving. Here's what's next:
           </p>
         </div>
 
@@ -392,60 +383,59 @@ export default function LandingPage() {
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Tayyor</span>
+              <span className="about-roadmap-status">✅ Done</span>
               <h4>SM-2 Spaced Repetition</h4>
-              <p>Ilmiy asoslangan takrorlash algoritmiga asoslangan flashcard study</p>
+              <p>Science-based spaced repetition algorithm for flashcard study</p>
             </div>
           </div>
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Tayyor</span>
+              <span className="about-roadmap-status">✅ Done</span>
               <h4>Smart Import &amp; Bulk Paste</h4>
-              <p>TXT, CSV, DOCX, Google Docs va multi-line paste support</p>
+              <p>TXT, CSV, DOCX, Google Docs and multi-line paste support</p>
             </div>
           </div>
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Tayyor</span>
+              <span className="about-roadmap-status">✅ Done</span>
               <h4>Cloud Sync &amp; Auth</h4>
-              <p>Google/GitHub orqali kirish, barcha qurilmalarda sinxronlash</p>
+              <p>Sign in via Google/GitHub, sync across all devices</p>
             </div>
           </div>
           <div className="about-roadmap-item about-roadmap-progress">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">🚧 Jarayonda</span>
+              <span className="about-roadmap-status">🚧 In Progress</span>
               <h4>FSRS Algorithm</h4>
               <p>
-                SM-2 dan yanada zamonaviy Free Spaced Repetition Scheduler ga o&#39;tish — mashinali
-                o&#39;rganish asosida aniqroq intervallar
+                Upgrading from SM-2 to the more modern Free Spaced Repetition Scheduler — more accurate intervals based on machine learning
               </p>
             </div>
           </div>
           <div className="about-roadmap-item">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">📋 Rejalangan</span>
+              <span className="about-roadmap-status">📋 Planned</span>
               <h4>AI-Powered Card Generation</h4>
-              <p>Matn yoki PDF yuklang — AI avtomatik flashcard yaratib beradi</p>
+              <p>Upload text or PDF — AI automatically generates flashcards</p>
             </div>
           </div>
           <div className="about-roadmap-item">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">📋 Rejalangan</span>
+              <span className="about-roadmap-status">📋 Planned</span>
               <h4>Mobile App</h4>
-              <p>iOS va Android uchun native dastur — offline rejimda ishlaydi</p>
+              <p>Native app for iOS and Android — works offline</p>
             </div>
           </div>
           <div className="about-roadmap-item">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">📋 Rejalangan</span>
+              <span className="about-roadmap-status">📋 Planned</span>
               <h4>Collaborative Decks</h4>
-              <p>Decklar bilan bo&#39;lishing, jamoaviy o&#39;rganish, public deck library</p>
+              <p>Share decks, collaborative learning, public deck library</p>
             </div>
           </div>
         </div>
@@ -453,15 +443,15 @@ export default function LandingPage() {
 
       {/* ============ CTA SECTION ============ */}
       <section className="about-cta-section">
-        <h2>Hoziroq boshlang</h2>
+        <h2>Start Now</h2>
         <p>
-          Bepul ro&#39;yxatdan o&#39;ting va flashcard yaratishni boshlang.
+          Sign up for free and start creating flashcards.
           <br />
-          Xotirangizni ilmiy usulda kuchaytiring.
+          Strengthen your memory scientifically.
         </p>
         {user ? (
           <Link href="/app" className="about-btn-primary about-btn-large">
-            <span>Dashboard ga o&#39;tish</span>
+            <span>Go to Dashboard</span>
             <svg
               width="20"
               height="20"
@@ -475,7 +465,7 @@ export default function LandingPage() {
           </Link>
         ) : (
           <Link href="/login" className="about-btn-primary about-btn-large">
-            <span>Bepul boshlash</span>
+            <span>Start Free</span>
             <svg
               width="20"
               height="20"
@@ -494,10 +484,10 @@ export default function LandingPage() {
       <footer className="about-footer">
         <div className="about-footer-inner">
           <div>
-            <span>⚡ AnkiFlow — Ilmiy o&#39;rganish platformasi</span>
+            <span>⚡ AnkiFlow — Scientific Learning Platform</span>
             <div style={{ marginTop: "0.5rem", fontSize: "0.875rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <Link href="/privacy" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Maxfiylik</Link>
-              <Link href="/terms" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Shartlar</Link>
+              <Link href="/privacy" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Privacy</Link>
+              <Link href="/terms" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Terms</Link>
               <a href="https://github.com/sodops/anki-formatter" target="_blank" rel="noopener" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>GitHub</a>
               <a href="mailto:support@ankiflow.com" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Support</a>
             </div>

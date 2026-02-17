@@ -13,22 +13,22 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "AnkiFlow — Ilmiy O'rganish Platformasi",
+    default: "AnkiFlow — Scientific Learning Platform",
     template: "%s | AnkiFlow"
   },
-  description: "Flashcard yaratish, import qilish va SM-2 spaced repetition algoritmi bilan samarali o'rganish. Xotirangizni ilmiy usulda kuchaytiring. Bepul cloud sync, offline rejim, Anki export.",
-  keywords: ["flashcard", "spaced repetition", "anki", "o'rganish", "memorization", "uzbek", "SM-2", "cloud sync", "bepul"],
+  description: "Create, import, and efficiently learn flashcards with SM-2 spaced repetition algorithm. Strengthen your memory scientifically. Free cloud sync, offline mode, Anki export.",
+  keywords: ["flashcard", "spaced repetition", "anki", "learning", "memorization", "study", "SM-2", "cloud sync", "free"],
   authors: [{ name: "AnkiFlow Team" }],
   creator: "AnkiFlow",
   publisher: "AnkiFlow",
   metadataBase: new URL("https://anki.sodops.uz"),
   openGraph: {
-    title: "AnkiFlow — Ilmiy O'rganish Platformasi",
-    description: "Flashcard yaratish, import qilish va SM-2 spaced repetition algoritmi bilan samarali o'rganish. Bepul cloud sync va offline rejim.",
+    title: "AnkiFlow — Scientific Learning Platform",
+    description: "Create, import, and efficiently learn flashcards with SM-2 spaced repetition algorithm. Free cloud sync and offline mode.",
     url: "https://anki.sodops.uz",
     siteName: "AnkiFlow",
     type: "website",
-    locale: "uz_UZ",
+    locale: "en_US",
     images: [
       {
         url: "/og.svg",
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AnkiFlow — Ilmiy O'rganish Platformasi",
-    description: "Flashcard yaratish, import qilish va SM-2 spaced repetition algoritmi bilan samarali o'rganish",
+    title: "AnkiFlow — Scientific Learning Platform",
+    description: "Create, import, and efficiently learn flashcards with SM-2 spaced repetition algorithm",
     images: ["/og.svg"],
     creator: "@ankiflow",
   },
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="uz" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"

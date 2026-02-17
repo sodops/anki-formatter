@@ -228,7 +228,7 @@ export default function Home() {
                   className="user-logout-btn"
                   id="btnLogout"
                   onClick={signOut}
-                  title="Chiqish"
+                  title="Sign Out"
                   aria-label="Sign out"
                 >
                   <ion-icon name="log-out-outline"></ion-icon>

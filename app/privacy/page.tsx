@@ -4,159 +4,158 @@ export default function PrivacyPage() {
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem" }}>
       <Link href="/" style={{ color: "var(--accent)", textDecoration: "none", marginBottom: "2rem", display: "inline-block" }}>
-        ← Bosh sahifa
+        ← Home
       </Link>
       
-      <h1 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>Maxfiylik Siyosati</h1>
+      <h1 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>Privacy Policy</h1>
       <p style={{ color: "var(--text-secondary)", marginBottom: "2rem" }}>
-        Oxirgi yangilanish: {new Date().toLocaleDateString("uz-UZ")}
+        Last updated: {new Date().toLocaleDateString("en-US")}
       </p>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>1. Umumiy Ma'lumot</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>1. General Information</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          AnkiFlow ("biz", "bizning", "platformamiz") foydalanuvchilarning maxfiyligini himoya qilishga intiladi. 
-          Ushbu maxfiylik siyosati sizning shaxsiy ma'lumotlaringizni qanday to'plash, ishlatish va himoya 
-          qilishimizni tushuntiradi.
+          AnkiFlow ("we", "our", "platform") is committed to protecting user privacy. 
+          This privacy policy explains how we collect, use, and protect your personal information.
         </p>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>2. To'planadigan Ma'lumotlar</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>2. Data We Collect</h2>
         
-        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>2.1. Akkount Ma'lumotlari</h3>
+        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>2.1. Account Information</h3>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li>Email manzil</li>
-          <li>Ism (ixtiyoriy)</li>
-          <li>Profil rasmi (OAuth orqali kirish uchun)</li>
-          <li>Kirish vaqti va tarix</li>
+          <li>Email address</li>
+          <li>Name (optional)</li>
+          <li>Profile picture (for OAuth login)</li>
+          <li>Login time and date</li>
         </ul>
 
-        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>2.2. Foydalanish Ma'lumotlari</h3>
+        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>2.2. Usage Data</h3>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li>Yaratgan decklaringiz va cardlaringiz</li>
-          <li>O'rganish statistikasi (review logs)</li>
-          <li>Sozlamalar va preferences</li>
+          <li>Your created decks and cards</li>
+          <li>Study statistics (review logs)</li>
+          <li>Settings and preferences</li>
           <li>Web Vitals (performance metrics)</li>
-          <li>System logs (xatolarni tuzatish uchun)</li>
+          <li>System logs (for debugging)</li>
         </ul>
 
-        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>2.3. Texnik Ma'lumotlar</h3>
+        <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem" }}>2.3. Technical Information</h3>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li>IP manzil (rate limiting uchun)</li>
-          <li>Browser turi va versiyasi</li>
-          <li>Qurilma turi (desktop/mobile)</li>
-          <li>Operatsion tizim</li>
-        </ul>
-      </section>
-
-      <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>3. Ma'lumotlardan Foydalanish</h2>
-        <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Biz sizning ma'lumotlaringizni quyidagi maqsadlarda ishlatamiz:
-        </p>
-        <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li><strong>Xizmat ko'rsatish:</strong> Flashcard yaratish, saqlash va sinxronlash</li>
-          <li><strong>Autentifikatsiya:</strong> Akkountingizga xavfsiz kirish</li>
-          <li><strong>Statistika:</strong> O'rganish progress va yutuqlar ko'rsatish</li>
-          <li><strong>Xatolarni tuzatish:</strong> Texnik muammolarni aniqlash va hal qilish</li>
-          <li><strong>Yaxshilash:</strong> Platformani takomillashtirish</li>
+          <li>IP address (for rate limiting)</li>
+          <li>Browser type and version</li>
+          <li>Device type (desktop/mobile)</li>
+          <li>Operating system</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>4. Ma'lumotlarni Saqlash</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>3. How We Use Your Data</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Barcha ma'lumotlar <strong>Supabase</strong> (PostgreSQL) cloud database'da saqlanadi:
+          We use your data for the following purposes:
         </p>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li>Server joylashuvi: AWS (Frankfurt, Germany)</li>
-          <li>Shifrlash: TLS/SSL (in-transit), AES-256 (at-rest)</li>
-          <li>Backup: Avtomatik kunlik backup</li>
-          <li>Row Level Security (RLS): Har bir foydalanuvchi faqat o'z ma'lumotlariga kiradi</li>
+          <li><strong>Service delivery:</strong> Create, store, and sync flashcards</li>
+          <li><strong>Authentication:</strong> Secure access to your account</li>
+          <li><strong>Statistics:</strong> Display learning progress and achievements</li>
+          <li><strong>Debugging:</strong> Identify and fix technical issues</li>
+          <li><strong>Improvement:</strong> Enhance platform features</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>5. Ma'lumotlarni Ulashish</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>4. Data Storage</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Biz sizning shaxsiy ma'lumotlaringizni <strong>hech qachon</strong> uchinchi shaxslarga sotmaymiz yoki ijarasiga bermaymiz.
-        </p>
-        <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Quyidagi hollarda ma'lumotlar ulashilishi mumkin:
+          All data is stored in <strong>Supabase</strong> (PostgreSQL) cloud database:
         </p>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li><strong>OAuth providers:</strong> Google, GitHub (siz tanlagan holda)</li>
+          <li>Server location: AWS (Frankfurt, Germany)</li>
+          <li>Encryption: TLS/SSL (in-transit), AES-256 (at-rest)</li>
+          <li>Backup: Automatic daily backups</li>
+          <li>Row Level Security (RLS): Each user can only access their own data</li>
+        </ul>
+      </section>
+
+      <section style={{ marginBottom: "2rem" }}>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>5. Data Sharing</h2>
+        <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
+          We <strong>never</strong> sell or rent your personal information to third parties.
+        </p>
+        <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
+          Data may be shared in the following cases:
+        </p>
+        <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
+          <li><strong>OAuth providers:</strong> Google, GitHub (if you choose)</li>
           <li><strong>Hosting:</strong> Vercel (frontend), Supabase (backend)</li>
-          <li><strong>Qonuniy talablar:</strong> Sud qarori yoki huquqiy majburiyat</li>
+          <li><strong>Legal requirements:</strong> Court orders or legal obligations</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>6. Sizning Huquqlaringiz</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>6. Your Rights</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          GDPR va boshqa maxfiylik qonunlariga muvofiq, sizda quyidagi huquqlar bor:
+          Under GDPR and other privacy laws, you have the following rights:
         </p>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li><strong>Ko'rish:</strong> Shaxsiy ma'lumotlaringizni ko'rish</li>
-          <li><strong>Tuzatish:</strong> Noto'g'ri ma'lumotlarni tuzatish</li>
-          <li><strong>O'chirish:</strong> Akkountni va barcha ma'lumotlarni o'chirish</li>
-          <li><strong>Export:</strong> Ma'lumotlarni JSON formatda yuklab olish</li>
-          <li><strong>Cheklash:</strong> Ma'lumotlar ishlov berishni cheklash</li>
+          <li><strong>Access:</strong> View your personal data</li>
+          <li><strong>Correction:</strong> Fix incorrect information</li>
+          <li><strong>Deletion:</strong> Delete your account and all data</li>
+          <li><strong>Export:</strong> Download your data in JSON format</li>
+          <li><strong>Restriction:</strong> Limit data processing</li>
         </ul>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Ushbu huquqlardan foydalanish uchun: Settings → Account → Export Data yoki Delete Account
+          To exercise these rights: Settings → Account → Export Data or Delete Account
         </p>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>7. Cookies va LocalStorage</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>7. Cookies and LocalStorage</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Biz quyidagi cookies va local storage'dan foydalanamiz:
+          We use the following cookies and local storage:
         </p>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li><strong>Autentifikatsiya:</strong> Supabase session cookies (zaruriy)</li>
-          <li><strong>Preferences:</strong> Theme, til, sozlamalar (localStorage)</li>
-          <li><strong>Offline cache:</strong> Deck va cardlar (IndexedDB)</li>
-          <li><strong>Analytics:</strong> Vercel Analytics (anonim)</li>
+          <li><strong>Authentication:</strong> Supabase session cookies (required)</li>
+          <li><strong>Preferences:</strong> Theme, language, settings (localStorage)</li>
+          <li><strong>Offline cache:</strong> Decks and cards (IndexedDB)</li>
+          <li><strong>Analytics:</strong> Vercel Analytics (anonymous)</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>8. Bolalarning Maxfiyligi</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>8. Children's Privacy</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Xizmatimiz 13 yoshdan katta foydalanuvchilar uchun mo'ljallangan. Agar siz 13 yoshdan kichik bo'lsangiz, 
-          ota-onangiz yoki vasiyingizdan ruxsat oling.
+          Our service is intended for users aged 13 and above. If you are under 13, 
+          please obtain permission from your parent or guardian.
         </p>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>9. Xavfsizlik</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>9. Security</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Biz sizning ma'lumotlaringizni himoya qilish uchun quyidagi choralarni ko'ramiz:
+          We implement the following measures to protect your data:
         </p>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
-          <li>HTTPS shifrlash (barcha trafik)</li>
-          <li>Database shifrlash (AES-256)</li>
-          <li>Row Level Security (faqat o'z ma'lumotlaringizga kirish)</li>
-          <li>Rate limiting (brute-force himoyasi)</li>
+          <li>HTTPS encryption (all traffic)</li>
+          <li>Database encryption (AES-256)</li>
+          <li>Row Level Security (access only your own data)</li>
+          <li>Rate limiting (brute-force protection)</li>
           <li>Input validation (Zod)</li>
           <li>Regular security updates</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>10. O'zgarishlar</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>10. Changes</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Ushbu maxfiylik siyosatini vaqti-vaqti bilan yangilashimiz mumkin. Muhim o'zgarishlar bo'lsa, 
-          email orqali xabardor qilamiz.
+          We may update this privacy policy from time to time. For significant changes, 
+          we will notify you via email.
         </p>
       </section>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>11. Bog'lanish</h2>
+        <h2 style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>11. Contact</h2>
         <p style={{ lineHeight: "1.8", marginBottom: "1rem" }}>
-          Maxfiylik bilan bog'liq savol yoki murojaatlar uchun:
+          For privacy-related questions or concerns:
         </p>
         <ul style={{ lineHeight: "1.8", marginBottom: "1rem", paddingLeft: "1.5rem" }}>
           <li>Email: privacy@ankiflow.com</li>
@@ -166,8 +165,8 @@ export default function PrivacyPage() {
 
       <div style={{ marginTop: "3rem", padding: "1.5rem", background: "var(--bg-secondary)", borderRadius: "8px" }}>
         <p style={{ margin: 0, lineHeight: "1.6" }}>
-          <strong>Qisqacha:</strong> Biz sizning ma'lumotlaringizni faqat xizmat ko'rsatish uchun ishlatamiz, 
-          hech kimga sotmaymiz, xavfsiz saqlaymiz va siz istalgan vaqt o'chirishingiz mumkin.
+          <strong>In short:</strong> We use your data only to provide the service, 
+          never sell it to anyone, store it securely, and you can delete it anytime.
         </p>
       </div>
     </div>
