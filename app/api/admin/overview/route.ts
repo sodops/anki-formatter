@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { isAdminUser } from "@/lib/admin";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/overview — Comprehensive admin dashboard data
  */
