@@ -184,24 +184,30 @@ export default function TeacherDashboard() {
 
   if (loading) {
     return (
-      <div className="t-loading">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}>
         <div className="t-spinner" />
-        <span>Loading...</span>
+        <span style={{ marginTop: 12 }}>Loading...</span>
       </div>
     );
   }
 
   if (!user) {
-    router.replace("/login");
-    return null;
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}>
+        <span>Redirecting to login...</span>
+      </div>
+    );
   }
 
   if (role !== "teacher" && role !== "admin") {
     return (
-      <div className="t-loading">
-        <h2>Access Denied</h2>
-        <p>This page is only for teachers.</p>
-        <a href="/student" className="t-btn t-btn-primary">Go to Student Hub</a>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff', gap: 12 }}>
+        <h2 style={{ fontSize: 24 }}>Access Denied</h2>
+        <p style={{ color: '#94a3b8' }}>This page is only for teachers. Your role: {role}</p>
+        <a href="/student" style={{ padding: '10px 24px', background: '#6366F1', color: '#fff', borderRadius: 8, textDecoration: 'none', marginTop: 8 }}>Go to Student Hub</a>
       </div>
     );
   }

@@ -150,16 +150,22 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="s-loading">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}>
         <div className="s-spinner" />
-        <span>Loading...</span>
+        <span style={{ marginTop: 12 }}>Loading...</span>
       </div>
     );
   }
 
   if (!user) {
-    router.replace("/login");
-    return null;
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}>
+        <span>Redirecting to login...</span>
+      </div>
+    );
   }
 
   const level = xp.level || Math.floor(xp.total_xp / 100) + 1;

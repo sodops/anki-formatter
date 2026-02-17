@@ -52,8 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Safety timeout — if auth takes longer than 8 seconds, stop loading
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 8000);
+
     // Fetch user role from profiles table
-    const fetchRole = async (userId: string) => {
+    const fetchRole = async (userId: string): Promise<UserRole> => {
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -63,40 +68,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.warn("Role fetch error:", error.message);
-          return;
+          return "student";
         }
         
         if (data?.role) {
-          setRole(data.role as UserRole);
+          const r = data.role as UserRole;
+          setRole(r);
+          return r;
         }
       } catch (err) {
         console.warn("Role fetch failed:", err);
       }
+      return "student";
     };
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchRole(session.user.id).then(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
+    // Use onAuthStateChange as the single source of truth
+    // It fires with INITIAL_SESSION on first load
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      let currentRole: UserRole = "student";
       if (session?.user) {
-        await fetchRole(session.user.id);
+        currentRole = await fetchRole(session.user.id);
       } else {
         setRole("student");
       }
       setLoading(false);
+      clearTimeout(timeout);
 
       // Notify vanilla JS modules about auth state change
       window.dispatchEvent(
@@ -104,13 +105,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           detail: {
             user: session?.user ?? null,
             accessToken: session?.access_token ?? null,
-            role: session?.user ? role : "student",
+            role: currentRole,
           },
         })
       );
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [isConfigured]);
 
   const signOut = async () => {
