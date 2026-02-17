@@ -808,6 +808,37 @@ body:has(.teacher-container) {
 }
 .t-overlay.visible { display: block; }
 
+/* Toggle Switch */
+.t-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.t-toggle input { opacity: 0; width: 0; height: 0; }
+.t-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #374151;
+  border-radius: 24px;
+  transition: 0.2s;
+}
+.t-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.t-toggle input:checked + .t-toggle-slider { background: #6366F1; }
+.t-toggle input:checked + .t-toggle-slider::before { transform: translateX(20px); }
+
 /* Mobile Bottom Nav */
 .t-bottom-nav {
   display: none;

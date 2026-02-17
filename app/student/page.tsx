@@ -680,11 +680,39 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
+                {/* Study Preferences */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Study Preferences</h2>
+                  <div className="s-card" style={{ padding: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Daily Goal</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Cards to study per day</div>
+                      </div>
+                      <input type="number" defaultValue={20} min={5} max={200} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>New Cards / Day</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Max new cards introduced</div>
+                      </div>
+                      <input type="number" defaultValue={20} min={0} max={100} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Max Reviews / Day</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Maximum reviews per session</div>
+                      </div>
+                      <input type="number" defaultValue={100} min={10} max={500} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Appearance */}
                 <div className="s-section">
                   <h2 className="s-section-title">Appearance</h2>
                   <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                       <div>
                         <div style={{ fontWeight: 600 }}>Theme</div>
                         <div style={{ fontSize: 13, color: '#64748b' }}>Choose light or dark mode</div>
@@ -698,6 +726,59 @@ export default function StudentDashboard() {
                         Toggle Theme
                       </button>
                     </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Card Font Size</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Adjust flashcard text size</div>
+                      </div>
+                      <input type="range" defaultValue={32} min={16} max={64} style={{ width: 120 }} onChange={e => {
+                        document.documentElement.style.setProperty('--card-font-size', e.target.value + 'px');
+                      }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audio & TTS */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Audio & TTS</h2>
+                  <div className="s-card" style={{ padding: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Text-to-Speech</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Auto-read cards aloud</div>
+                      </div>
+                      <label className="t-toggle">
+                        <input type="checkbox" defaultChecked />
+                        <span className="t-toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Sound Effects</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Sounds on correct/wrong answers</div>
+                      </div>
+                      <label className="t-toggle">
+                        <input type="checkbox" />
+                        <span className="t-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Algorithm */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Algorithm</h2>
+                  <div className="s-card" style={{ padding: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Spaced Repetition</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>SM-2 or FSRS algorithm</div>
+                      </div>
+                      <select defaultValue="sm-2" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #334155)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14 }}>
+                        <option value="sm-2">SM-2 (Classic)</option>
+                        <option value="fsrs">FSRS (Modern)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -705,13 +786,22 @@ export default function StudentDashboard() {
                 <div className="s-section">
                   <h2 className="s-section-title">Data</h2>
                   <div className="s-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                       <div>
                         <div style={{ fontWeight: 600 }}>Export all data</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>Download all your decks and cards as JSON backup</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Download decks as JSON backup</div>
                       </div>
                       <a href="/api/backup/export" className="s-btn s-btn-outline s-btn-sm">
                         <ion-icon name="download-outline"></ion-icon> Export
+                      </a>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>Import data</div>
+                        <div style={{ fontSize: 13, color: '#64748b' }}>Restore from backup file</div>
+                      </div>
+                      <a href="/app" className="s-btn s-btn-outline s-btn-sm">
+                        <ion-icon name="cloud-upload-outline"></ion-icon> Import
                       </a>
                     </div>
                   </div>

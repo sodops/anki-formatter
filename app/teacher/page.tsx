@@ -191,7 +191,12 @@ export default function TeacherDashboard() {
     );
   }
 
-  if (!user || (role !== "teacher" && role !== "admin")) {
+  if (!user) {
+    router.replace("/login");
+    return null;
+  }
+
+  if (role !== "teacher" && role !== "admin") {
     return (
       <div className="t-loading">
         <h2>Access Denied</h2>
@@ -739,6 +744,34 @@ export default function TeacherDashboard() {
                   </div>
                 </div>
 
+                {/* Study Preferences */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Study Preferences</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Daily Goal</div>
+                        <div className="t-settings-sublabel">Number of cards to study per day</div>
+                      </div>
+                      <input type="number" defaultValue={20} min={5} max={200} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                    </div>
+                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                      <div>
+                        <div className="t-settings-label">New Cards / Day</div>
+                        <div className="t-settings-sublabel">Maximum new cards introduced daily</div>
+                      </div>
+                      <input type="number" defaultValue={20} min={0} max={100} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                    </div>
+                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                      <div>
+                        <div className="t-settings-label">Max Reviews / Day</div>
+                        <div className="t-settings-sublabel">Maximum review cards per session</div>
+                      </div>
+                      <input type="number" defaultValue={100} min={10} max={500} style={{ width: 80, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14, textAlign: 'center' }} />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Appearance */}
                 <div className="t-section">
                   <h2 className="t-section-title">Appearance</h2>
@@ -757,6 +790,69 @@ export default function TeacherDashboard() {
                         Toggle Theme
                       </button>
                     </div>
+                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                      <div>
+                        <div className="t-settings-label">Card Font Size</div>
+                        <div className="t-settings-sublabel">Adjust flashcard text size</div>
+                      </div>
+                      <input type="range" defaultValue={32} min={16} max={64} style={{ width: 120 }} onChange={e => {
+                        document.documentElement.style.setProperty('--card-font-size', e.target.value + 'px');
+                      }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audio & TTS */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Audio & TTS</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Text-to-Speech</div>
+                        <div className="t-settings-sublabel">Auto-read cards aloud</div>
+                      </div>
+                      <label className="t-toggle">
+                        <input type="checkbox" defaultChecked />
+                        <span className="t-toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                      <div>
+                        <div className="t-settings-label">Sound Effects</div>
+                        <div className="t-settings-sublabel">Play sounds on correct/wrong answers</div>
+                      </div>
+                      <label className="t-toggle">
+                        <input type="checkbox" />
+                        <span className="t-toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notifications */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Notifications</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Study Reminders</div>
+                        <div className="t-settings-sublabel">Get notified when it&apos;s time to review</div>
+                      </div>
+                      <label className="t-toggle">
+                        <input type="checkbox" defaultChecked />
+                        <span className="t-toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                      <div>
+                        <div className="t-settings-label">Assignment Updates</div>
+                        <div className="t-settings-sublabel">Notify when students complete tasks</div>
+                      </div>
+                      <label className="t-toggle">
+                        <input type="checkbox" defaultChecked />
+                        <span className="t-toggle-slider"></span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -772,6 +868,32 @@ export default function TeacherDashboard() {
                       <a href="/api/backup/export" className="t-btn t-btn-outline t-btn-sm">
                         <ion-icon name="download-outline"></ion-icon> Export
                       </a>
+                    </div>
+                    <div className="t-settings-row" style={{ marginTop: 12 }}>
+                      <div>
+                        <div className="t-settings-label">Import data</div>
+                        <div className="t-settings-sublabel">Restore from a JSON backup file</div>
+                      </div>
+                      <a href="/app" className="t-btn t-btn-outline t-btn-sm">
+                        <ion-icon name="cloud-upload-outline"></ion-icon> Import
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Algorithm */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Algorithm</h2>
+                  <div className="t-settings-card">
+                    <div className="t-settings-row">
+                      <div>
+                        <div className="t-settings-label">Spaced Repetition</div>
+                        <div className="t-settings-sublabel">Choose between SM-2 and FSRS algorithms</div>
+                      </div>
+                      <select defaultValue="sm-2" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'var(--bg-primary, #0f0f14)', color: 'var(--text-primary)', fontSize: 14 }}>
+                        <option value="sm-2">SM-2 (Classic)</option>
+                        <option value="fsrs">FSRS (Modern)</option>
+                      </select>
                     </div>
                   </div>
                 </div>

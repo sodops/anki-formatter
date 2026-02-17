@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/groups/[id] — Get group details with members
  */
@@ -50,7 +52,7 @@ export async function GET(
     }
 
     // Get members with profiles
-    const { data: members } = await supabase
+    const { data: members, error: membersError } = await supabase
       .from("group_members")
       .select(`
         id, user_id, role, joined_at,
@@ -58,6 +60,10 @@ export async function GET(
       `)
       .eq("group_id", id)
       .order("joined_at", { ascending: true });
+
+    if (membersError) {
+      console.error("Members query error:", membersError);
+    }
 
     // Get assignments
     const { data: assignments } = await supabase
