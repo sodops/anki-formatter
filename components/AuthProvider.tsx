@@ -55,14 +55,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch user role from profiles table
     const fetchRole = async (userId: string) => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", userId)
           .single();
-        if (data?.role) setRole(data.role as UserRole);
-      } catch {
-        // Default to student
+        
+        if (error) {
+          console.warn("Role fetch error:", error.message);
+          return;
+        }
+        
+        if (data?.role) {
+          setRole(data.role as UserRole);
+        }
+      } catch (err) {
+        console.warn("Role fetch failed:", err);
       }
     };
 
