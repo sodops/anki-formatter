@@ -56,7 +56,19 @@ interface ActivityItem {
   color: string;
 }
 
-type Tab = "overview" | "users" | "content" | "analytics" | "api" | "system";
+interface MetricSummary {
+  name: string;
+  count: number;
+  avg: number;
+  median: number;
+  p75: number;
+  p95: number;
+  min: number;
+  max: number;
+  rating: { good: number; needsImprovement: number; poor: number };
+}
+
+type Tab = "overview" | "users" | "content" | "analytics" | "vitals" | "api" | "system";
 
 /* ================================================================
    MAIN COMPONENT
@@ -83,6 +95,9 @@ export default function ModernAdminDashboard() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [dueCards, setDueCards] = useState(0);
   const [logsCount, setLogsCount] = useState(0);
+  const [metricsData, setMetricsData] = useState<MetricSummary[]>([]);
+  const [metricsDays, setMetricsDays] = useState(7);
+  const [metricsLoading, setMetricsLoading] = useState(false);
   const [isForbidden, setIsForbidden] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -90,6 +105,27 @@ export default function ModernAdminDashboard() {
   useEffect(() => {
     if (!loading && !user) router.push("/login");
   }, [loading, user, router]);
+
+  // Fetch Web Vitals metrics
+  const fetchMetrics = useCallback(async () => {
+    if (!user) return;
+    setMetricsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/metrics?days=${metricsDays}`);
+      if (res.ok) {
+        const json = await res.json();
+        setMetricsData(json.summary || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setMetricsLoading(false);
+    }
+  }, [user, metricsDays]);
+
+  useEffect(() => {
+    if (tab === "vitals") fetchMetrics();
+  }, [tab, fetchMetrics]);
 
   // Load Ionicons
   useEffect(() => {
@@ -262,10 +298,13 @@ export default function ModernAdminDashboard() {
                 <ion-icon name="bar-chart-outline"></ion-icon>
                 Analytics
               </button>
-              <Link href="/admin/metrics" className="admin-nav-item">
+              <button
+                className={`admin-nav-item ${tab === "vitals" ? "active" : ""}`}
+                onClick={() => setTab("vitals")}
+              >
                 <ion-icon name="pulse-outline"></ion-icon>
                 Web Vitals
-              </Link>
+              </button>
             </div>
 
             <div className="admin-nav-section">
@@ -317,6 +356,7 @@ export default function ModernAdminDashboard() {
                   {tab === "users" && "User Management"}
                   {tab === "content" && "Content Manager"}
                   {tab === "analytics" && "Analytics"}
+                  {tab === "vitals" && "Web Vitals"}
                   {tab === "api" && "API Explorer"}
                   {tab === "system" && "System Status"}
                 </h1>
@@ -1521,6 +1561,269 @@ export default function ModernAdminDashboard() {
               </>
             )}
 
+            {tab === "vitals" && (
+              <>
+                {/* Time Period Selector */}
+                <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+                  {[1, 7, 30].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setMetricsDays(d)}
+                      className={`admin-btn ${
+                        metricsDays === d ? "admin-btn-primary" : "admin-btn-secondary"
+                      }`}
+                    >
+                      {d === 1 ? "Today" : `${d} days`}
+                    </button>
+                  ))}
+                </div>
+
+                {metricsLoading ? (
+                  <div className="admin-card" style={{ textAlign: "center", padding: "4rem" }}>
+                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
+                    <p style={{ color: "var(--text-secondary)" }}>Loading metrics...</p>
+                  </div>
+                ) : metricsData.length === 0 ? (
+                  <div className="admin-card" style={{ textAlign: "center", padding: "4rem" }}>
+                    <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
+                    <h3
+                      style={{
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      No data yet
+                    </h3>
+                    <p style={{ color: "var(--text-secondary)" }}>
+                      Start using the app to collect performance metrics
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Metrics Cards Grid */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                        gap: "1.5rem",
+                        marginBottom: "1.5rem",
+                      }}
+                    >
+                      {metricsData.map((metric) => {
+                        const goodPct =
+                          metric.count > 0 ? (metric.rating.good / metric.count) * 100 : 0;
+                        const scoreColor =
+                          goodPct >= 75
+                            ? "var(--admin-success)"
+                            : goodPct >= 50
+                              ? "var(--admin-warning)"
+                              : "var(--admin-danger)";
+                        const unit = metric.name === "CLS" ? "" : "ms";
+                        const fmt = (v: number) =>
+                          metric.name === "CLS" ? v.toFixed(3) : `${Math.round(v)}${unit}`;
+
+                        return (
+                          <div key={metric.name} className="admin-card">
+                            <div className="admin-card-header">
+                              <h2 className="admin-card-title">{metric.name}</h2>
+                              <span className="admin-badge admin-badge-info">
+                                {metric.count} samples
+                              </span>
+                            </div>
+
+                            {/* Average */}
+                            <div style={{ marginBottom: "1.25rem" }}>
+                              <div
+                                style={{
+                                  fontSize: "2.25rem",
+                                  fontWeight: 700,
+                                  color: scoreColor,
+                                }}
+                              >
+                                {fmt(metric.avg)}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-secondary)",
+                                }}
+                              >
+                                average
+                              </div>
+                            </div>
+
+                            {/* Stats grid */}
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                                gap: "0.75rem",
+                                marginBottom: "1.25rem",
+                              }}
+                            >
+                              {[
+                                { label: "Median", value: metric.median },
+                                { label: "P75", value: metric.p75 },
+                                { label: "P95", value: metric.p95 },
+                                { label: "Max", value: metric.max },
+                              ].map((s) => (
+                                <div key={s.label}>
+                                  <div
+                                    style={{
+                                      fontSize: "0.7rem",
+                                      color: "var(--text-tertiary)",
+                                      marginBottom: "0.15rem",
+                                    }}
+                                  >
+                                    {s.label}
+                                  </div>
+                                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                                    {fmt(s.value)}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Rating bar */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  height: "8px",
+                                  borderRadius: "4px",
+                                  overflow: "hidden",
+                                  marginBottom: "0.5rem",
+                                  background: "var(--border)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: `${(metric.rating.good / metric.count) * 100}%`,
+                                    background: "var(--admin-success)",
+                                  }}
+                                />
+                                <div
+                                  style={{
+                                    width: `${(metric.rating.needsImprovement / metric.count) * 100}%`,
+                                    background: "var(--admin-warning)",
+                                  }}
+                                />
+                                <div
+                                  style={{
+                                    width: `${(metric.rating.poor / metric.count) * 100}%`,
+                                    background: "var(--admin-danger)",
+                                  }}
+                                />
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  fontSize: "0.75rem",
+                                  color: "var(--text-secondary)",
+                                }}
+                              >
+                                <span style={{ color: "var(--admin-success)" }}>
+                                  ✓ {metric.rating.good} good
+                                </span>
+                                <span style={{ color: "var(--admin-warning)" }}>
+                                  ⚠ {metric.rating.needsImprovement} ok
+                                </span>
+                                <span style={{ color: "var(--admin-danger)" }}>
+                                  ✗ {metric.rating.poor} poor
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Overall Score */}
+                    <div className="admin-card">
+                      <div className="admin-card-header">
+                        <h2 className="admin-card-title">
+                          <ion-icon name="trophy"></ion-icon>
+                          Overall Performance Score
+                        </h2>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "2rem",
+                          padding: "1rem",
+                        }}
+                      >
+                        {(() => {
+                          const score = Math.round(
+                            (metricsData.reduce((sum, m) => sum + m.rating.good / m.count, 0) /
+                              metricsData.length) *
+                              100
+                          );
+                          const color =
+                            score >= 75
+                              ? "var(--admin-success)"
+                              : score >= 50
+                                ? "var(--admin-warning)"
+                                : "var(--admin-danger)";
+                          return (
+                            <>
+                              <div style={{ textAlign: "center" }}>
+                                <div
+                                  style={{
+                                    fontSize: "4rem",
+                                    fontWeight: 700,
+                                    color,
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  {score}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.875rem",
+                                    color: "var(--text-secondary)",
+                                    marginTop: "0.5rem",
+                                  }}
+                                >
+                                  out of 100
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.875rem",
+                                  color: "var(--text-secondary)",
+                                  lineHeight: 1.8,
+                                }}
+                              >
+                                <p>
+                                  Based on{" "}
+                                  <strong>{metricsData.reduce((s, m) => s + m.count, 0)}</strong>{" "}
+                                  total measurements
+                                </p>
+                                <p>
+                                  Across <strong>{metricsData.length}</strong> metrics
+                                </p>
+                                <p>
+                                  Period:{" "}
+                                  <strong>
+                                    {metricsDays === 1 ? "Today" : `Last ${metricsDays} days`}
+                                  </strong>
+                                </p>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
             {tab === "api" && (
               <>
                 <div className="admin-card" style={{ marginBottom: "1.5rem" }}>
@@ -1901,8 +2204,7 @@ export default function ModernAdminDashboard() {
                       <ion-icon name="download" style={{ fontSize: "1.5rem" }}></ion-icon>
                       <span style={{ fontSize: "0.8rem" }}>Export Backup</span>
                     </a>
-                    <Link
-                      href="/admin/metrics"
+                    <button
                       className="admin-btn admin-btn-secondary"
                       style={{
                         padding: "1.25rem",
@@ -1911,12 +2213,12 @@ export default function ModernAdminDashboard() {
                         alignItems: "center",
                         gap: "0.5rem",
                         height: "auto",
-                        textDecoration: "none",
                       }}
+                      onClick={() => setTab("vitals")}
                     >
                       <ion-icon name="pulse" style={{ fontSize: "1.5rem" }}></ion-icon>
                       <span style={{ fontSize: "0.8rem" }}>View Metrics</span>
-                    </Link>
+                    </button>
                     <Link
                       href="/app"
                       className="admin-btn admin-btn-secondary"
