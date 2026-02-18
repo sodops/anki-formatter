@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * GET /api/assignments/[id] — Get assignment detail with progress
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
+
     // Get assignment with decks
-    const { data: assignment, error } = await supabase
+    const { data: assignment, error } = await admin
       .from("assignments")
       .select(`
         *,
@@ -35,7 +38,7 @@ export async function GET(
 
     if (isTeacher) {
       // Teacher: get all student progress with profiles
-      const { data: progress } = await supabase
+      const { data: progress } = await admin
         .from("student_progress")
         .select(`
           *,
@@ -51,7 +54,7 @@ export async function GET(
       });
     } else {
       // Student: get own progress
-      const { data: myProgress } = await supabase
+      const { data: myProgress } = await admin
         .from("student_progress")
         .select("*")
         .eq("assignment_id", id)
@@ -75,15 +78,17 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const admin = createAdminClient();
 
     const body = await request.json();
     const updates: Record<string, unknown> = {};
@@ -93,7 +98,7 @@ export async function PATCH(
     if (body.xp_reward !== undefined) updates.xp_reward = body.xp_reward;
     if (body.is_active !== undefined) updates.is_active = body.is_active;
 
-    const { data: updated, error } = await supabase
+    const { data: updated, error } = await admin
       .from("assignments")
       .update(updates)
       .eq("id", id)
@@ -115,17 +120,19 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { error } = await supabase
+    const admin = createAdminClient();
+
+    const { error } = await admin
       .from("assignments")
       .delete()
       .eq("id", id)

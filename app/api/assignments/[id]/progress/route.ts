@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
 /**
@@ -8,10 +9,10 @@ import { rateLimit, getClientIP } from "@/lib/rate-limit";
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id: assignmentId } = await params;
+    const { id: assignmentId } = params;
     const ip = getClientIP(request);
     const rl = await rateLimit(`progress-patch:${ip}`, { limit: 60, windowSec: 60 });
     if (!rl.allowed) {
@@ -24,10 +25,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
+
     const body = await request.json();
     
     // Get existing progress
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from("student_progress")
       .select("*")
       .eq("assignment_id", assignmentId)
@@ -65,7 +68,7 @@ export async function PATCH(
       updates.completed_at = new Date().toISOString();
     }
 
-    const { data: updated, error } = await supabase
+    const { data: updated, error } = await admin
       .from("student_progress")
       .update(updates)
       .eq("assignment_id", assignmentId)
@@ -77,7 +80,7 @@ export async function PATCH(
 
     // If just completed, award XP
     if (updates.status === "completed" && existing.status !== "completed") {
-      const { data: assignment } = await supabase
+      const { data: assignment } = await admin
         .from("assignments")
         .select("xp_reward, title, teacher_id")
         .eq("id", assignmentId)
@@ -85,7 +88,7 @@ export async function PATCH(
 
       if (assignment) {
         // Award assignment XP
-        await supabase.from("xp_events").insert({
+        await admin.from("xp_events").insert({
           user_id: user.id,
           event_type: "assignment_complete",
           xp_amount: assignment.xp_reward || 10,
@@ -95,7 +98,7 @@ export async function PATCH(
 
         // Update profile total
         try {
-          await supabase.rpc("award_xp", {
+          await admin.rpc("award_xp", {
             p_user_id: user.id,
             p_event_type: "assignment_complete",
             p_xp_amount: assignment.xp_reward || 10,
@@ -106,7 +109,7 @@ export async function PATCH(
         }
 
         // Notify teacher
-        await supabase.from("notifications").insert({
+        await admin.from("notifications").insert({
           user_id: assignment.teacher_id,
           type: "assignment_graded",
           title: "Assignment Completed",

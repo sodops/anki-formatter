@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/AuthProvider";
-import { useEffect, useState, useCallback, use } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
 interface AssignmentDetail {
@@ -37,8 +37,8 @@ interface StudentProgressDetail {
   };
 }
 
-export default function AssignmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: assignmentId } = use(params);
+export default function AssignmentDetailPage({ params }: { params: { id: string } }) {
+  const { id: assignmentId } = params;
   const { loading: authLoading } = useAuth();
   const [assignment, setAssignment] = useState<AssignmentDetail | null>(null);
   const [progress, setProgress] = useState<StudentProgressDetail[]>([]);
