@@ -112,12 +112,12 @@ export default function StudentDashboard() {
     if (!loading && user) fetchData();
   }, [loading, user, fetchData]);
 
-  // Redirect teacher/admin to their dashboard
+  // Redirect teacher/admin to their dashboard (only after auth is fully loaded)
   useEffect(() => {
     if (!loading && user && (role === "teacher" || role === "admin")) {
-      router.replace("/teacher");
+      window.location.href = "/teacher";
     }
-  }, [loading, user, role, router]);
+  }, [loading, user, role]);
 
   const handleJoinGroup = async (e: React.FormEvent) => {
     e.preventDefault();

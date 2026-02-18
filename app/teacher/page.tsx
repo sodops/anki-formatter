@@ -203,6 +203,15 @@ export default function TeacherDashboard() {
   }
 
   if (role !== "teacher" && role !== "admin") {
+    // Still loading auth — don't redirect yet, wait for role to resolve
+    if (loading) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}>
+          <div className="t-spinner" />
+          <span style={{ marginTop: 12 }}>Loading...</span>
+        </div>
+      );
+    }
     if (typeof window !== "undefined") {
       window.location.href = "/student";
     }
