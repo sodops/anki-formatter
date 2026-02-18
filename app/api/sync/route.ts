@@ -202,6 +202,10 @@ export async function POST(request: NextRequest) {
     const raw = await request.json();
     const parsed = syncPostSchema.safeParse(raw);
     if (!parsed.success) {
+      console.error("[SYNC POST] Validation failed:", {
+        errors: parsed.error.flatten().fieldErrors,
+        received: JSON.stringify(raw, null, 2)
+      });
       return NextResponse.json(
         { error: "Invalid sync payload", details: parsed.error.flatten().fieldErrors },
         { status: 400 }

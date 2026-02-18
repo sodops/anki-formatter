@@ -74,7 +74,7 @@ const syncChange = z.object({
   type: changeTypes,
   id: z.string().optional(),
   data: z.record(z.string(), z.unknown()).default({}),
-  timestamp: z.string().optional(),
+  timestamp: z.union([z.string(), z.number()]).optional(), // Accept both string and number
 });
 
 export const syncPostSchema = z.object({
