@@ -66,6 +66,8 @@ export async function GET(request: NextRequest) {
     const { data: cards, error: cardsError } = await cardsQuery;
     if (cardsError) throw cardsError;
 
+    console.log(`[SYNC GET] user=${user.id}, found ${decks?.length || 0} decks, ${cards?.length || 0} cards`);
+
     // 3. Fetch Settings & Daily Progress
     // We always fetch these for now as they are single rows and small.
     // Optimization: We could also check updated_at for these if we wanted to be strict.
@@ -264,7 +266,7 @@ export async function POST(request: NextRequest) {
         const d = change.data as Record<string, string | number | boolean | string[] | Record<string, unknown> | undefined>;
 
         if (type === "DECK_CREATE" || type === "DECK_UPDATE") {
-          deckUpserts.push({
+          const deckData = {
             id: d.id as string,
             user_id: user.id,
             name: d.name as string,
@@ -272,7 +274,14 @@ export async function POST(request: NextRequest) {
             is_deleted: (d.isDeleted as boolean) || false,
             created_at: (d.createdAt as string) || new Date().toISOString(),
             updated_at: new Date().toISOString(),
+          };
+          console.log(`[SYNC POST] ${type}:`, { 
+            deckId: deckData.id, 
+            name: deckData.name, 
+            userId: deckData.user_id,
+            isDeleted: deckData.is_deleted 
           });
+          deckUpserts.push(deckData);
         } else if (type === "CARD_CREATE" || type === "CARD_UPDATE") {
           // Ensure deck_id is present for new cards
           if (!d.deckId && type === "CARD_CREATE") {
