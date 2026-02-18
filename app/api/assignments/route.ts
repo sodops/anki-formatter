@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
 /**
@@ -21,9 +22,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
+
     let role = "student";
     try {
-      const { data: profile } = await supabase
+      const { data: profile } = await admin
         .from("profiles")
         .select("role")
         .eq("id", user.id)
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (role === "teacher" || role === "admin") {
       // Teacher: get assignments they created
-      let query = supabase
+      let query = admin
         .from("assignments")
         .select(`
           *,
@@ -59,7 +62,7 @@ export async function GET(request: NextRequest) {
       let progressSummary: Record<string, { total: number; completed: number; in_progress: number; pending: number; avg_accuracy: number }> = {};
 
       if (assignmentIds.length > 0) {
-        const { data: progress } = await supabase
+        const { data: progress } = await admin
           .from("student_progress")
           .select("assignment_id, status, accuracy")
           .in("assignment_id", assignmentIds);
@@ -93,7 +96,7 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // Student: get assignments from their groups with their progress
-      const { data: memberships } = await supabase
+      const { data: memberships } = await admin
         .from("group_members")
         .select("group_id")
         .eq("user_id", user.id);
@@ -103,7 +106,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ assignments: [], role });
       }
 
-      let query = supabase
+      let query = admin
         .from("assignments")
         .select(`
           *,
@@ -121,10 +124,10 @@ export async function GET(request: NextRequest) {
 
       // Get student's progress for these assignments
       const assignmentIds = (assignments || []).map(a => a.id);
-      let progressMap: Record<string, DB.StudentProgress> = {};
+      let progressMap: Record<string, any> = {};
 
       if (assignmentIds.length > 0) {
-        const { data: progress } = await supabase
+        const { data: progress } = await admin
           .from("student_progress")
           .select("*")
           .eq("student_id", user.id)
@@ -132,7 +135,7 @@ export async function GET(request: NextRequest) {
 
         if (progress) {
           for (const p of progress) {
-            progressMap[p.assignment_id] = p as DB.StudentProgress;
+            progressMap[p.assignment_id] = p;
           }
         }
       }
@@ -172,8 +175,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const admin = createAdminClient();
+
     // Verify teacher role
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
@@ -195,7 +200,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify teacher owns the group
-    const { data: group } = await supabase
+    const { data: group } = await admin
       .from("groups")
       .select("id, owner_id")
       .eq("id", group_id)
@@ -206,7 +211,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the assignment
-    const { data: assignment, error: assignError } = await supabase
+    const { data: assignment, error: assignError } = await admin
       .from("assignments")
       .insert({
         group_id,
@@ -222,7 +227,7 @@ export async function POST(request: NextRequest) {
     if (assignError) throw assignError;
 
     // Get source decks info
-    const { data: sourceDekcs } = await supabase
+    const { data: sourceDecks } = await admin
       .from("decks")
       .select("id, name")
       .in("id", deck_ids)
@@ -231,7 +236,7 @@ export async function POST(request: NextRequest) {
     // Count cards per deck
     const deckCards: Record<string, number> = {};
     for (const deckId of deck_ids) {
-      const { count } = await supabase
+      const { count } = await admin
         .from("cards")
         .select("id", { count: "exact", head: true })
         .eq("deck_id", deckId)
@@ -240,7 +245,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create assignment_decks entries
-    const assignmentDecks = (sourceDekcs || []).map(d => ({
+    const assignmentDecks = (sourceDecks || []).map(d => ({
       assignment_id: assignment.id,
       source_deck_id: d.id,
       deck_name: d.name,
@@ -248,11 +253,12 @@ export async function POST(request: NextRequest) {
     }));
 
     if (assignmentDecks.length > 0) {
-      await supabase.from("assignment_decks").insert(assignmentDecks);
+      const { error: deckInsertError } = await admin.from("assignment_decks").insert(assignmentDecks);
+      if (deckInsertError) console.error("assignment_decks insert error:", deckInsertError.message);
     }
 
     // Create student_progress for all students in the group
-    const { data: students } = await supabase
+    const { data: students } = await admin
       .from("group_members")
       .select("user_id")
       .eq("group_id", group_id)
@@ -267,7 +273,8 @@ export async function POST(request: NextRequest) {
         cards_total: totalCards,
       }));
 
-      await supabase.from("student_progress").insert(progressRecords);
+      const { error: progressError } = await admin.from("student_progress").insert(progressRecords);
+      if (progressError) console.error("student_progress insert error:", progressError.message);
 
       // Notify all students
       const notifications = students.map(s => ({
@@ -278,7 +285,8 @@ export async function POST(request: NextRequest) {
         data: { assignment_id: assignment.id, group_id },
       }));
 
-      await supabase.from("notifications").insert(notifications);
+      const { error: notifError } = await admin.from("notifications").insert(notifications);
+      if (notifError) console.error("notifications insert error:", notifError.message);
     }
 
     return NextResponse.json({ assignment }, { status: 201 });
