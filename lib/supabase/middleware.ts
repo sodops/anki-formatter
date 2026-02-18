@@ -1,44 +1,17 @@
 /**
  * Supabase Middleware Client
  * Refreshes auth tokens on every request
- * Handles role-based route protection
+ * Only handles: session refresh + auth protection (redirect to login)
+ * Role-based routing is handled client-side by each page
  */
 import { createServerClient } from "@supabase/ssr";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-
-/**
- * Get user role using service role key (bypasses RLS)
- * Falls back to anon-key query if service key unavailable
- */
-async function getUserRole(userId: string): Promise<string> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (url && serviceKey) {
-    try {
-      const admin = createSupabaseClient(url, serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
-      const { data } = await admin
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .single();
-      if (data?.role) return data.role;
-    } catch (err) {
-      console.error("[middleware] Admin role query failed:", err);
-    }
-  }
-  return "student";
-}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  // Skip auth checks if Supabase is not configured
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return supabaseResponse;
   }
@@ -64,12 +37,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session — important for Server Components
+  // Refresh session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users away from protected routes
   const isPublicPath =
     request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname.startsWith("/login") ||
@@ -83,60 +55,18 @@ export async function updateSession(request: NextRequest) {
 
   const isApiPath = request.nextUrl.pathname.startsWith("/api");
 
+  // Not logged in → redirect to login (except public & API paths)
   if (!user && !isPublicPath && !isApiPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from login page → role-based dashboard
+  // Logged in on /login → go to /app (which will redirect by role client-side)
   if (user && request.nextUrl.pathname === "/login") {
-    const role = await getUserRole(user.id);
     const url = request.nextUrl.clone();
-    url.pathname = (role === "teacher" || role === "admin") ? "/teacher" : "/student";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
-  }
-
-  // Redirect /app to role-based dashboard
-  if (user && request.nextUrl.pathname === "/app") {
-    const role = await getUserRole(user.id);
-    const url = request.nextUrl.clone();
-    url.pathname = (role === "teacher" || role === "admin") ? "/teacher" : "/student";
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect teachers/admins away from /student to their proper dashboard
-  if (user && request.nextUrl.pathname.startsWith("/student")) {
-    const role = await getUserRole(user.id);
-    if (role === "teacher" || role === "admin") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/teacher";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Role-based route protection for teacher/admin routes
-  if (user && (request.nextUrl.pathname.startsWith("/teacher") || request.nextUrl.pathname.startsWith("/admin"))) {
-    const role = await getUserRole(user.id);
-    const isTeacherRoute = request.nextUrl.pathname.startsWith("/teacher");
-    const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
-
-    // Check env-var based admin access (legacy)
-    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
-    const adminUserIds = (process.env.ADMIN_USER_IDS || "").split(",").map(id => id.trim()).filter(Boolean);
-    const isEnvAdmin = (user.email && adminEmails.includes(user.email.toLowerCase())) || adminUserIds.includes(user.id);
-
-    if (isAdminRoute && role !== "admin" && !isEnvAdmin) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/student";
-      return NextResponse.redirect(url);
-    }
-
-    if (isTeacherRoute && role !== "teacher" && role !== "admin" && !isEnvAdmin) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/student";
-      return NextResponse.redirect(url);
-    }
   }
 
   return supabaseResponse;

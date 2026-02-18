@@ -175,6 +175,16 @@ export default function StudentDashboard() {
     );
   }
 
+  // Role guard: teacher on student page → redirect (loading is guaranteed false here)
+  if (role === "teacher" || role === "admin") {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff', gap: 12 }}>
+        <div className="s-spinner" />
+        <p style={{ color: '#94a3b8' }}>Redirecting to teacher dashboard...</p>
+      </div>
+    );
+  }
+
   const level = xp.level || Math.floor(xp.total_xp / 100) + 1;
   const xpInLevel = xp.total_xp % 100;
   const overdueAssignments = assignments.filter(a => a.deadline && new Date(a.deadline) < new Date() && a.my_progress?.status !== "completed");
