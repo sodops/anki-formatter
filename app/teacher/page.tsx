@@ -106,7 +106,10 @@ export default function TeacherDashboard() {
       if (syncRes.ok) {
         const sd = await syncRes.json();
         const allDecks = sd.state?.decks || sd.data?.decks || sd.decks || [];
+        console.log("[Teacher] Sync response:", { type: sd.type, deckCount: allDecks.length, decks: allDecks.slice(0, 3) });
         setDecks(allDecks.map((d: any) => ({ id: d.id, name: d.name, cards_count: d.cards?.length || d.cards_count || 0 })));
+      } else {
+        console.error("[Teacher] Sync failed:", syncRes.status, await syncRes.text());
       }
     } catch {
       setError("Failed to load data");

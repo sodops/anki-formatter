@@ -34,14 +34,10 @@ export async function GET(request: NextRequest) {
       .single();
     const role = profile?.role || "student";
 
-    // Query owned groups with member/assignment counts
+    // Query owned groups (without counts first)
     const { data: ownedGroups, error: ownedError } = await admin
       .from("groups")
-      .select(`
-        *,
-        group_members!inner(count),
-        assignments!left(count)
-      `)
+      .select("*")
       .eq("owner_id", user.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false });
@@ -50,16 +46,14 @@ export async function GET(request: NextRequest) {
       console.error("[/api/groups] Owned groups error:", ownedError.message);
     }
 
-    // Query joined groups with member/assignment counts
+    // Query joined groups (without counts first)
     const { data: memberships, error: memberError } = await admin
       .from("group_members")
       .select(`
         group_id,
         joined_at,
         groups (
-          id, name, description, color, join_code, owner_id, created_at, is_active,
-          group_members!inner(count),
-          assignments!left(count)
+          id, name, description, color, join_code, owner_id, created_at, is_active
         )
       `)
       .eq("user_id", user.id);
@@ -68,14 +62,54 @@ export async function GET(request: NextRequest) {
       console.error("[/api/groups] Memberships error:", memberError.message);
     }
 
-    // Deduplicate
+    // Get all group IDs for count queries
+    const allGroupIds = new Set<string>();
+    (ownedGroups || []).forEach(g => allGroupIds.add(g.id));
+    (memberships || []).forEach(m => {
+      const g = m.groups as any;
+      if (g?.id) allGroupIds.add(g.id);
+    });
+
+    // Query member counts for all groups
+    const memberCounts = new Map<string, number>();
+    const assignmentCounts = new Map<string, number>();
+
+    if (allGroupIds.size > 0) {
+      const groupIdsArray = Array.from(allGroupIds);
+      
+      // Get member counts
+      const { data: memberCountsData } = await admin
+        .from("group_members")
+        .select("group_id")
+        .in("group_id", groupIdsArray);
+      
+      // Count members per group
+      (memberCountsData || []).forEach((mc: any) => {
+        const count = memberCounts.get(mc.group_id) || 0;
+        memberCounts.set(mc.group_id, count + 1);
+      });
+
+      // Get assignment counts  
+      const { data: assignmentCountsData } = await admin
+        .from("assignments")
+        .select("group_id")
+        .in("group_id", groupIdsArray);
+      
+      // Count assignments per group
+      (assignmentCountsData || []).forEach((ac: any) => {
+        const count = assignmentCounts.get(ac.group_id) || 0;
+        assignmentCounts.set(ac.group_id, count + 1);
+      });
+    }
+
+    // Deduplicate and add counts
     const groupMap = new Map<string, any>();
 
     (ownedGroups || []).forEach(g => {
       groupMap.set(g.id, {
         ...g,
-        member_count: g.group_members?.[0]?.count || 0,
-        assignment_count: g.assignments?.[0]?.count || 0,
+        member_count: memberCounts.get(g.id) || 0,
+        assignment_count: assignmentCounts.get(g.id) || 0,
         is_owner: true,
       });
     });
@@ -85,8 +119,8 @@ export async function GET(request: NextRequest) {
       if (g && g.id && !groupMap.has(g.id) && g.is_active !== false) {
         groupMap.set(g.id, {
           ...g,
-          member_count: g?.group_members?.[0]?.count || 0,
-          assignment_count: g?.assignments?.[0]?.count || 0,
+          member_count: memberCounts.get(g.id) || 0,
+          assignment_count: assignmentCounts.get(g.id) || 0,
           joined_at: m.joined_at,
           is_owner: g.owner_id === user.id,
         });
