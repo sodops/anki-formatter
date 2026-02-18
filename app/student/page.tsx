@@ -59,7 +59,7 @@ export default function StudentDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "progress" | "notifications" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "statistics" | "notifications" | "settings">("dashboard");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [xp, setXP] = useState<XPData>({ total_xp: 0, today_xp: 0, level: 1, xp_to_next: 100, current_streak: 0, longest_streak: 0, recent_events: [] });
@@ -228,9 +228,9 @@ export default function StudentDashboard() {
             <span>My Groups</span>
             {groups.length > 0 && <span className="s-nav-count">{groups.length}</span>}
           </button>
-          <button className={`s-nav-item ${activeTab === 'progress' ? 'active' : ''}`} onClick={() => switchTab('progress')}>
-            <ion-icon name="trophy-outline"></ion-icon>
-            <span>XP &amp; Progress</span>
+          <button className={`s-nav-item ${activeTab === 'statistics' ? 'active' : ''}`} onClick={() => switchTab('statistics')}>
+            <ion-icon name="stats-chart-outline"></ion-icon>
+            <span>Statistics</span>
           </button>
           <button className={`s-nav-item ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => switchTab('notifications')}>
             <ion-icon name="notifications-outline"></ion-icon>
@@ -517,14 +517,14 @@ export default function StudentDashboard() {
             )}
 
             {/* PROGRESS TAB */}
-            {activeTab === "progress" && (
+            {activeTab === "statistics" && (
               <div className="s-content">
                 <div className="s-page-header">
-                  <h1>XP &amp; Progress</h1>
-                  <p className="s-subtitle">Track your learning journey</p>
+                  <h1>Statistics</h1>
+                  <p className="s-subtitle">Your learning analytics</p>
                 </div>
 
-                {/* Level Card */}
+                {/* Level & XP Card */}
                 <div className="s-level-card">
                   <div className="s-level-circle-lg">
                     <span className="s-level-num-lg">{level}</span>
@@ -541,65 +541,127 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* XP Stats */}
-                <div className="s-xp-stats-grid">
-                  <div className="s-xp-stat-card">
-                    <div className="s-xp-stat-value">{xp.today_xp}</div>
-                    <div className="s-xp-stat-label">Today&apos;s XP</div>
+                {/* Key Stats Grid */}
+                <div className="s-stats-grid-4">
+                  <div className="s-stat-card-mini">
+                    <div className="s-stat-icon" style={{ background: '#3B82F620', color: '#3B82F6' }}>📊</div>
+                    <div className="s-stat-value-sm">{assignments.length}</div>
+                    <div className="s-stat-label-sm">Total Tasks</div>
                   </div>
-                  <div className="s-xp-stat-card">
-                    <div className="s-xp-stat-value">🔥 {xp.current_streak}</div>
-                    <div className="s-xp-stat-label">Day Streak</div>
+                  <div className="s-stat-card-mini">
+                    <div className="s-stat-icon" style={{ background: '#10B98120', color: '#10B981' }}>✅</div>
+                    <div className="s-stat-value-sm">{completedAssignments.length}</div>
+                    <div className="s-stat-label-sm">Completed</div>
                   </div>
-                  <div className="s-xp-stat-card">
-                    <div className="s-xp-stat-value">{xp.longest_streak}</div>
-                    <div className="s-xp-stat-label">Best Streak</div>
+                  <div className="s-stat-card-mini">
+                    <div className="s-stat-icon" style={{ background: '#F59E0B20', color: '#F59E0B' }}>🔥</div>
+                    <div className="s-stat-value-sm">{xp.current_streak}</div>
+                    <div className="s-stat-label-sm">Day Streak</div>
                   </div>
-                  <div className="s-xp-stat-card">
-                    <div className="s-xp-stat-value">{completedAssignments.length}</div>
-                    <div className="s-xp-stat-label">Tasks Done</div>
-                  </div>
-                </div>
-
-                {/* How to Earn */}
-                <div className="s-section">
-                  <h2 className="s-section-title">How to Earn XP</h2>
-                  <div className="s-earn-grid">
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">📖</span>
-                      <div>
-                        <strong>Review Cards</strong>
-                        <span>+5 XP per review session</span>
-                      </div>
-                    </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">✅</span>
-                      <div>
-                        <strong>Complete Assignment</strong>
-                        <span>+50 XP (varies by task)</span>
-                      </div>
-                    </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">🔥</span>
-                      <div>
-                        <strong>Daily Streak</strong>
-                        <span>+10 XP per day</span>
-                      </div>
-                    </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">🏆</span>
-                      <div>
-                        <strong>Perfect Accuracy</strong>
-                        <span>+20 XP bonus</span>
-                      </div>
-                    </div>
+                  <div className="s-stat-card-mini">
+                    <div className="s-stat-icon" style={{ background: '#8B5CF620', color: '#8B5CF6' }}>🏆</div>
+                    <div className="s-stat-value-sm">{xp.longest_streak}</div>
+                    <div className="s-stat-label-sm">Best Streak</div>
                   </div>
                 </div>
 
-                {/* Recent XP Events */}
+                {/* Assignment Completion Chart */}
+                <div className="s-chart-card">
+                  <h3 className="s-chart-title">Assignment Progress</h3>
+                  {assignments.length === 0 ? (
+                    <div className="s-chart-empty">No assignments yet</div>
+                  ) : (
+                    <div className="s-bar-chart">
+                      {(() => {
+                        const completed = completedAssignments.length;
+                        const inProgress = assignments.filter(a => a.my_progress?.status === "in_progress").length;
+                        const notStarted = assignments.filter(a => !a.my_progress || a.my_progress.status === "pending" || a.my_progress.status === "not_started").length;
+                        const overdue = overdueAssignments.length;
+                        const total = assignments.length || 1;
+                        return (
+                          <>
+                            <div className="s-bar-row">
+                              <span className="s-bar-label">Completed</span>
+                              <div className="s-bar-track">
+                                <div className="s-bar-fill" style={{ width: `${(completed / total) * 100}%`, background: '#10B981' }}></div>
+                              </div>
+                              <span className="s-bar-value">{completed}</span>
+                            </div>
+                            <div className="s-bar-row">
+                              <span className="s-bar-label">In Progress</span>
+                              <div className="s-bar-track">
+                                <div className="s-bar-fill" style={{ width: `${(inProgress / total) * 100}%`, background: '#3B82F6' }}></div>
+                              </div>
+                              <span className="s-bar-value">{inProgress}</span>
+                            </div>
+                            <div className="s-bar-row">
+                              <span className="s-bar-label">Not Started</span>
+                              <div className="s-bar-track">
+                                <div className="s-bar-fill" style={{ width: `${(notStarted / total) * 100}%`, background: '#6B7280' }}></div>
+                              </div>
+                              <span className="s-bar-value">{notStarted}</span>
+                            </div>
+                            {overdue > 0 && (
+                              <div className="s-bar-row">
+                                <span className="s-bar-label">Overdue</span>
+                                <div className="s-bar-track">
+                                  <div className="s-bar-fill" style={{ width: `${(overdue / total) * 100}%`, background: '#EF4444' }}></div>
+                                </div>
+                                <span className="s-bar-value">{overdue}</span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Per-Assignment Accuracy Chart */}
+                {assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length > 0 && (
+                  <div className="s-chart-card">
+                    <h3 className="s-chart-title">Accuracy by Assignment</h3>
+                    <div className="s-bar-chart">
+                      {assignments
+                        .filter(a => a.my_progress && a.my_progress.total_reviews > 0)
+                        .slice(0, 8)
+                        .map(a => {
+                          const acc = Math.round(a.my_progress?.accuracy || 0);
+                          const color = acc >= 80 ? '#10B981' : acc >= 60 ? '#F59E0B' : '#EF4444';
+                          return (
+                            <div className="s-bar-row" key={a.id}>
+                              <span className="s-bar-label" title={a.title}>{a.title.length > 16 ? a.title.slice(0, 16) + '…' : a.title}</span>
+                              <div className="s-bar-track">
+                                <div className="s-bar-fill" style={{ width: `${acc}%`, background: color }}></div>
+                              </div>
+                              <span className="s-bar-value">{acc}%</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Groups Activity */}
+                {groups.length > 0 && (
+                  <div className="s-chart-card">
+                    <h3 className="s-chart-title">Groups</h3>
+                    <div className="s-groups-stats">
+                      {groups.map(g => (
+                        <div key={g.id} className="s-group-stat-row">
+                          <span className="s-group-dot" style={{ background: g.color }}></span>
+                          <span className="s-group-stat-name">{g.name}</span>
+                          <span className="s-group-stat-meta">{g.member_count} members · {g.assignment_count} tasks</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* XP History */}
                 {xp.recent_events && xp.recent_events.length > 0 && (
-                  <div className="s-section">
-                    <h2 className="s-section-title">Recent Activity</h2>
+                  <div className="s-chart-card">
+                    <h3 className="s-chart-title">Recent XP Activity</h3>
                     <div className="s-activity-list">
                       {xp.recent_events.slice(0, 10).map((ev, i) => (
                         <div key={i} className="s-activity-item">
@@ -611,6 +673,29 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                 )}
+
+                {/* How to Earn */}
+                <div className="s-chart-card">
+                  <h3 className="s-chart-title">How to Earn XP</h3>
+                  <div className="s-earn-grid">
+                    <div className="s-earn-item">
+                      <span className="s-earn-icon">📖</span>
+                      <div><strong>Review Cards</strong><span>+5 XP per session</span></div>
+                    </div>
+                    <div className="s-earn-item">
+                      <span className="s-earn-icon">✅</span>
+                      <div><strong>Complete Task</strong><span>+50 XP (varies)</span></div>
+                    </div>
+                    <div className="s-earn-item">
+                      <span className="s-earn-icon">🔥</span>
+                      <div><strong>Daily Streak</strong><span>+10 XP per day</span></div>
+                    </div>
+                    <div className="s-earn-item">
+                      <span className="s-earn-icon">🏆</span>
+                      <div><strong>Perfect Score</strong><span>+20 XP bonus</span></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -828,10 +913,10 @@ export default function StudentDashboard() {
           <ion-icon name="people-outline"></ion-icon>
           <span>Groups</span>
         </button>
-        <a href="/app/study" className="s-bottom-nav-item">
-          <ion-icon name="flash-outline"></ion-icon>
-          <span>Study</span>
-        </a>
+        <button className={`s-bottom-nav-item ${activeTab === 'statistics' ? 'active' : ''}`} onClick={() => switchTab('statistics')}>
+          <ion-icon name="stats-chart-outline"></ion-icon>
+          <span>Stats</span>
+        </button>
         <button className={`s-bottom-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => switchTab('settings')}>
           <ion-icon name="settings-outline"></ion-icon>
           <span>Settings</span>

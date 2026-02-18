@@ -60,7 +60,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"members" | "assignments">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "assignments" | "statistics">("members");
 
   const fetchGroup = useCallback(async () => {
     try {
@@ -151,6 +151,10 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
             <ion-icon name="document-text-outline"></ion-icon>
             <span>Assignments</span>
             <span className="teacher-nav-count">{assignments.length}</span>
+          </button>
+          <button className={`teacher-nav-item ${activeTab === "statistics" ? "active" : ""}`} onClick={() => setActiveTab("statistics")}>
+            <ion-icon name="stats-chart-outline"></ion-icon>
+            <span>Statistics</span>
           </button>
         </nav>
       </aside>
@@ -355,6 +359,144 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                   </div>
                 );
               })
+            )}
+          </div>
+        )}
+
+        {/* Statistics Tab */}
+        {activeTab === "statistics" && (
+          <div className="teacher-section">
+            <h2>Group Statistics</h2>
+
+            {students.length === 0 ? (
+              <div className="teacher-empty-inline">
+                <p>No students yet. Statistics will appear once students join.</p>
+              </div>
+            ) : (
+              <>
+                {/* XP Leaderboard */}
+                <div className="t-chart-card">
+                  <h3 className="t-chart-title">🏆 XP Leaderboard</h3>
+                  <div className="t-bar-chart">
+                    {[...students]
+                      .sort((a, b) => (b.profiles?.total_xp || 0) - (a.profiles?.total_xp || 0))
+                      .map((s, i) => {
+                        const maxXP = Math.max(...students.map(st => st.profiles?.total_xp || 0), 1);
+                        const xpVal = s.profiles?.total_xp || 0;
+                        const colors = ['#F59E0B', '#9CA3AF', '#CD7F32', '#6366F1', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899'];
+                        return (
+                          <div className="t-bar-row" key={s.id}>
+                            <span className="t-bar-rank">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                            <span className="t-bar-label">{s.profiles?.display_name || 'Unknown'}</span>
+                            <div className="t-bar-track">
+                              <div className="t-bar-fill" style={{ width: `${(xpVal / maxXP) * 100}%`, background: colors[i % colors.length] }}></div>
+                            </div>
+                            <span className="t-bar-value">{xpVal} XP</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Streak Comparison */}
+                <div className="t-chart-card">
+                  <h3 className="t-chart-title">🔥 Streak Comparison</h3>
+                  <div className="t-bar-chart">
+                    {[...students]
+                      .sort((a, b) => (b.profiles?.current_streak || 0) - (a.profiles?.current_streak || 0))
+                      .map(s => {
+                        const maxStreak = Math.max(...students.map(st => st.profiles?.current_streak || 0), 1);
+                        const streak = s.profiles?.current_streak || 0;
+                        return (
+                          <div className="t-bar-row" key={s.id}>
+                            <span className="t-bar-label">{s.profiles?.display_name || 'Unknown'}</span>
+                            <div className="t-bar-track">
+                              <div className="t-bar-fill" style={{ width: `${(streak / maxStreak) * 100}%`, background: streak > 0 ? '#F59E0B' : '#4B5563' }}></div>
+                            </div>
+                            <span className="t-bar-value">{streak}d</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Assignment Completion Overview */}
+                {assignments.length > 0 && (
+                  <div className="t-chart-card">
+                    <h3 className="t-chart-title">📊 Assignment Completion</h3>
+                    <div className="t-bar-chart">
+                      {assignments.map(a => {
+                        const total = students.length || 1;
+                        const completed = a.progress?.filter(p => p.status === "completed").length || 0;
+                        const pct = Math.round((completed / total) * 100);
+                        const color = pct >= 80 ? '#10B981' : pct >= 50 ? '#F59E0B' : '#EF4444';
+                        return (
+                          <div className="t-bar-row" key={a.id}>
+                            <span className="t-bar-label" title={a.title}>{a.title.length > 20 ? a.title.slice(0, 20) + '…' : a.title}</span>
+                            <div className="t-bar-track">
+                              <div className="t-bar-fill" style={{ width: `${pct}%`, background: color }}></div>
+                            </div>
+                            <span className="t-bar-value">{completed}/{total}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Per-Student Assignment Progress */}
+                {assignments.length > 0 && (
+                  <div className="t-chart-card">
+                    <h3 className="t-chart-title">👥 Student Progress Summary</h3>
+                    <div className="t-student-grid">
+                      {students.map(s => {
+                        const studentProgress = assignments.flatMap(a =>
+                          (a.progress || []).filter(p => p.student_id === s.user_id)
+                        );
+                        const totalAssignments = assignments.length;
+                        const completedCount = studentProgress.filter(p => p.status === "completed").length;
+                        const avgAccuracy = studentProgress.length > 0
+                          ? Math.round(studentProgress.reduce((sum, p) => sum + (p.accuracy || 0), 0) / studentProgress.length)
+                          : 0;
+                        const totalReviews = studentProgress.reduce((sum, p) => sum + (p.total_reviews || 0), 0);
+
+                        return (
+                          <div key={s.id} className="t-student-stat-card">
+                            <div className="t-student-stat-header">
+                              <div className="t-student-stat-avatar">
+                                {s.profiles?.avatar_url
+                                  ? <img src={s.profiles.avatar_url} alt="" />
+                                  : <span>{(s.profiles?.display_name || '?')[0].toUpperCase()}</span>}
+                              </div>
+                              <div>
+                                <div className="t-student-stat-name">{s.profiles?.display_name || 'Unknown'}</div>
+                                <div className="t-student-stat-xp">⚡ {s.profiles?.total_xp || 0} XP · 🔥 {s.profiles?.current_streak || 0}d</div>
+                              </div>
+                            </div>
+                            <div className="t-student-stat-metrics">
+                              <div className="t-student-metric">
+                                <span className="t-student-metric-val">{completedCount}/{totalAssignments}</span>
+                                <span className="t-student-metric-label">Tasks Done</span>
+                              </div>
+                              <div className="t-student-metric">
+                                <span className="t-student-metric-val">{avgAccuracy}%</span>
+                                <span className="t-student-metric-label">Accuracy</span>
+                              </div>
+                              <div className="t-student-metric">
+                                <span className="t-student-metric-val">{totalReviews}</span>
+                                <span className="t-student-metric-label">Reviews</span>
+                              </div>
+                            </div>
+                            <div className="t-student-progress-bar">
+                              <div className="t-student-progress-fill" style={{ width: `${totalAssignments > 0 ? (completedCount / totalAssignments) * 100 : 0}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
