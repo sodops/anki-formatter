@@ -707,7 +707,7 @@ export default function TeacherDashboard() {
                         ) : (
                           <div className="t-deck-select-empty">
                             <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '14px' }}>
-                              No decks available. Go to <Link href="/app" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Study Cards</Link> to create or import decks first.
+                              No decks available. Go to <Link href="/app/study" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Study Cards</Link> to create or import decks first.
                             </p>
                           </div>
                         )}

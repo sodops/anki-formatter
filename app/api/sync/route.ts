@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { syncPostSchema } from "@/lib/validations";
 
@@ -35,14 +36,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Use admin client for database queries to bypass RLS
+    const admin = createAdminClient();
+
     const { searchParams } = new URL(request.url);
     const since = searchParams.get("since"); // ISO timestamp string or null
 
     // 1. Fetch Decks
-    let decksQuery = supabase.from("decks").select("*").eq("user_id", user.id);
+    let decksQuery = admin.from("decks").select("*").eq("user_id", user.id);
 
     // 2. Fetch Cards
-    let cardsQuery = supabase.from("cards").select("*").eq("user_id", user.id);
+    let cardsQuery = admin.from("cards").select("*").eq("user_id", user.id);
 
     // Incremental Sync Logic
     if (since) {
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
     // 3. Fetch Settings & Daily Progress
     // We always fetch these for now as they are single rows and small.
     // Optimization: We could also check updated_at for these if we wanted to be strict.
-    const { data: userData } = await supabase
+    const { data: userData } = await admin
       .from("user_data")
       .select("settings, daily_progress, updated_at")
       .eq("user_id", user.id)
@@ -192,6 +196,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Use admin client for database operations to bypass RLS
+    const admin = createAdminClient();
+
     const raw = await request.json();
     const parsed = syncPostSchema.safeParse(raw);
     if (!parsed.success) {
@@ -305,14 +312,14 @@ export async function POST(request: NextRequest) {
     const promises = [];
 
     if (deckUpserts.length > 0) {
-      promises.push(supabase.from("decks").upsert(deckUpserts));
+      promises.push(admin.from("decks").upsert(deckUpserts));
     }
     if (cardUpserts.length > 0) {
-      promises.push(supabase.from("cards").upsert(cardUpserts));
+      promises.push(admin.from("cards").upsert(cardUpserts));
     }
     if (deckDeletes.length > 0) {
       promises.push(
-        supabase
+        admin
           .from("decks")
           .update({ is_deleted: true, updated_at: new Date().toISOString() })
           .in("id", deckDeletes)
@@ -320,20 +327,20 @@ export async function POST(request: NextRequest) {
     }
     if (cardDeletes.length > 0) {
       promises.push(
-        supabase
+        admin
           .from("cards")
           .update({ is_deleted: true, updated_at: new Date().toISOString() })
           .in("id", cardDeletes)
       );
     }
     if (reviewLogInserts.length > 0) {
-      promises.push(supabase.from("review_logs").insert(reviewLogInserts));
+      promises.push(admin.from("review_logs").insert(reviewLogInserts));
     }
 
     // Update Legacy Settings/Daily Progress (keep in user_data)
     if (settings || daily_progress) {
       // 1. Fetch existing data first to perform a merge
-      const { data: existingData } = await supabase
+      const { data: existingData } = await admin
         .from("user_data")
         .select("settings, daily_progress")
         .eq("user_id", user.id)
@@ -390,7 +397,7 @@ export async function POST(request: NextRequest) {
         updateData.daily_progress = existingData.daily_progress;
       }
 
-      promises.push(supabase.from("user_data").upsert(updateData));
+      promises.push(admin.from("user_data").upsert(updateData));
     }
 
     // Wait for all operations to complete

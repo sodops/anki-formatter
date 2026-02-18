@@ -34,13 +34,13 @@ export async function GET(request: NextRequest) {
       .single();
     const role = profile?.role || "student";
 
-    // Query owned groups
+    // Query owned groups with member/assignment counts
     const { data: ownedGroups, error: ownedError } = await admin
       .from("groups")
       .select(`
         *,
-        group_members(count),
-        assignments(count)
+        group_members!inner(count),
+        assignments!left(count)
       `)
       .eq("owner_id", user.id)
       .eq("is_active", true)
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       console.error("[/api/groups] Owned groups error:", ownedError.message);
     }
 
-    // Query joined groups
+    // Query joined groups with member/assignment counts
     const { data: memberships, error: memberError } = await admin
       .from("group_members")
       .select(`
@@ -58,8 +58,8 @@ export async function GET(request: NextRequest) {
         joined_at,
         groups (
           id, name, description, color, join_code, owner_id, created_at, is_active,
-          group_members(count),
-          assignments(count)
+          group_members!inner(count),
+          assignments!left(count)
         )
       `)
       .eq("user_id", user.id);
