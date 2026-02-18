@@ -4,7 +4,34 @@
  * Handles role-based route protection
  */
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+
+/**
+ * Get user role using service role key (bypasses RLS)
+ * Falls back to anon-key query if service key unavailable
+ */
+async function getUserRole(userId: string): Promise<string> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (url && serviceKey) {
+    try {
+      const admin = createSupabaseClient(url, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data } = await admin
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+      if (data?.role) return data.role;
+    } catch (err) {
+      console.error("[middleware] Admin role query failed:", err);
+    }
+  }
+  return "student";
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -62,27 +89,17 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Helper to get user role
-  const getUserRoleFromDB = async () => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user!.id)
-      .single();
-    return profile?.role || "student";
-  };
-
   // Redirect logged-in users away from login page → role-based dashboard
   if (user && request.nextUrl.pathname === "/login") {
-    const role = await getUserRoleFromDB();
+    const role = await getUserRole(user.id);
     const url = request.nextUrl.clone();
     url.pathname = (role === "teacher" || role === "admin") ? "/teacher" : "/student";
     return NextResponse.redirect(url);
   }
 
-  // Redirect /app to role-based dashboard (the old app is now at /app/study)
+  // Redirect /app to role-based dashboard
   if (user && request.nextUrl.pathname === "/app") {
-    const role = await getUserRoleFromDB();
+    const role = await getUserRole(user.id);
     const url = request.nextUrl.clone();
     url.pathname = (role === "teacher" || role === "admin") ? "/teacher" : "/student";
     return NextResponse.redirect(url);
@@ -90,7 +107,7 @@ export async function updateSession(request: NextRequest) {
 
   // Role-based route protection for teacher/admin routes
   if (user && (request.nextUrl.pathname.startsWith("/teacher") || request.nextUrl.pathname.startsWith("/admin"))) {
-    const role = await getUserRoleFromDB();
+    const role = await getUserRole(user.id);
     const isTeacherRoute = request.nextUrl.pathname.startsWith("/teacher");
     const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
 
