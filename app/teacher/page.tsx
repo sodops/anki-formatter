@@ -203,11 +203,13 @@ export default function TeacherDashboard() {
   }
 
   if (role !== "teacher" && role !== "admin") {
+    if (typeof window !== "undefined") {
+      window.location.href = "/student";
+    }
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff', gap: 12 }}>
-        <h2 style={{ fontSize: 24 }}>Access Denied</h2>
-        <p style={{ color: '#94a3b8' }}>This page is only for teachers. Your role: {role}</p>
-        <a href="/student" style={{ padding: '10px 24px', background: '#6366F1', color: '#fff', borderRadius: 8, textDecoration: 'none', marginTop: 8 }}>Go to Student Hub</a>
+        <div className="t-spinner" />
+        <p style={{ color: '#94a3b8' }}>Redirecting to student dashboard...</p>
       </div>
     );
   }

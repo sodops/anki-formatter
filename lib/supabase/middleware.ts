@@ -105,6 +105,16 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Redirect teachers/admins away from /student to their proper dashboard
+  if (user && request.nextUrl.pathname.startsWith("/student")) {
+    const role = await getUserRole(user.id);
+    if (role === "teacher" || role === "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/teacher";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Role-based route protection for teacher/admin routes
   if (user && (request.nextUrl.pathname.startsWith("/teacher") || request.nextUrl.pathname.startsWith("/admin"))) {
     const role = await getUserRole(user.id);

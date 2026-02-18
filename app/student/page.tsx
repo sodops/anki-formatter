@@ -112,6 +112,13 @@ export default function StudentDashboard() {
     if (!loading && user) fetchData();
   }, [loading, user, fetchData]);
 
+  // Redirect teacher/admin to their dashboard
+  useEffect(() => {
+    if (!loading && user && (role === "teacher" || role === "admin")) {
+      router.replace("/teacher");
+    }
+  }, [loading, user, role, router]);
+
   const handleJoinGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
