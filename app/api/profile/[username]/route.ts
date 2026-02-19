@@ -87,6 +87,8 @@ export async function GET(
 
     // Check if viewer is logged in and connection status
     let connectionStatus: string | null = null;
+    let connectionDirection: string | null = null; // "sent" or "received"
+    let connectionId: string | null = null;
     let viewerId: string | null = null;
     try {
       const supabase = await createClient();
@@ -96,12 +98,14 @@ export async function GET(
         // Check connection status
         const { data: conn } = await admin
           .from("connections")
-          .select("id, status, requester_id")
+          .select("id, status, requester_id, target_id")
           .or(`and(requester_id.eq.${user.id},target_id.eq.${profile.id}),and(requester_id.eq.${profile.id},target_id.eq.${user.id})`)
           .limit(1)
           .single();
         if (conn) {
           connectionStatus = conn.status;
+          connectionId = conn.id;
+          connectionDirection = conn.requester_id === user.id ? "sent" : "received";
         }
       }
     } catch {
@@ -144,6 +148,8 @@ export async function GET(
       achievements,
       recent_xp: xpEvents || [],
       connection_status: connectionStatus,
+      connection_direction: connectionDirection,
+      connection_id: connectionId,
       is_own_profile: viewerId === profile.id,
     });
   } catch (error) {

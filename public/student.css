@@ -405,6 +405,15 @@
 .s-section {
   margin-bottom: 28px;
 }
+.s-card {
+  background: var(--bg-card, #1e1e2e);
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+.s-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
 .s-section-header {
   display: flex;
   align-items: center;

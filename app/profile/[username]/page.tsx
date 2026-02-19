@@ -47,6 +47,8 @@ export default function PublicProfilePage({ params }: { params: { username: stri
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [recentXP, setRecentXP] = useState<XPEvent[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+  const [connectionDirection, setConnectionDirection] = useState<string | null>(null);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -66,6 +68,8 @@ export default function PublicProfilePage({ params }: { params: { username: stri
       setAchievements(data.achievements || []);
       setRecentXP(data.recent_xp || []);
       setConnectionStatus(data.connection_status);
+      setConnectionDirection(data.connection_direction);
+      setConnectionId(data.connection_id);
       setIsOwnProfile(data.is_own_profile);
     } catch {
       setNotFound(true);
@@ -90,6 +94,31 @@ export default function PublicProfilePage({ params }: { params: { username: stri
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setConnectionStatus("pending");
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const handleAcceptReject = async (action: "accept" | "reject") => {
+    if (!connectionId) return;
+    setConnecting(true);
+    try {
+      const res = await fetch("/api/connections", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_id: connectionId, action }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      if (action === "accept") {
+        setConnectionStatus("accepted");
+        setConnectionDirection(null);
+      } else {
+        setConnectionStatus(null);
+        setConnectionDirection(null);
+        setConnectionId(null);
+      }
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -190,6 +219,17 @@ export default function PublicProfilePage({ params }: { params: { username: stri
                     <ion-icon name="checkmark-circle"></ion-icon>
                     {connecting ? "..." : "Connected"}
                   </button>
+                ) : connectionStatus === "pending" && connectionDirection === "received" ? (
+                  <>
+                    <button className="profile-btn profile-btn-connect" onClick={() => handleAcceptReject("accept")} disabled={connecting}>
+                      <ion-icon name="checkmark-outline"></ion-icon>
+                      {connecting ? "..." : "Accept"}
+                    </button>
+                    <button className="profile-btn profile-btn-reject" onClick={() => handleAcceptReject("reject")} disabled={connecting}>
+                      <ion-icon name="close-outline"></ion-icon>
+                      Decline
+                    </button>
+                  </>
                 ) : connectionStatus === "pending" ? (
                   <button className="profile-btn profile-btn-pending" disabled>
                     <ion-icon name="time-outline"></ion-icon>
