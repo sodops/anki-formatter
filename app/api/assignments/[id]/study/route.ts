@@ -123,13 +123,9 @@ export async function POST(
     const newTotalReviews = (existing.total_reviews || 0) + (total_reviews || 0);
     const newTimeSpent = (existing.time_spent_seconds || 0) + (time_spent_seconds || 0);
     
-    // Weighted average accuracy
-    const oldWeight = existing.total_reviews || 0;
-    const newWeight = total_reviews || 0;
-    const totalWeight = oldWeight + newWeight;
-    const newAccuracy = totalWeight > 0 
-      ? Math.round(((existing.accuracy || 0) * oldWeight + (accuracy || 0) * newWeight) / totalWeight)
-      : accuracy || 0;
+    // Use the latest session's accuracy directly
+    // Previous weighted average caused mismatch between client display and stored value
+    const newAccuracy = accuracy || existing.accuracy || 0;
 
     const updates: Record<string, unknown> = {
       cards_studied: newCardsStudied,

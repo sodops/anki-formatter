@@ -1374,6 +1374,16 @@
 .s-char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 2px; }
 .s-form-hint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
+/* Form layout */
+.s-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.s-form-group { display: flex; flex-direction: column; }
+.s-form-group label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.s-form-group input,
+.s-form-group textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 14px; color: var(--text); transition: border-color 0.2s; font-family: inherit; }
+.s-form-group input:focus,
+.s-form-group textarea:focus { outline: none; border-color: #3B82F6; }
+.s-form-group textarea { min-height: 80px; resize: vertical; }
+
 /* Achievements Grid */
 .s-achievements-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
 .s-achievement { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 8px; text-align: center; transition: transform 0.2s, box-shadow 0.2s; }
@@ -1392,6 +1402,7 @@
   .s-profile-header { flex-direction: column; text-align: center; }
   .s-profile-badges { justify-content: center; }
   .s-profile-avatar-lg { width: 64px; height: 64px; font-size: 28px; }
+  .s-form-row { grid-template-columns: 1fr; }
 }
 
 /* ===== LIGHT MODE ===== */

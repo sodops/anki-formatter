@@ -18,9 +18,10 @@ interface Assignment {
     status: string;
     cards_studied: number;
     cards_mastered: number;
+    cards_total: number;
     accuracy: number;
     total_reviews: number;
-    time_spent_minutes: number;
+    time_spent_seconds: number;
     xp_earned: number;
   };
   assignment_decks?: { deck_id: string; deck_name: string }[];
@@ -53,8 +54,9 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
+  data?: Record<string, unknown>;
 }
 
 export default function StudentDashboard() {
@@ -80,6 +82,8 @@ export default function StudentDashboard() {
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
+  const [editNickname, setEditNickname] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
 
   const handleCompleteAssignment = async (assignmentId: string, title: string) => {
@@ -97,7 +101,7 @@ export default function StudentDashboard() {
       setAssignments(prev =>
         prev.map(a =>
           a.id === assignmentId
-            ? { ...a, my_progress: { ...(a.my_progress || { cards_studied: 0, cards_mastered: 0, accuracy: 0, total_reviews: 0, time_spent_minutes: 0, xp_earned: 0 }), status: "completed", xp_earned: data.xp_awarded || 0 } }
+            ? { ...a, my_progress: { ...(a.my_progress || { cards_studied: 0, cards_mastered: 0, cards_total: 0, accuracy: 0, total_reviews: 0, time_spent_seconds: 0, xp_earned: 0 }), status: "completed", xp_earned: data.xp_awarded || 0 } }
             : a
         )
       );
@@ -204,13 +208,29 @@ export default function StudentDashboard() {
 
   const markAllRead = async () => {
     try {
-      await fetch("/api/notifications", {
+      const res = await fetch("/api/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mark_all: true }),
+        body: JSON.stringify({ all: true }),
       });
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      setUnreadCount(0);
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        setUnreadCount(0);
+      }
+    } catch {}
+  };
+
+  const markOneRead = async (id: string) => {
+    try {
+      const res = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id] }),
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
     } catch {}
   };
 
@@ -223,6 +243,8 @@ export default function StudentDashboard() {
         setEditName(data.profile.display_name || "");
         setEditBio(data.profile.bio || "");
         setEditAvatar(data.profile.avatar_url || "");
+        setEditNickname(data.profile.nickname || "");
+        setEditPhone(data.profile.phone || "");
       }
     } catch {}
   };
@@ -238,6 +260,8 @@ export default function StudentDashboard() {
           display_name: editName,
           bio: editBio,
           avatar_url: editAvatar,
+          nickname: editNickname,
+          phone: editPhone,
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed");
@@ -716,7 +740,7 @@ export default function StudentDashboard() {
                       const totalReviews = assignments.reduce((s, a) => s + (a.my_progress?.total_reviews || 0), 0);
                       const totalCards = assignments.reduce((s, a) => s + (a.my_progress?.cards_studied || 0), 0);
                       const totalMastered = assignments.reduce((s, a) => s + (a.my_progress?.cards_mastered || 0), 0);
-                      const totalMinutes = assignments.reduce((s, a) => s + (a.my_progress?.time_spent_minutes || 0), 0);
+                      const totalMinutes = Math.round(assignments.reduce((s, a) => s + (a.my_progress?.time_spent_seconds || 0), 0) / 60);
                       const avgAccuracy = assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length > 0
                         ? Math.round(assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).reduce((s, a) => s + (a.my_progress?.accuracy || 0), 0) / assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length)
                         : 0;
@@ -943,7 +967,7 @@ export default function StudentDashboard() {
                 ) : (
                   <div className="s-notif-list">
                     {notifications.map(n => (
-                      <div key={n.id} className={`s-notif-item ${!n.read ? 'unread' : ''}`}>
+                      <div key={n.id} className={`s-notif-item ${!n.is_read ? 'unread' : ''}`} onClick={() => !n.is_read && markOneRead(n.id)} style={{ cursor: !n.is_read ? 'pointer' : 'default' }}>
                         <div className="s-notif-icon">
                           {n.type === 'assignment_new' ? '📝' : n.type === 'assignment_graded' ? '⭐' : n.type === 'xp_earned' ? '⚡' : n.type === 'group_joined' ? '👥' : '🔔'}
                         </div>
@@ -952,7 +976,7 @@ export default function StudentDashboard() {
                           <div className="s-notif-msg">{n.message}</div>
                           <div className="s-notif-time">{new Date(n.created_at).toLocaleDateString()} · {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
-                        {!n.read && <div className="s-notif-dot"></div>}
+                        {!n.is_read && <div className="s-notif-dot"></div>}
                       </div>
                     ))}
                   </div>
@@ -989,19 +1013,36 @@ export default function StudentDashboard() {
                   </div>
 
                   <form onSubmit={saveProfile} className="s-profile-form">
-                    <div className="t-form-group">
-                      <label>Display Name</label>
-                      <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name" maxLength={100} required />
+                    <div className="s-form-row">
+                      <div className="s-form-group">
+                        <label>Display Name *</label>
+                        <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
+                      </div>
+                      <div className="s-form-group">
+                        <label>Nickname</label>
+                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value)} placeholder="@username" maxLength={50} />
+                      </div>
                     </div>
-                    <div className="t-form-group">
+                    <div className="s-form-group">
                       <label>Bio</label>
-                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell others about yourself..." rows={3} maxLength={500} />
-                      <span className="t-char-count">{editBio.length}/500</span>
+                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell others about yourself, your interests, what you're studying..." rows={3} maxLength={500} />
+                      <span className="s-char-count">{editBio.length}/500</span>
                     </div>
-                    <div className="t-form-group">
+                    <div className="s-form-row">
+                      <div className="s-form-group">
+                        <label>Phone</label>
+                        <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={20} />
+                      </div>
+                      <div className="s-form-group">
+                        <label>Email</label>
+                        <input type="email" value={profileData?.email || user?.email || ""} disabled style={{ opacity: 0.6 }} />
+                        <span className="s-form-hint">Email cannot be changed here</span>
+                      </div>
+                    </div>
+                    <div className="s-form-group">
                       <label>Avatar URL</label>
                       <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" />
-                      <span className="t-form-hint">Paste a link to your profile picture</span>
+                      <span className="s-form-hint">Paste a link to your profile picture</span>
                     </div>
                     <button type="submit" className="s-btn s-btn-primary" disabled={savingProfile}>
                       {savingProfile ? "Saving..." : "Save Profile"}
@@ -1265,11 +1306,9 @@ function AssignmentCard({ a, onComplete, completingId }: { a: Assignment; onComp
           </div>
         </div>
         <div className="s-assign-actions">
-          {!isCompleted && (
-            <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
-              <ion-icon name="play"></ion-icon> Study
-            </a>
-          )}
+          <a href={`/student/study/${a.id}`} className={`s-btn ${isCompleted ? 's-btn-outline' : 's-btn-primary'} s-btn-sm`}>
+            <ion-icon name={isCompleted ? 'eye-outline' : 'play'}></ion-icon> {isCompleted ? 'Review' : 'Study'}
+          </a>
           {isInProgress && !isCompleted && onComplete && (
             <button
               className="s-btn s-btn-success s-btn-sm"
@@ -1293,11 +1332,10 @@ function AssignmentCard({ a, onComplete, completingId }: { a: Assignment; onComp
             <span>{prog.accuracy ? Math.round(prog.accuracy) : 0}% accuracy</span>
           </div>
           <div className="s-progress-bar">
-            <div className="s-progress-fill" style={{ width: `${isCompleted ? 100 : pct}%`, background: isCompleted ? '#10B981' : undefined }}></div>
+            <div className="s-progress-fill" style={{ width: `${Math.round(prog.accuracy || 0)}%`, background: isCompleted ? (prog.accuracy >= 80 ? '#10B981' : prog.accuracy >= 60 ? '#F59E0B' : '#EF4444') : undefined }}></div>
           </div>
           <div className="s-progress-extra">
             <span>{prog.total_reviews} reviews</span>
-            {prog.time_spent_minutes > 0 && <span>{prog.time_spent_minutes}min spent</span>}
             {prog.xp_earned > 0 && <span>⚡ {prog.xp_earned} XP earned</span>}
           </div>
         </div>

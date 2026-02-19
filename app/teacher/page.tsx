@@ -84,6 +84,8 @@ export default function TeacherDashboard() {
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
+  const [editNickname, setEditNickname] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
 
   const switchTab = (tab: typeof activeTab) => {
@@ -218,6 +220,8 @@ export default function TeacherDashboard() {
         setEditName(data.profile.display_name || "");
         setEditBio(data.profile.bio || "");
         setEditAvatar(data.profile.avatar_url || "");
+        setEditNickname(data.profile.nickname || "");
+        setEditPhone(data.profile.phone || "");
       }
     } catch {}
   };
@@ -233,6 +237,8 @@ export default function TeacherDashboard() {
           display_name: editName,
           bio: editBio,
           avatar_url: editAvatar,
+          nickname: editNickname,
+          phone: editPhone,
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed");
@@ -979,14 +985,31 @@ export default function TeacherDashboard() {
                   </div>
 
                   <form onSubmit={saveProfile} className="t-profile-form">
-                    <div className="t-form-group">
-                      <label>Display Name</label>
-                      <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name" maxLength={100} required />
+                    <div className="t-form-row">
+                      <div className="t-form-group">
+                        <label>Display Name *</label>
+                        <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
+                      </div>
+                      <div className="t-form-group">
+                        <label>Nickname</label>
+                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value)} placeholder="@username" maxLength={50} />
+                      </div>
                     </div>
                     <div className="t-form-group">
                       <label>Bio</label>
-                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell your students about yourself..." rows={3} maxLength={500} />
+                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell your students about yourself, your teaching experience..." rows={3} maxLength={500} />
                       <span className="t-char-count">{editBio.length}/500</span>
+                    </div>
+                    <div className="t-form-row">
+                      <div className="t-form-group">
+                        <label>Phone</label>
+                        <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={20} />
+                      </div>
+                      <div className="t-form-group">
+                        <label>Email</label>
+                        <input type="email" value={profileData?.email || user?.email || ""} disabled style={{ opacity: 0.6 }} />
+                        <span className="t-form-hint">Email cannot be changed here</span>
+                      </div>
                     </div>
                     <div className="t-form-group">
                       <label>Avatar URL</label>

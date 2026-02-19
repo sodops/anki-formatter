@@ -319,8 +319,8 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                             <span className="teacher-pcs-label">Time</span>
                           </div>
                           <div className="teacher-pcs">
-                            <span className="teacher-pcs-val">{p.xp_earned > 0 ? `+${p.xp_earned}` : "—"}</span>
-                            <span className="teacher-pcs-label">XP</span>
+                            <span className="teacher-pcs-val">{p.xp_earned > 0 ? `${p.xp_earned}/${assignment.xp_reward}` : "—"}</span>
+                            <span className="teacher-pcs-label">XP Earned</span>
                           </div>
                         </div>
                         {p.last_studied_at && (
@@ -338,7 +338,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                                 <span className="teacher-sd-val">{p.profiles?.display_name || "Unknown"}</span>
                               </div>
                               <div className="teacher-sd-item">
-                                <span className="teacher-sd-label">Total XP</span>
+                                <span className="teacher-sd-label">Student Total XP</span>
                                 <span className="teacher-sd-val">⚡ {p.profiles?.total_xp || 0}</span>
                               </div>
                               <div className="teacher-sd-item">
@@ -385,7 +385,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                               )}
                               <div className="teacher-sd-item">
                                 <span className="teacher-sd-label">XP Earned</span>
-                                <span className="teacher-sd-val">{p.xp_earned > 0 ? `+${p.xp_earned} XP` : "—"}</span>
+                                <span className="teacher-sd-val">{p.xp_earned > 0 ? `${p.xp_earned} / ${assignment.xp_reward} XP` : `— / ${assignment.xp_reward} XP`}</span>
                               </div>
                             </div>
                           </div>

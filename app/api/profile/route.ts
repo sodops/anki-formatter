@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
         display_name: profile?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0],
         avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url,
         bio: profile?.bio || "",
+        nickname: profile?.nickname || "",
+        phone: profile?.phone || "",
         role: profile?.role || "student",
         total_xp: profile?.total_xp || 0,
         current_streak: profile?.current_streak || 0,
@@ -84,6 +86,14 @@ export async function PATCH(request: NextRequest) {
 
     if (body.bio !== undefined) {
       updates.bio = String(body.bio).trim().slice(0, 500);
+    }
+
+    if (body.nickname !== undefined) {
+      updates.nickname = String(body.nickname).trim().slice(0, 50);
+    }
+
+    if (body.phone !== undefined) {
+      updates.phone = String(body.phone).trim().slice(0, 20);
     }
 
     if (body.avatar_url !== undefined) {

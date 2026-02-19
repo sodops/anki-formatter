@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     display_name TEXT,
     avatar_url TEXT,
     bio TEXT DEFAULT '',
+    nickname TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

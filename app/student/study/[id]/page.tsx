@@ -130,22 +130,27 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
 
   // Submit results
   const finishSession = async (lastRating?: "again" | "hard" | "good" | "easy") => {
-    setPhase("summary");
-
     // Include the last card's rating that hasn't been applied to state yet
     const finalResults = lastRating
       ? { ...results, [lastRating]: results[lastRating] + 1 }
       : results;
 
+    // Also track if last card was mastered
+    const lastCardId = lastRating && sessionCards[currentIndex] ? sessionCards[currentIndex].id : null;
+    const finalMastered = new Set(masteredCards);
+    if (lastRating && (lastRating === "good" || lastRating === "easy") && lastCardId) {
+      finalMastered.add(lastCardId);
+    }
+
+    // Update results state BEFORE switching to summary so summary uses correct values
+    setResults(finalResults);
+    setMasteredCards(finalMastered);
+    setPhase("summary");
+
     const totalReviews = finalResults.again + finalResults.hard + finalResults.good + finalResults.easy;
     const goodEasy = finalResults.good + finalResults.easy;
     const accuracy = totalReviews > 0 ? Math.round((goodEasy / totalReviews) * 100) : 0;
     const timeSpent = Math.round((Date.now() - startTime) / 1000);
-
-    // Update results state to include last rating for display
-    if (lastRating) {
-      setResults(finalResults);
-    }
 
     setSubmitting(true);
     try {
@@ -154,7 +159,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cards_studied: new Set(sessionCards.map(c => c.id)).size,
-          cards_mastered: masteredCards.size,
+          cards_mastered: finalMastered.size,
           accuracy,
           total_reviews: totalReviews,
           time_spent_seconds: timeSpent,

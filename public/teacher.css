@@ -1633,6 +1633,9 @@ body:has(.teacher-container) {
 .t-char-count { font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 2px; }
 .t-form-hint { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
 
+/* Form row layout */
+.t-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
 /* ===== MOBILE: Stats & Profile ===== */
 @media (max-width: 768px) {
   .t-stats-table-header { grid-template-columns: 1.5fr repeat(3, 1fr); font-size: 11px; }
@@ -1644,6 +1647,7 @@ body:has(.teacher-container) {
   .t-profile-header { flex-direction: column; text-align: center; }
   .t-profile-avatar-lg { width: 64px; height: 64px; font-size: 28px; }
   .t-lb-xp { font-size: 15px; }
+  .t-form-row { grid-template-columns: 1fr; }
 }
 
 /* ===== LIGHT MODE ===== */
