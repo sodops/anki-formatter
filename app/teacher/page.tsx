@@ -220,7 +220,7 @@ export default function TeacherDashboard() {
         setEditName(data.profile.display_name || "");
         setEditBio(data.profile.bio || "");
         setEditAvatar(data.profile.avatar_url || "");
-        setEditNickname(data.profile.nickname || "");
+        setEditNickname(data.profile.username || data.profile.nickname || "");
         setEditPhone(data.profile.phone || "");
       }
     } catch {}
@@ -237,6 +237,7 @@ export default function TeacherDashboard() {
           display_name: editName,
           bio: editBio,
           avatar_url: editAvatar,
+          username: editNickname,
           nickname: editNickname,
           phone: editPhone,
         }),
@@ -498,7 +499,7 @@ export default function TeacherDashboard() {
                     </div>
                     <div className="t-card-grid">
                       {groups.slice(0, 4).map(g => (
-                        <Link href={`/teacher/groups/${g.id}`} key={g.id} className="t-group-card" style={{ borderTopColor: g.color }}>
+                        <Link href={`/groups/${g.id}`} key={g.id} className="t-group-card" style={{ borderTopColor: g.color }}>
                           <div className="t-group-card-header">
                             <div className="t-group-dot" style={{ background: g.color }}></div>
                             <h3>{g.name}</h3>
@@ -614,7 +615,7 @@ export default function TeacherDashboard() {
                           <ion-icon name="copy-outline"></ion-icon>
                         </div>
                         <div className="t-group-actions">
-                          <Link href={`/teacher/groups/${g.id}`} className="t-btn t-btn-sm t-btn-outline">
+                          <Link href={`/groups/${g.id}`} className="t-btn t-btn-sm t-btn-outline">
                             <ion-icon name="eye-outline"></ion-icon> Details
                           </Link>
                           <button className="t-btn t-btn-sm t-btn-danger" onClick={() => handleDeleteGroup(g.id)}>
@@ -991,8 +992,9 @@ export default function TeacherDashboard() {
                         <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
                       </div>
                       <div className="t-form-group">
-                        <label>Nickname</label>
-                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value)} placeholder="@username" maxLength={50} />
+                        <label>Username</label>
+                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ''))} placeholder="username" maxLength={50} />
+                        <span className="t-form-hint">{editNickname ? `anki.sodops.uz/profile/${editNickname}` : 'Set a username for your public profile URL'}</span>
                       </div>
                     </div>
                     <div className="t-form-group">

@@ -1135,6 +1135,56 @@ body:has(.teacher-container) {
 [data-theme="dark"] .teacher-container { --bg-primary: #0f172a; --card-bg: #1e293b; --border: #334155; --text-primary: #f1f5f9; }
 [data-theme="dark"] .teacher-sidebar { background: #0c0c1d; }
 
+/* Chart cards compatibility with teacher-container */
+.teacher-container .t-chart-card {
+  background: var(--card-bg, #fff);
+  border-color: var(--border, #e5e7eb);
+}
+.teacher-container .t-bar-track {
+  background: var(--bg-primary, #f3f4f6);
+}
+.teacher-container .t-bar-label,
+.teacher-container .t-chart-title {
+  color: var(--text-primary, #1e293b);
+}
+.teacher-container .t-bar-value {
+  color: var(--text-primary, #1e293b);
+}
+.teacher-container .t-student-stat-card {
+  background: var(--bg-primary, #f9fafb);
+  border-color: var(--border, #e5e7eb);
+}
+.teacher-container .t-student-stat-name {
+  color: var(--text-primary, #1e293b);
+}
+.teacher-container .t-student-metric-val {
+  color: var(--text-primary, #1e293b);
+}
+.teacher-container .t-student-progress-bar {
+  background: var(--border, #e5e7eb);
+}
+[data-theme="dark"] .teacher-container .t-chart-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+[data-theme="dark"] .teacher-container .t-bar-track {
+  background: #0f172a;
+}
+[data-theme="dark"] .teacher-container .t-bar-label,
+[data-theme="dark"] .teacher-container .t-chart-title,
+[data-theme="dark"] .teacher-container .t-bar-value,
+[data-theme="dark"] .teacher-container .t-student-stat-name,
+[data-theme="dark"] .teacher-container .t-student-metric-val {
+  color: #f1f5f9;
+}
+[data-theme="dark"] .teacher-container .t-student-stat-card {
+  background: #0f172a;
+  border-color: #334155;
+}
+[data-theme="dark"] .teacher-container .t-student-progress-bar {
+  background: #334155;
+}
+
 /* Mobile back button for sub-pages */
 .teacher-mobile-back {
   display: none;

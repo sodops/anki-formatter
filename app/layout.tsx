@@ -83,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="/teacher.css" />
         <link rel="stylesheet" href="/student.css" />
         <link rel="stylesheet" href="/study.css" />
+        <link rel="stylesheet" href="/profile.css" />
         {/* Inline theme detection — must run before paint to prevent FOUC */}
         <script
           dangerouslySetInnerHTML={{

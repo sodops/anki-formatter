@@ -15,10 +15,37 @@ CREATE TABLE IF NOT EXISTS profiles (
     avatar_url TEXT,
     bio TEXT DEFAULT '',
     nickname TEXT DEFAULT '',
+    username TEXT DEFAULT '',
     phone TEXT DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Username unique index (for public profile URLs)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username) WHERE username IS NOT NULL AND username != '';
+
+-- ============================================
+-- CONNECTIONS (Friend/Follow System)
+-- ============================================
+CREATE TABLE IF NOT EXISTS connections (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    requester_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    target_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT unique_connection UNIQUE (requester_id, target_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_connections_requester ON connections(requester_id);
+CREATE INDEX IF NOT EXISTS idx_connections_target ON connections(target_id);
+CREATE INDEX IF NOT EXISTS idx_connections_status ON connections(status);
+
+-- RLS for connections
+ALTER TABLE connections ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own connections" ON connections FOR SELECT USING (auth.uid() = requester_id OR auth.uid() = target_id);
+CREATE POLICY "Users can insert connections" ON connections FOR INSERT WITH CHECK (auth.uid() = requester_id);
+CREATE POLICY "Users can update connections they received" ON connections FOR UPDATE USING (auth.uid() = target_id);
+CREATE POLICY "Users can delete own connections" ON connections FOR DELETE USING (auth.uid() = requester_id OR auth.uid() = target_id);
 
 -- ============================================
 -- 2. DECKS (Flashcard Decks)

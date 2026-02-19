@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
         display_name: profile?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0],
         avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url,
         bio: profile?.bio || "",
-        nickname: profile?.nickname || "",
+        username: profile?.username || profile?.nickname || "",
+        nickname: profile?.username || profile?.nickname || "",
         phone: profile?.phone || "",
         role: profile?.role || "student",
         total_xp: profile?.total_xp || 0,
@@ -88,8 +89,22 @@ export async function PATCH(request: NextRequest) {
       updates.bio = String(body.bio).trim().slice(0, 500);
     }
 
-    if (body.nickname !== undefined) {
-      updates.nickname = String(body.nickname).trim().slice(0, 50);
+    if (body.nickname !== undefined || body.username !== undefined) {
+      const usernameVal = String(body.username ?? body.nickname).trim().slice(0, 50).toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+      if (usernameVal) {
+        // Check uniqueness
+        const { data: existing } = await admin
+          .from("profiles")
+          .select("id")
+          .or(`username.eq.${usernameVal},nickname.eq.${usernameVal}`)
+          .neq("id", user.id)
+          .limit(1);
+        if (existing && existing.length > 0) {
+          return NextResponse.json({ error: "This username is already taken" }, { status: 400 });
+        }
+      }
+      updates.username = usernameVal || null;
+      updates.nickname = usernameVal || null;
     }
 
     if (body.phone !== undefined) {

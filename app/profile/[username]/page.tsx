@@ -1,0 +1,303 @@
+"use client";
+
+import { useAuth } from "@/components/AuthProvider";
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+
+interface PublicProfile {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  bio: string;
+  username: string;
+  role: string;
+  total_xp: number;
+  current_streak: number;
+  longest_streak: number;
+  last_activity_date: string | null;
+  created_at: string;
+  completed_assignments: number;
+  connections_count: number;
+}
+
+interface GroupInfo {
+  id: string;
+  name: string;
+  color: string;
+  role: string;
+}
+
+interface Achievement {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+interface XPEvent {
+  event_type: string;
+  xp_amount: number;
+  created_at: string;
+}
+
+export default function PublicProfilePage({ params }: { params: { username: string } }) {
+  const username = params.username;
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [groups, setGroups] = useState<GroupInfo[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [recentXP, setRecentXP] = useState<XPEvent[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/profile/${encodeURIComponent(username)}`);
+      if (res.status === 404) {
+        setNotFound(true);
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
+      setProfile(data.profile);
+      setGroups(data.groups || []);
+      setAchievements(data.achievements || []);
+      setRecentXP(data.recent_xp || []);
+      setConnectionStatus(data.connection_status);
+      setIsOwnProfile(data.is_own_profile);
+    } catch {
+      setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [username]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const handleConnect = async () => {
+    if (!user || !profile) return;
+    setConnecting(true);
+    try {
+      const res = await fetch("/api/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_id: profile.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setConnectionStatus("pending");
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!user || !profile) return;
+    if (!confirm("Remove this connection?")) return;
+    setConnecting(true);
+    try {
+      // Need to find the connection ID first
+      const listRes = await fetch("/api/connections");
+      if (!listRes.ok) throw new Error("Failed");
+      const listData = await listRes.json();
+      const conn = [...(listData.connections || []), ...(listData.sent_requests || [])].find(
+        (c: any) => c.user?.id === profile.id
+      );
+      if (conn) {
+        await fetch(`/api/connections?id=${conn.connection_id}`, { method: "DELETE" });
+      }
+      setConnectionStatus(null);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const level = profile ? Math.floor(profile.total_xp / 100) + 1 : 1;
+
+  if (loading) {
+    return (
+      <div className="teacher-loading">
+        <div className="teacher-spinner"></div>
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (notFound || !profile) {
+    return (
+      <div className="teacher-loading">
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>👤</div>
+        <h2 style={{ color: 'var(--text-primary, #1e293b)', margin: '0 0 8px' }}>Profile Not Found</h2>
+        <p style={{ color: '#64748b', margin: '0 0 20px' }}>This user doesn&apos;t exist or hasn&apos;t set up their profile yet.</p>
+        <Link href="/" className="teacher-btn teacher-btn-primary">
+          <ion-icon name="home-outline"></ion-icon> Go Home
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="profile-page">
+      {/* Header / Navigation */}
+      <header className="profile-topbar">
+        <Link href={user ? (isOwnProfile ? '/student' : '/') : '/'} className="profile-back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Back</span>
+        </Link>
+        <span className="profile-topbar-brand">
+          <span>⚡</span> AnkiFlow
+        </span>
+      </header>
+
+      <main className="profile-main">
+        {/* Profile Hero */}
+        <div className="profile-hero">
+          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#10B981' : '#6366F1'}, ${profile.role === 'teacher' ? '#3B82F6' : '#8B5CF6'})` }}></div>
+          <div className="profile-hero-content">
+            <div className="profile-avatar-container">
+              <div className="profile-avatar-xl">
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.display_name} />
+                ) : (
+                  <span>{(profile.display_name || "?")[0].toUpperCase()}</span>
+                )}
+              </div>
+              <div className="profile-level-badge">Lv.{level}</div>
+            </div>
+            
+            <div className="profile-hero-info">
+              <h1>{profile.display_name}</h1>
+              {profile.username && <span className="profile-username">@{profile.username}</span>}
+              <span className="profile-role-tag" style={{ background: profile.role === 'teacher' ? '#10B98120' : '#6366F120', color: profile.role === 'teacher' ? '#10B981' : '#6366F1' }}>
+                {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+              </span>
+              {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+            </div>
+
+            {/* Connection Button */}
+            {user && !isOwnProfile && (
+              <div className="profile-action-buttons">
+                {connectionStatus === "accepted" ? (
+                  <button className="profile-btn profile-btn-connected" onClick={handleDisconnect} disabled={connecting}>
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                    {connecting ? "..." : "Connected"}
+                  </button>
+                ) : connectionStatus === "pending" ? (
+                  <button className="profile-btn profile-btn-pending" disabled>
+                    <ion-icon name="time-outline"></ion-icon>
+                    Request Sent
+                  </button>
+                ) : (
+                  <button className="profile-btn profile-btn-connect" onClick={handleConnect} disabled={connecting}>
+                    <ion-icon name="person-add-outline"></ion-icon>
+                    {connecting ? "Sending..." : "Connect"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {isOwnProfile && (
+              <div className="profile-action-buttons">
+                <Link href={profile.role === 'teacher' ? '/teacher' : '/student'} className="profile-btn profile-btn-edit">
+                  <ion-icon name="create-outline"></ion-icon>
+                  Edit Profile
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="profile-stats-row">
+          <div className="profile-stat">
+            <div className="profile-stat-value">{profile.total_xp}</div>
+            <div className="profile-stat-label">Total XP</div>
+          </div>
+          <div className="profile-stat">
+            <div className="profile-stat-value">{profile.current_streak}</div>
+            <div className="profile-stat-label">Day Streak</div>
+          </div>
+          <div className="profile-stat">
+            <div className="profile-stat-value">{profile.longest_streak}</div>
+            <div className="profile-stat-label">Best Streak</div>
+          </div>
+          <div className="profile-stat">
+            <div className="profile-stat-value">{profile.completed_assignments}</div>
+            <div className="profile-stat-label">Tasks Done</div>
+          </div>
+          <div className="profile-stat">
+            <div className="profile-stat-value">{profile.connections_count}</div>
+            <div className="profile-stat-label">Connections</div>
+          </div>
+        </div>
+
+        {/* Achievements */}
+        {achievements.length > 0 && (
+          <div className="profile-section">
+            <h2 className="profile-section-title">
+              <ion-icon name="ribbon-outline"></ion-icon> Achievements
+            </h2>
+            <div className="profile-achievements">
+              {achievements.map(a => (
+                <div key={a.id} className="profile-ach-item">
+                  <span className="profile-ach-icon">{a.icon}</span>
+                  <span className="profile-ach-name">{a.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Groups */}
+        {groups.length > 0 && (
+          <div className="profile-section">
+            <h2 className="profile-section-title">
+              <ion-icon name="people-outline"></ion-icon> Groups
+            </h2>
+            <div className="profile-groups-list">
+              {groups.map(g => (
+                <Link key={g.id} href={`/groups/${g.id}`} className="profile-group-chip-lg">
+                  <span className="profile-group-dot" style={{ background: g.color }}></span>
+                  <span className="profile-group-name">{g.name}</span>
+                  <span className="profile-group-role">{g.role}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Activity */}
+        {recentXP.length > 0 && (
+          <div className="profile-section">
+            <h2 className="profile-section-title">
+              <ion-icon name="time-outline"></ion-icon> Recent Activity
+            </h2>
+            <div className="profile-activity">
+              {recentXP.map((ev, i) => (
+                <div key={i} className="profile-activity-item">
+                  <span className="profile-activity-type">{ev.event_type.replace(/_/g, ' ')}</span>
+                  <span className="profile-activity-xp">+{ev.xp_amount} XP</span>
+                  <span className="profile-activity-date">{new Date(ev.created_at).toLocaleDateString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Member Since */}
+        <div className="profile-footer-info">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+        </div>
+      </main>
+    </div>
+  );
+}

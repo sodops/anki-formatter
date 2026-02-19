@@ -25,6 +25,8 @@ interface Member {
     avatar_url: string | null;
     total_xp: number;
     current_streak: number;
+    username?: string;
+    nickname?: string;
   };
 }
 
@@ -54,13 +56,16 @@ interface Assignment {
 
 export default function GroupDetailPage({ params }: { params: { id: string } }) {
   const groupId = params.id;
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, role } = useAuth();
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"members" | "assignments" | "statistics">("members");
+
+  const isTeacher = role === "teacher" || role === "admin";
+  const backPath = isTeacher ? "/teacher" : "/student";
 
   const fetchGroup = useCallback(async () => {
     try {
@@ -98,6 +103,12 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
     }
   };
 
+  const getMemberProfileUrl = (m: Member) => {
+    const username = m.profiles?.username || m.profiles?.nickname;
+    if (username) return `/profile/${username}`;
+    return `/profile/${m.user_id}`;
+  };
+
   if (authLoading || loading) {
     return (
       <div className="teacher-loading">
@@ -111,7 +122,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
     return (
       <div className="teacher-loading">
         <h2>Group not found</h2>
-        <Link href="/teacher" style={{ color: "#6366F1" }}>← Back to Dashboard</Link>
+        <Link href={backPath} style={{ color: "#6366F1" }}>← Back to Dashboard</Link>
       </div>
     );
   }
@@ -123,7 +134,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
     <div className="teacher-container">
       {/* Mobile Back Header */}
       <div className="teacher-mobile-back">
-        <Link href="/teacher">
+        <Link href={backPath}>
           <ion-icon name="arrow-back-outline"></ion-icon>
           Back to Dashboard
         </Link>
@@ -131,13 +142,13 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
 
       <aside className="teacher-sidebar">
         <div className="teacher-sidebar-header">
-          <Link href="/teacher" className="teacher-logo">
+          <Link href={backPath} className="teacher-logo">
             <span className="teacher-logo-icon">⚡</span>
             <span>AnkiFlow</span>
           </Link>
         </div>
         <nav className="teacher-nav">
-          <Link href="/teacher" className="teacher-nav-item">
+          <Link href={backPath} className="teacher-nav-item">
             <ion-icon name="arrow-back-outline"></ion-icon>
             <span>Back to Dashboard</span>
           </Link>
@@ -166,13 +177,15 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
             <h1>{group.name}</h1>
             {group.description && <p>{group.description}</p>}
           </div>
-          <div className="teacher-join-code-large">
-            <span>Join Code:</span>
-            <code>{group.join_code}</code>
-            <button className="teacher-btn teacher-btn-outline teacher-btn-sm" onClick={copyJoinCode}>
-              <ion-icon name="copy-outline"></ion-icon> Copy
-            </button>
-          </div>
+          {isOwner && (
+            <div className="teacher-join-code-large">
+              <span>Join Code:</span>
+              <code>{group.join_code}</code>
+              <button className="teacher-btn teacher-btn-outline teacher-btn-sm" onClick={copyJoinCode}>
+                <ion-icon name="copy-outline"></ion-icon> Copy
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Quick Stats */}
@@ -213,7 +226,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                 <h3 className="teacher-subsection-title">Teachers</h3>
                 <div className="teacher-member-list">
                   {teachers.map(m => (
-                    <Link key={m.id} href={`/profile/${m.user_id}`} className="teacher-member-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Link key={m.id} href={getMemberProfileUrl(m)} className="teacher-member-card" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
                       <div className="teacher-member-avatar">
                         {m.profiles?.avatar_url
                           ? <img src={m.profiles.avatar_url} alt="" />
@@ -223,6 +236,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                         <span className="teacher-member-name">{m.profiles?.display_name || "Unknown"}</span>
                         <span className="teacher-member-role">Teacher</span>
                       </div>
+                      <ion-icon name="chevron-forward-outline" style={{ color: '#94a3b8', fontSize: '16px' }}></ion-icon>
                     </Link>
                   ))}
                 </div>
@@ -232,13 +246,13 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
             <h3 className="teacher-subsection-title">Students ({students.length})</h3>
             {students.length === 0 ? (
               <div className="teacher-empty-inline">
-                <p>No students yet. Share the join code <code>{group.join_code}</code> with your students.</p>
+                <p>No students yet. {isOwner ? <>Share the join code <code>{group.join_code}</code> with your students.</> : 'Waiting for students to join.'}</p>
               </div>
             ) : (
               <div className="teacher-member-list">
                 {students.map(m => (
-                  <div key={m.id} className="teacher-member-card">
-                    <Link href={`/profile/${m.user_id}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, textDecoration: 'none', color: 'inherit' }}>
+                  <div key={m.id} className="teacher-member-card" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Link href={getMemberProfileUrl(m)} style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, textDecoration: 'none', color: 'inherit' }}>
                       <div className="teacher-member-avatar">
                         {m.profiles?.avatar_url
                           ? <img src={m.profiles.avatar_url} alt="" />
@@ -253,7 +267,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                       </div>
                     </Link>
                     {isOwner && m.user_id !== user?.id && (
-                      <button className="teacher-btn-icon teacher-btn-danger" onClick={() => removeMember(m.user_id)} title="Remove">
+                      <button className="teacher-btn-icon teacher-btn-danger" onClick={(e) => { e.preventDefault(); removeMember(m.user_id); }} title="Remove">
                         <ion-icon name="close-outline"></ion-icon>
                       </button>
                     )}
@@ -269,9 +283,11 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
           <div className="teacher-section">
             <div className="teacher-section-header">
               <h2>Assignments ({assignments.length})</h2>
-              <Link href={`/teacher?tab=create&group=${groupId}`} className="teacher-btn teacher-btn-primary teacher-btn-sm">
-                <ion-icon name="add-outline"></ion-icon> New Assignment
-              </Link>
+              {isOwner && (
+                <Link href={`/teacher?tab=create&group=${groupId}`} className="teacher-btn teacher-btn-primary teacher-btn-sm">
+                  <ion-icon name="add-outline"></ion-icon> New Assignment
+                </Link>
+              )}
             </div>
 
             {assignments.length === 0 ? (
@@ -287,6 +303,9 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                   ? Math.round(assignment.progress.reduce((sum, p) => sum + (p.accuracy || 0), 0) / totalStudents)
                   : 0;
 
+                // Find current user's progress
+                const myProgress = assignment.progress?.find(p => p.student_id === user?.id);
+
                 return (
                   <div key={assignment.id} className="teacher-assignment-detail">
                     <div className="teacher-assignment-header">
@@ -299,7 +318,15 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                           </span>
                         )}
                       </div>
-                      <span className="teacher-xp-badge">+{assignment.xp_reward} XP</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="teacher-xp-badge">+{assignment.xp_reward} XP</span>
+                        {!isTeacher && (
+                          <a href={`/student/study/${assignment.id}`} className="teacher-btn teacher-btn-primary teacher-btn-sm">
+                            <ion-icon name={myProgress?.status === 'completed' ? 'eye-outline' : 'play-outline'}></ion-icon>
+                            {myProgress?.status === 'completed' ? 'Review' : 'Study'}
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     <div className="teacher-assignment-decks" style={{ marginBottom: "12px" }}>
@@ -310,8 +337,26 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                       ))}
                     </div>
 
-                    {/* Student Progress Table */}
-                    {assignment.progress?.length > 0 && (
+                    {/* My Progress (for students) */}
+                    {!isTeacher && myProgress && (
+                      <div style={{ background: 'var(--bg-card, #f9fafb)', borderRadius: '10px', padding: '12px 16px', marginBottom: '12px', border: '1px solid var(--border, #e5e7eb)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#64748b', marginBottom: '6px' }}>
+                          <span>Your Progress</span>
+                          <span className={`teacher-status-badge status-${myProgress.status}`}>{myProgress.status.replace("_", " ")}</span>
+                        </div>
+                        <div className="teacher-mini-progress" style={{ width: '100%', height: '8px', marginBottom: '8px' }}>
+                          <div style={{ width: `${myProgress.cards_total > 0 ? Math.round((myProgress.cards_studied / myProgress.cards_total) * 100) : 0}%`, height: '100%', background: myProgress.status === 'completed' ? '#10B981' : 'linear-gradient(90deg, #6366F1, #a78bfa)', borderRadius: '4px' }}></div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#64748b' }}>
+                          <span>{myProgress.cards_studied}/{myProgress.cards_total} cards</span>
+                          {myProgress.accuracy > 0 && <span>{Math.round(myProgress.accuracy)}% accuracy</span>}
+                          <span>{myProgress.total_reviews} reviews</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Student Progress Table (for teachers/owners) */}
+                    {isOwner && assignment.progress?.length > 0 && (
                       <table className="teacher-progress-table">
                         <thead>
                           <tr>
@@ -354,7 +399,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                     )}
 
                     <div className="teacher-assignment-summary">
-                      <span>Completed: {completed}/{totalStudents}</span>
+                      <span>Completed: {completed}/{totalStudents || students.length}</span>
                       <span>In Progress: {inProgress}</span>
                       {avgAccuracy > 0 && <span>Avg Accuracy: {avgAccuracy}%</span>}
                     </div>
@@ -389,7 +434,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                         return (
                           <div className="t-bar-row" key={s.id}>
                             <span className="t-bar-rank">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
-                            <span className="t-bar-label">{s.profiles?.display_name || 'Unknown'}</span>
+                            <Link href={getMemberProfileUrl(s)} className="t-bar-label" style={{ textDecoration: 'none', color: 'inherit' }}>{s.profiles?.display_name || 'Unknown'}</Link>
                             <div className="t-bar-track">
                               <div className="t-bar-fill" style={{ width: `${(xpVal / maxXP) * 100}%`, background: colors[i % colors.length] }}></div>
                             </div>
@@ -429,8 +474,8 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                     <div className="t-bar-chart">
                       {assignments.map(a => {
                         const total = students.length || 1;
-                        const completed = a.progress?.filter(p => p.status === "completed").length || 0;
-                        const pct = Math.round((completed / total) * 100);
+                        const completedCount = a.progress?.filter(p => p.status === "completed").length || 0;
+                        const pct = Math.round((completedCount / total) * 100);
                         const color = pct >= 80 ? '#10B981' : pct >= 50 ? '#F59E0B' : '#EF4444';
                         return (
                           <div className="t-bar-row" key={a.id}>
@@ -438,7 +483,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                             <div className="t-bar-track">
                               <div className="t-bar-fill" style={{ width: `${pct}%`, background: color }}></div>
                             </div>
-                            <span className="t-bar-value">{completed}/{total}</span>
+                            <span className="t-bar-value">{completedCount}/{total}</span>
                           </div>
                         );
                       })}
@@ -463,7 +508,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                         const totalReviews = studentProgress.reduce((sum, p) => sum + (p.total_reviews || 0), 0);
 
                         return (
-                          <div key={s.id} className="t-student-stat-card">
+                          <Link key={s.id} href={getMemberProfileUrl(s)} className="t-student-stat-card" style={{ textDecoration: 'none', color: 'inherit', transition: 'transform 0.2s, box-shadow 0.2s' }}>
                             <div className="t-student-stat-header">
                               <div className="t-student-stat-avatar">
                                 {s.profiles?.avatar_url
@@ -472,7 +517,10 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                               </div>
                               <div>
                                 <div className="t-student-stat-name">{s.profiles?.display_name || 'Unknown'}</div>
-                                <div className="t-student-stat-xp"><ion-icon name="flash-outline" style={{ fontSize: '12px' }}></ion-icon> {s.profiles?.total_xp || 0} XP · <ion-icon name="flame-outline" style={{ fontSize: '12px' }}></ion-icon> {s.profiles?.current_streak || 0}d</div>
+                                <div className="t-student-stat-xp">
+                                  <ion-icon name="flash-outline" style={{ fontSize: '12px' }}></ion-icon> {s.profiles?.total_xp || 0} XP · 
+                                  <ion-icon name="flame-outline" style={{ fontSize: '12px' }}></ion-icon> {s.profiles?.current_streak || 0}d
+                                </div>
                               </div>
                             </div>
                             <div className="t-student-stat-metrics">
@@ -492,7 +540,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                             <div className="t-student-progress-bar">
                               <div className="t-student-progress-fill" style={{ width: `${totalAssignments > 0 ? (completedCount / totalAssignments) * 100 : 0}%` }}></div>
                             </div>
-                          </div>
+                          </Link>
                         );
                       })}
                     </div>

@@ -71,7 +71,7 @@ export async function GET(
     if (memberUserIds.length > 0) {
       const { data: profiles } = await admin
         .from("profiles")
-        .select("id, display_name, avatar_url, total_xp, current_streak")
+        .select("id, display_name, avatar_url, total_xp, current_streak, username, nickname")
         .in("id", memberUserIds);
 
       if (profiles) {
@@ -105,7 +105,7 @@ export async function GET(
 
     // If teacher, get student progress summary for each assignment
     let progressMap: Record<string, unknown[]> = {};
-    if (isOwner && assignments?.length) {
+    if (assignments?.length) {
       const assignmentIds = assignments.map(a => a.id);
       const { data: progress } = await admin
         .from("student_progress")

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 
 interface Assignment {
@@ -243,7 +244,7 @@ export default function StudentDashboard() {
         setEditName(data.profile.display_name || "");
         setEditBio(data.profile.bio || "");
         setEditAvatar(data.profile.avatar_url || "");
-        setEditNickname(data.profile.nickname || "");
+        setEditNickname(data.profile.username || data.profile.nickname || "");
         setEditPhone(data.profile.phone || "");
       }
     } catch {}
@@ -260,6 +261,7 @@ export default function StudentDashboard() {
           display_name: editName,
           bio: editBio,
           avatar_url: editAvatar,
+          username: editNickname,
           nickname: editNickname,
           phone: editPhone,
         }),
@@ -653,7 +655,7 @@ export default function StudentDashboard() {
                 {groups.length > 0 && (
                   <div className="s-card-grid">
                     {groups.map(g => (
-                      <div key={g.id} className="s-group-card" style={{ borderTopColor: g.color }}>
+                      <Link key={g.id} href={`/groups/${g.id}`} className="s-group-card" style={{ borderTopColor: g.color, textDecoration: 'none', color: 'inherit' }}>
                         <div className="s-group-header">
                           <div className="s-group-dot" style={{ background: g.color }}></div>
                           <h3>{g.name}</h3>
@@ -668,14 +670,14 @@ export default function StudentDashboard() {
                           {!g.is_owner && (
                             <button
                               className="s-btn s-btn-danger s-btn-sm"
-                              onClick={() => handleLeaveGroup(g.id, g.name)}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLeaveGroup(g.id, g.name); }}
                               title="Leave this group"
                             >
                               <ion-icon name="exit-outline"></ion-icon> Leave
                             </button>
                           )}
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -1019,8 +1021,9 @@ export default function StudentDashboard() {
                         <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
                       </div>
                       <div className="s-form-group">
-                        <label>Nickname</label>
-                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value)} placeholder="@username" maxLength={50} />
+                        <label>Username</label>
+                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ''))} placeholder="username" maxLength={50} />
+                        <span className="s-form-hint">{editNickname ? `anki.sodops.uz/profile/${editNickname}` : 'Set a username for your public profile URL'}</span>
                       </div>
                     </div>
                     <div className="s-form-group">
