@@ -1294,3 +1294,40 @@
 [data-theme="light"] .s-group-stat-row {
   background: #f9fafb;
 }
+
+/* ========= Complete Assignment Button ========= */
+.s-assign-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.s-btn-success {
+  background: #10B981 !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600;
+}
+.s-btn-success:hover {
+  background: #059669 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+.s-btn-success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.s-btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

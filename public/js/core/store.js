@@ -12,7 +12,7 @@ const DEFAULT_STATE = {
     searchQuery: '',
     activeView: 'library',
     showTrash: false,
-    theme: 'dark',
+    theme: 'auto',
     trash: [],
     history: []
 };

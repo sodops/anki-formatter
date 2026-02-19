@@ -21,9 +21,23 @@ export function initThemeManager() {
     // Load saved theme from settings (primary) or store (fallback)
     const key = store.getScopedKey('ankiflow_settings');
     const settings = JSON.parse(localStorage.getItem(key) || '{}');
-    const savedTheme = settings.theme || store.getState().theme;
     
-    currentTheme = savedTheme || THEMES.AUTO;
+    // Check global theme keys first (set by layout.tsx inline script / theme.js)
+    const globalExplicit = localStorage.getItem('ankiflow-theme-explicit');
+    const globalTheme = localStorage.getItem('ankiflow-theme');
+    
+    // Priority: scoped settings > global explicit choice > store default (auto)
+    let savedTheme;
+    if (settings.theme) {
+        savedTheme = settings.theme;
+    } else if (globalExplicit === 'true' && globalTheme) {
+        savedTheme = globalTheme;
+    } else {
+        // No explicit user choice — use auto (system detection)
+        savedTheme = THEMES.AUTO;
+    }
+    
+    currentTheme = savedTheme;
     
     // Apply theme
     applyTheme(currentTheme);

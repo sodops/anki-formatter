@@ -43,6 +43,9 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
   const [error, setError] = useState("");
   const [startTime] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const [xpAwarded, setXpAwarded] = useState(0);
   const flipRef = useRef<HTMLDivElement>(null);
 
   // Fetch assignment data
@@ -152,6 +155,26 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
       // silently fail, results tracked locally
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Complete assignment (student manually marks as done)
+  const completeAssignment = async () => {
+    if (completing || completed) return;
+    setCompleting(true);
+    try {
+      const res = await fetch(`/api/assignments/${assignmentId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to complete");
+      setCompleted(true);
+      setXpAwarded(data.xp_awarded || 0);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setCompleting(false);
     }
   };
 
@@ -422,11 +445,35 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
             {/* XP earned */}
             {accuracy >= 70 && (
               <div className="as-xp-earned">
-                ⚡ +{assignment?.xp_reward || 0} XP earned!
+                ⚡ +{assignment?.xp_reward || 0} XP reward available!
               </div>
             )}
 
             {submitting && <p className="as-saving">Saving results...</p>}
+
+            {/* Complete Assignment Button */}
+            {!completed ? (
+              <div className="as-complete-section">
+                <p className="as-complete-hint">Ready to finish? Mark this assignment as complete to earn your XP!</p>
+                <button
+                  className="as-btn as-btn-complete"
+                  onClick={completeAssignment}
+                  disabled={completing}
+                >
+                  {completing ? (
+                    <><span className="as-btn-spinner"></span> Completing...</>
+                  ) : (
+                    <><ion-icon name="checkmark-done-outline"></ion-icon> Complete Assignment</>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="as-complete-success">
+                <div className="as-complete-check">✅</div>
+                <h3>Assignment Completed!</h3>
+                <p className="as-xp-awarded">⚡ +{xpAwarded} XP earned!</p>
+              </div>
+            )}
 
             <div className="as-summary-actions">
               <button className="as-btn as-btn-primary" onClick={startSession}>

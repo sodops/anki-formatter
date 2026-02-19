@@ -596,6 +596,97 @@
   width: 100%;
 }
 
+/* ===== Complete Assignment Section ===== */
+.as-complete-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02));
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 12px;
+  text-align: center;
+}
+.as-complete-hint {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.as-btn-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+}
+.as-btn-complete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(16,185,129,0.4);
+}
+.as-btn-complete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+.as-btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: as-spin 0.6s linear infinite;
+}
+@keyframes as-spin {
+  to { transform: rotate(360deg); }
+}
+.as-complete-success {
+  margin: 20px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04));
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 12px;
+  text-align: center;
+  animation: as-fadeIn 0.5s ease;
+}
+@keyframes as-fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.as-complete-check {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+.as-complete-success h3 {
+  font-size: 18px;
+  color: #10B981;
+  margin-bottom: 4px;
+}
+.as-xp-awarded {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #F59E0B, #EAB308);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Light theme for complete section */
+[data-theme="light"] .as-complete-section {
+  background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02));
+}
+[data-theme="light"] .as-complete-hint { color: #6b7280; }
+[data-theme="light"] .as-complete-success {
+  background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02));
+}
+
 /* ===== LIGHT THEME ===== */
 [data-theme="light"] .as-container,
 [data-theme="light"] .as-loading {

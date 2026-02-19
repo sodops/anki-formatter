@@ -73,6 +73,42 @@ export default function StudentDashboard() {
   const [joinSuccess, setJoinSuccess] = useState("");
   const [joiningGroup, setJoiningGroup] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [completingId, setCompletingId] = useState<string | null>(null);
+
+  const handleCompleteAssignment = async (assignmentId: string, title: string) => {
+    if (!confirm(`Mark "${title}" as completed? You'll earn XP for this!`)) return;
+    setCompletingId(assignmentId);
+    try {
+      const res = await fetch(`/api/assignments/${assignmentId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to complete");
+      
+      // Update local state
+      setAssignments(prev =>
+        prev.map(a =>
+          a.id === assignmentId
+            ? { ...a, my_progress: { ...(a.my_progress || { cards_studied: 0, cards_mastered: 0, accuracy: 0, total_reviews: 0, time_spent_minutes: 0, xp_earned: 0 }), status: "completed", xp_earned: data.xp_awarded || 0 } }
+            : a
+        )
+      );
+
+      // Refresh XP data
+      const xRes = await fetch("/api/xp").catch(() => null);
+      if (xRes?.ok) {
+        const d = await xRes.json();
+        setXP(d);
+      }
+
+      alert(`🎉 Assignment completed! +${data.xp_awarded || 0} XP earned!`);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setCompletingId(null);
+    }
+  };
 
   const switchTab = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -417,9 +453,20 @@ export default function StudentDashboard() {
                                   <span className="s-xp-tag">⚡ {a.xp_reward} XP</span>
                                 </div>
                               </div>
-                              <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
-                                <ion-icon name="play"></ion-icon> Study
-                              </a>
+                              <div className="s-assign-actions">
+                                <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
+                                  <ion-icon name="play"></ion-icon> Study
+                                </a>
+                                {prog?.status === 'in_progress' && (
+                                  <button
+                                    className="s-btn s-btn-success s-btn-sm"
+                                    onClick={() => handleCompleteAssignment(a.id, a.title)}
+                                    disabled={completingId === a.id}
+                                  >
+                                    {completingId === a.id ? '...' : <><ion-icon name="checkmark-done"></ion-icon> Complete</>}
+                                  </button>
+                                )}
+                              </div>
                             </div>
                             {prog && (
                               <div className="s-assign-progress">
@@ -474,7 +521,7 @@ export default function StudentDashboard() {
                       <div className="s-section">
                         <h2 className="s-section-title" style={{ color: '#f87171' }}>⚠️ Overdue ({overdueAssignments.length})</h2>
                         <div className="s-assign-list">
-                          {overdueAssignments.map(a => <AssignmentCard key={a.id} a={a} />)}
+                          {overdueAssignments.map(a => <AssignmentCard key={a.id} a={a} onComplete={handleCompleteAssignment} completingId={completingId} />)}
                         </div>
                       </div>
                     )}
@@ -482,7 +529,7 @@ export default function StudentDashboard() {
                       <div className="s-section">
                         <h2 className="s-section-title">📝 To Do ({activeAssignments.filter(a => !overdueAssignments.includes(a)).length})</h2>
                         <div className="s-assign-list">
-                          {activeAssignments.filter(a => !overdueAssignments.includes(a)).map(a => <AssignmentCard key={a.id} a={a} />)}
+                          {activeAssignments.filter(a => !overdueAssignments.includes(a)).map(a => <AssignmentCard key={a.id} a={a} onComplete={handleCompleteAssignment} completingId={completingId} />)}
                         </div>
                       </div>
                     )}
@@ -970,11 +1017,13 @@ export default function StudentDashboard() {
   );
 }
 
-function AssignmentCard({ a }: { a: Assignment }) {
+function AssignmentCard({ a, onComplete, completingId }: { a: Assignment; onComplete?: (id: string, title: string) => void; completingId?: string | null }) {
   const prog = a.my_progress;
   const pct = prog ? Math.min(100, Math.round(((prog.cards_mastered || 0) / Math.max(prog.cards_studied || 1, 1)) * 100)) : 0;
   const isOverdue = a.deadline && new Date(a.deadline) < new Date();
   const isCompleted = prog?.status === "completed";
+  const isInProgress = prog?.status === "in_progress";
+  const isCompleting = completingId === a.id;
 
   return (
     <div className={`s-assign-card ${isOverdue && !isCompleted ? 'overdue' : ''} ${isCompleted ? 'completed' : ''}`}>
@@ -994,11 +1043,27 @@ function AssignmentCard({ a }: { a: Assignment }) {
             <span className={`s-status ${prog?.status || 'not_started'}`}>{isCompleted ? '✅ Done' : prog?.status === 'in_progress' ? '🔄 In Progress' : '⬜ Not Started'}</span>
           </div>
         </div>
-        {!isCompleted && (
-          <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
-            <ion-icon name="play"></ion-icon> Study
-          </a>
-        )}
+        <div className="s-assign-actions">
+          {!isCompleted && (
+            <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
+              <ion-icon name="play"></ion-icon> Study
+            </a>
+          )}
+          {isInProgress && !isCompleted && onComplete && (
+            <button
+              className="s-btn s-btn-success s-btn-sm"
+              onClick={() => onComplete(a.id, a.title)}
+              disabled={isCompleting}
+              title="Mark this assignment as completed"
+            >
+              {isCompleting ? (
+                <><span className="s-btn-spinner"></span> Completing...</>
+              ) : (
+                <><ion-icon name="checkmark-done"></ion-icon> Complete</>
+              )}
+            </button>
+          )}
+        </div>
       </div>
       {prog && (prog.cards_studied > 0 || isCompleted) && (
         <div className="s-assign-progress">
