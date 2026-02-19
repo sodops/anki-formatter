@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/teacher/stats — Get comprehensive teacher statistics
  * Returns: group analytics, student engagement, top students, completion rates

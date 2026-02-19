@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
+
+export default function StudentPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}><div className="s-spinner" /></div>}>
+      <StudentDashboard />
+    </Suspense>
+  );
+}
 
 interface Assignment {
   id: string;
@@ -60,7 +68,7 @@ interface Notification {
   data?: Record<string, unknown>;
 }
 
-export default function StudentDashboard() {
+function StudentDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
+
+export default function TeacherPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}><div className="t-spinner" /></div>}>
+      <TeacherDashboard />
+    </Suspense>
+  );
+}
 
 interface Group {
   id: string;
@@ -48,7 +56,7 @@ const COLORS = [
   "#F59E0B", "#10B981", "#06B6D4", "#3B82F6",
 ];
 
-export default function TeacherDashboard() {
+function TeacherDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
