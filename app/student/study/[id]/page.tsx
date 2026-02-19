@@ -175,6 +175,9 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
       } else if (e.code === "Digit4" && isFlipped) {
         e.preventDefault();
         rateCard("easy");
+      } else if (e.code === "Escape") {
+        e.preventDefault();
+        finishSession();
       }
     };
 
@@ -279,7 +282,12 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
             <ion-icon name="close-outline"></ion-icon>
           </Link>
           <div className="as-study-title">{assignment?.title}</div>
-          <div className="as-study-counter">{currentIndex + 1} / {sessionCards.length}</div>
+          <div className="as-study-header-right">
+            <div className="as-study-counter">{currentIndex + 1} / {sessionCards.length}</div>
+            <button className="as-btn as-btn-finish" onClick={finishSession} title="Finish session (Esc)">
+              <ion-icon name="flag-outline"></ion-icon> Finish
+            </button>
+          </div>
         </div>
 
         {/* Progress bar */}

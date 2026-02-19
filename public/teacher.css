@@ -1192,6 +1192,11 @@ body:has(.teacher-container) {
   .teacher-subsection-title { font-size: 13px; }
   .teacher-member-card { padding: 10px 12px; }
   .teacher-section-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .teacher-assignment-hero { flex-direction: column; }
+  .teacher-assignment-actions { width: 100%; }
+  .teacher-assignment-actions .teacher-btn { flex: 1; justify-content: center; }
+  .teacher-student-detail-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .teacher-inactive-banner { font-size: 13px; padding: 10px 12px; }
 }
 
 /* ===== STUDENT PROGRESS CARDS (mobile-friendly) ===== */
@@ -1300,6 +1305,92 @@ body:has(.teacher-container) {
 }
 [data-theme="dark"] .teacher-progress-card-bar .teacher-mini-bar {
   background: #334155;
+}
+
+/* Assignment action buttons */
+.teacher-assignment-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.teacher-assignment-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.teacher-btn-danger {
+  background: #EF4444 !important;
+  color: #fff !important;
+  border: none !important;
+}
+.teacher-btn-danger:hover {
+  background: #DC2626 !important;
+}
+.teacher-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Inactive assignment banner */
+.teacher-inactive-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #F59E0B;
+  font-weight: 500;
+}
+.teacher-inactive-banner ion-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Expandable student detail */
+.teacher-progress-card.card-expanded {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+.teacher-student-detail {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+.teacher-student-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.teacher-sd-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.teacher-sd-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.teacher-sd-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+[data-theme="dark"] .teacher-student-detail {
+  border-color: #334155;
+}
+[data-theme="dark"] .teacher-sd-val {
+  color: #f1f5f9;
+}
+[data-theme="dark"] .teacher-sd-label {
+  color: #94a3b8;
 }
 
 @media (max-width: 480px) {

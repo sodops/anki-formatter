@@ -76,15 +76,19 @@ export async function DELETE(
     // Notify the group owner
     if (!isOwner || !isSelf) {
       const memberName = memberProfile?.display_name || "A member";
-      await admin.from("notifications").insert({
-        user_id: group.owner_id,
-        type: "group_invite",
-        title: isSelf ? "Member left" : "Member removed",
-        message: isSelf
-          ? `${memberName} left ${group.name}`
-          : `${memberName} was removed from ${group.name}`,
-        data: { group_id: groupId, user_id: targetUserId },
-      }).catch(() => {});
+      try {
+        await admin.from("notifications").insert({
+          user_id: group.owner_id,
+          type: "group_invite",
+          title: isSelf ? "Member left" : "Member removed",
+          message: isSelf
+            ? `${memberName} left ${group.name}`
+            : `${memberName} was removed from ${group.name}`,
+          data: { group_id: groupId, user_id: targetUserId },
+        });
+      } catch {
+        // notification is non-critical
+      }
     }
 
     return NextResponse.json({ success: true });

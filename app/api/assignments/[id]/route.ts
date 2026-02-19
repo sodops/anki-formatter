@@ -37,19 +37,43 @@ export async function GET(
     const isTeacher = assignment.teacher_id === user.id;
 
     if (isTeacher) {
-      // Teacher: get all student progress with profiles
+      // Teacher: get all student progress
       const { data: progress } = await admin
         .from("student_progress")
-        .select(`
-          *,
-          profiles:student_id (display_name, avatar_url, total_xp, current_streak)
-        `)
+        .select("*")
         .eq("assignment_id", id)
         .order("updated_at", { ascending: false });
 
+      // Fetch profiles separately for reliability (profiles:student_id join can fail)
+      const studentIds = (progress || []).map(p => p.student_id);
+      let profilesMap: Record<string, any> = {};
+      if (studentIds.length > 0) {
+        const { data: profiles } = await admin
+          .from("profiles")
+          .select("id, display_name, avatar_url, total_xp, current_streak")
+          .in("id", studentIds);
+
+        if (profiles) {
+          for (const p of profiles) {
+            profilesMap[p.id] = p;
+          }
+        }
+      }
+
+      // Merge progress with profiles
+      const progressWithProfiles = (progress || []).map(p => ({
+        ...p,
+        profiles: profilesMap[p.student_id] || {
+          display_name: "Unknown",
+          avatar_url: null,
+          total_xp: 0,
+          current_streak: 0,
+        },
+      }));
+
       return NextResponse.json({
         assignment,
-        progress: progress || [],
+        progress: progressWithProfiles,
         isTeacher: true,
       });
     } else {

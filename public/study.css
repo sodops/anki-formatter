@@ -231,6 +231,32 @@
   min-width: 50px;
   text-align: right;
 }
+.as-study-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.as-btn-finish {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.as-btn-finish:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #EF4444;
+}
+.as-btn-finish ion-icon {
+  font-size: 16px;
+}
 
 /* Progress bar */
 .as-progress-bar {
@@ -630,4 +656,7 @@
   .as-ready-card h1 { font-size: 20px; }
   .as-ready-stat-val { font-size: 28px; }
   .as-summary-card { padding: 24px 16px; }
+  .as-btn-finish { padding: 5px 10px; font-size: 12px; }
+  .as-btn-finish span { display: none; }
+  .as-study-title { font-size: 13px; }
 }

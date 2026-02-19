@@ -11,6 +11,7 @@ interface AssignmentDetail {
   deadline: string | null;
   xp_reward: number;
   group_id: string;
+  is_active: boolean;
   created_at: string;
   groups: { id: string; name: string; color: string; owner_id: string };
   assignment_decks: { id: string; deck_name: string; card_count: number }[];
@@ -44,6 +45,8 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
   const [progress, setProgress] = useState<StudentProgressDetail[]>([]);
   const [isTeacher, setIsTeacher] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -63,6 +66,37 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
   useEffect(() => {
     if (!authLoading) fetchData();
   }, [authLoading, fetchData]);
+
+  const handleFinishAssignment = async () => {
+    if (!confirm("Finish this assignment? It will be marked as inactive and students won't be able to study it anymore.")) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/assignments/${assignmentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: false }),
+      });
+      if (!res.ok) throw new Error("Failed to finish assignment");
+      fetchData();
+    } catch {
+      alert("Failed to finish assignment");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteAssignment = async () => {
+    if (!confirm("Delete this assignment permanently? All student progress will be lost. This cannot be undone.")) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/assignments/${assignmentId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      window.location.href = "/teacher";
+    } catch {
+      alert("Failed to delete assignment");
+      setActionLoading(false);
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -149,7 +183,35 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
             </div>
             {assignment.description && <p className="teacher-assignment-desc" style={{ marginTop: "8px" }}>{assignment.description}</p>}
           </div>
+          {isTeacher && (
+            <div className="teacher-assignment-actions">
+              <button
+                className="teacher-btn teacher-btn-outline teacher-btn-sm"
+                onClick={handleFinishAssignment}
+                disabled={actionLoading || !assignment.is_active}
+                title={assignment.is_active ? "Mark as finished" : "Already finished"}
+              >
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+                {assignment.is_active ? "Finish" : "Finished"}
+              </button>
+              <button
+                className="teacher-btn teacher-btn-danger teacher-btn-sm"
+                onClick={handleDeleteAssignment}
+                disabled={actionLoading}
+              >
+                <ion-icon name="trash-outline"></ion-icon> Delete
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Inactive Banner */}
+        {!assignment.is_active && (
+          <div className="teacher-inactive-banner">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+            This assignment has been finished. Students can no longer study it.
+          </div>
+        )}
 
         {/* Decks */}
         <div className="teacher-assignment-decks" style={{ marginBottom: "20px" }}>
@@ -206,8 +268,14 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                   })
                   .map(p => {
                     const progressPct = p.cards_total > 0 ? Math.round((p.cards_studied / p.cards_total) * 100) : 0;
+                    const isExpanded = selectedStudent === p.student_id;
                     return (
-                      <div key={p.student_id} className={`teacher-progress-card ${p.status === "completed" ? "card-completed" : ""}`}>
+                      <div
+                        key={p.student_id}
+                        className={`teacher-progress-card ${p.status === "completed" ? "card-completed" : ""} ${isExpanded ? "card-expanded" : ""}`}
+                        onClick={() => setSelectedStudent(isExpanded ? null : p.student_id)}
+                        style={{ cursor: "pointer" }}
+                      >
                         <div className="teacher-progress-card-header">
                           <div className="teacher-member-inline">
                             <div className="teacher-member-avatar-sm">
@@ -258,6 +326,68 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                         {p.last_studied_at && (
                           <div className="teacher-progress-card-footer">
                             Last active: {new Date(p.last_studied_at).toLocaleDateString()}
+                          </div>
+                        )}
+
+                        {/* Expanded student detail */}
+                        {isExpanded && (
+                          <div className="teacher-student-detail">
+                            <div className="teacher-student-detail-grid">
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Student</span>
+                                <span className="teacher-sd-val">{p.profiles?.display_name || "Unknown"}</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Total XP</span>
+                                <span className="teacher-sd-val">⚡ {p.profiles?.total_xp || 0}</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Current Streak</span>
+                                <span className="teacher-sd-val">🔥 {p.profiles?.current_streak || 0} days</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Cards Studied</span>
+                                <span className="teacher-sd-val">{p.cards_studied} / {p.cards_total}</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Cards Mastered</span>
+                                <span className="teacher-sd-val">{p.cards_mastered} / {p.cards_total}</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Accuracy</span>
+                                <span className={`teacher-sd-val ${p.accuracy >= 80 ? "text-green" : p.accuracy >= 50 ? "text-yellow" : p.accuracy > 0 ? "text-red" : ""}`}>
+                                  {p.accuracy ? `${Math.round(p.accuracy)}%` : "Not started"}
+                                </span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Total Reviews</span>
+                                <span className="teacher-sd-val">{p.total_reviews}</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Time Spent</span>
+                                <span className="teacher-sd-val">{p.time_spent_seconds ? formatTime(p.time_spent_seconds) : "—"}</span>
+                              </div>
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">Status</span>
+                                <span className={`teacher-status-badge status-${p.status}`}>{p.status.replace("_", " ")}</span>
+                              </div>
+                              {p.started_at && (
+                                <div className="teacher-sd-item">
+                                  <span className="teacher-sd-label">Started</span>
+                                  <span className="teacher-sd-val">{new Date(p.started_at).toLocaleDateString()} {new Date(p.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                </div>
+                              )}
+                              {p.completed_at && (
+                                <div className="teacher-sd-item">
+                                  <span className="teacher-sd-label">Completed</span>
+                                  <span className="teacher-sd-val">{new Date(p.completed_at).toLocaleDateString()} {new Date(p.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                </div>
+                              )}
+                              <div className="teacher-sd-item">
+                                <span className="teacher-sd-label">XP Earned</span>
+                                <span className="teacher-sd-val">{p.xp_earned > 0 ? `+${p.xp_earned} XP` : "—"}</span>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
