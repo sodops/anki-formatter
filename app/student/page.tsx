@@ -401,7 +401,7 @@ export default function StudentDashboard() {
                                   <span className="s-xp-tag">⚡ {a.xp_reward} XP</span>
                                 </div>
                               </div>
-                              <a href="/app/study" className="s-btn s-btn-primary s-btn-sm">
+                              <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
                                 <ion-icon name="play"></ion-icon> Study
                               </a>
                             </div>
@@ -968,7 +968,7 @@ function AssignmentCard({ a }: { a: Assignment }) {
           </div>
         </div>
         {!isCompleted && (
-          <a href="/app/study" className="s-btn s-btn-primary s-btn-sm">
+          <a href={`/student/study/${a.id}`} className="s-btn s-btn-primary s-btn-sm">
             <ion-icon name="play"></ion-icon> Study
           </a>
         )}
