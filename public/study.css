@@ -751,3 +751,11 @@
   .as-btn-finish span { display: none; }
   .as-study-title { font-size: 13px; }
 }
+
+/* ===== XP Formula ===== */
+.as-xp-formula { background: var(--card-bg, #1e1e2e); border: 1px solid var(--border, #333); border-radius: 12px; padding: 16px; margin-top: 12px; }
+.as-xp-formula h4 { font-size: 14px; font-weight: 600; color: var(--text-secondary, #aaa); margin: 0 0 10px; }
+.as-xp-formula p { font-size: 13px; color: var(--text-secondary, #aaa); margin: 4px 0; display: flex; justify-content: space-between; }
+.as-xp-formula p strong { color: var(--text, #fff); }
+.as-xp-formula hr { border: none; border-top: 1px solid var(--border, #333); margin: 8px 0; }
+.as-xp-formula .xp-total { font-size: 18px; font-weight: 700; color: #F59E0B; }

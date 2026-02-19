@@ -146,12 +146,8 @@ export async function POST(
       updates.started_at = new Date().toISOString();
     }
 
-    // Check if completed (all cards mastered or high accuracy after reviewing all)
-    const cardsTotal = existing.cards_total || 0;
-    if (newCardsMastered >= cardsTotal && cardsTotal > 0) {
-      updates.status = "completed";
-      updates.completed_at = new Date().toISOString();
-    }
+    // Don't auto-complete — let student manually complete via /complete endpoint
+    // This gives them control over when they're ready
 
     const { data: updated, error: updateError } = await admin
       .from("student_progress")
@@ -163,58 +159,48 @@ export async function POST(
 
     if (updateError) throw updateError;
 
-    // If just completed, award XP
-    if (updates.status === "completed" && existing.status !== "completed") {
-      const { data: assignment } = await admin
-        .from("assignments")
-        .select("xp_reward, title, teacher_id")
-        .eq("id", assignmentId)
+    // Award +5 XP for study session (review bonus)
+    let sessionXP = 0;
+    try {
+      const reviewXP = 5;
+      sessionXP = reviewXP;
+      
+      await admin.from("xp_events").insert({
+        user_id: user.id,
+        event_type: "review",
+        xp_amount: reviewXP,
+        source_id: assignmentId,
+        metadata: { 
+          reviews: total_reviews || 0, 
+          accuracy: newAccuracy,
+          cards_studied: newCardsStudied,
+        },
+      });
+
+      // Update profile XP
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("total_xp, last_activity_date")
+        .eq("id", user.id)
         .single();
 
-      if (assignment) {
-        // Award XP
-        await admin.from("xp_events").insert({
-          user_id: user.id,
-          event_type: "assignment_complete",
-          xp_amount: assignment.xp_reward || 10,
-          source_id: assignmentId,
-          metadata: { title: assignment.title, accuracy: newAccuracy },
-        });
-
-        // Update profile XP
-        const { data: profile } = await admin
+      if (profile) {
+        const today = new Date().toISOString().split("T")[0];
+        await admin
           .from("profiles")
-          .select("total_xp")
-          .eq("id", user.id)
-          .single();
-
-        if (profile) {
-          await admin
-            .from("profiles")
-            .update({ total_xp: (profile.total_xp || 0) + (assignment.xp_reward || 10) })
-            .eq("id", user.id);
-        }
-
-        // Notify teacher
-        const { data: studentProfile } = await admin
-          .from("profiles")
-          .select("display_name")
-          .eq("id", user.id)
-          .single();
-
-        await admin.from("notifications").insert({
-          user_id: assignment.teacher_id,
-          type: "assignment_graded",
-          title: "Assignment Completed",
-          message: `${studentProfile?.display_name || "A student"} completed "${assignment.title}" with ${newAccuracy}% accuracy`,
-          data: { assignment_id: assignmentId, student_id: user.id },
-        });
+          .update({ 
+            total_xp: (profile.total_xp || 0) + reviewXP,
+            last_activity_date: today,
+          })
+          .eq("id", user.id);
       }
+    } catch {
+      // XP award failure is non-critical
     }
 
     return NextResponse.json({ 
       progress: updated,
-      completed: updates.status === "completed",
+      session_xp: sessionXP,
     });
   } catch (error) {
     console.error("POST /api/assignments/[id]/study error:", error);

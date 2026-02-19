@@ -61,7 +61,7 @@ export default function StudentDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "statistics" | "notifications" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "statistics" | "notifications" | "profile" | "settings">("dashboard");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [xp, setXP] = useState<XPData>({ total_xp: 0, today_xp: 0, level: 1, xp_to_next: 100, current_streak: 0, longest_streak: 0, recent_events: [] });
@@ -74,6 +74,13 @@ export default function StudentDashboard() {
   const [joiningGroup, setJoiningGroup] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [completingId, setCompletingId] = useState<string | null>(null);
+
+  // Profile state
+  const [profileData, setProfileData] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [editAvatar, setEditAvatar] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const handleCompleteAssignment = async (assignmentId: string, title: string) => {
     if (!confirm(`Mark "${title}" as completed? You'll earn XP for this!`)) return;
@@ -207,6 +214,46 @@ export default function StudentDashboard() {
     } catch {}
   };
 
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setProfileData(data.profile);
+        setEditName(data.profile.display_name || "");
+        setEditBio(data.profile.bio || "");
+        setEditAvatar(data.profile.avatar_url || "");
+      }
+    } catch {}
+  };
+
+  const saveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: editName,
+          bio: editBio,
+          avatar_url: editAvatar,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed");
+      alert("Profile updated!");
+      fetchProfile();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "profile" && !profileData) fetchProfile();
+  }, [activeTab]);
+
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f0f14', color: '#fff' }}>
@@ -315,6 +362,10 @@ export default function StudentDashboard() {
             <ion-icon name="flash-outline"></ion-icon>
             <span>Study Cards</span>
           </a>
+          <button className={`s-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => switchTab('profile')}>
+            <ion-icon name="person-outline"></ion-icon>
+            <span>My Profile</span>
+          </button>
           <button className={`s-nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => switchTab('settings')}>
             <ion-icon name="settings-outline"></ion-icon>
             <span>Settings</span>
@@ -629,6 +680,7 @@ export default function StudentDashboard() {
                       </div>
                       <span className="s-xp-bar-label">{xpInLevel}/100 to Level {level + 1}</span>
                     </div>
+                    {xp.today_xp > 0 && <span className="s-today-xp">+{xp.today_xp} XP today</span>}
                   </div>
                 </div>
 
@@ -655,6 +707,52 @@ export default function StudentDashboard() {
                     <div className="s-stat-label-sm">Best Streak</div>
                   </div>
                 </div>
+
+                {/* Study Summary */}
+                {assignments.length > 0 && (
+                  <div className="s-chart-card">
+                    <h3 className="s-chart-title">📈 Study Summary</h3>
+                    {(() => {
+                      const totalReviews = assignments.reduce((s, a) => s + (a.my_progress?.total_reviews || 0), 0);
+                      const totalCards = assignments.reduce((s, a) => s + (a.my_progress?.cards_studied || 0), 0);
+                      const totalMastered = assignments.reduce((s, a) => s + (a.my_progress?.cards_mastered || 0), 0);
+                      const totalMinutes = assignments.reduce((s, a) => s + (a.my_progress?.time_spent_minutes || 0), 0);
+                      const avgAccuracy = assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length > 0
+                        ? Math.round(assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).reduce((s, a) => s + (a.my_progress?.accuracy || 0), 0) / assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length)
+                        : 0;
+                      const completionRate = assignments.length > 0 ? Math.round((completedAssignments.length / assignments.length) * 100) : 0;
+
+                      return (
+                        <div className="s-summary-grid">
+                          <div className="s-summary-item">
+                            <span className="s-summary-val">{totalReviews}</span>
+                            <span className="s-summary-label">Total Reviews</span>
+                          </div>
+                          <div className="s-summary-item">
+                            <span className="s-summary-val">{totalCards}</span>
+                            <span className="s-summary-label">Cards Studied</span>
+                          </div>
+                          <div className="s-summary-item">
+                            <span className="s-summary-val">{totalMastered}</span>
+                            <span className="s-summary-label">Cards Mastered</span>
+                          </div>
+                          <div className="s-summary-item">
+                            <span className="s-summary-val">{totalMinutes > 0 ? `${totalMinutes}m` : '—'}</span>
+                            <span className="s-summary-label">Study Time</span>
+                          </div>
+                          <div className="s-summary-item">
+                            <span className="s-summary-val" style={{ color: avgAccuracy >= 80 ? '#10B981' : avgAccuracy >= 60 ? '#F59E0B' : '#EF4444' }}>{avgAccuracy}%</span>
+                            <span className="s-summary-label">Avg Accuracy</span>
+                          </div>
+                          <div className="s-summary-item">
+                            <span className="s-summary-val">{completionRate}%</span>
+                            <span className="s-summary-label">Completion</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Assignment Completion Chart */}
                 <div className="s-chart-card">
@@ -711,17 +809,17 @@ export default function StudentDashboard() {
                 {/* Per-Assignment Accuracy Chart */}
                 {assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length > 0 && (
                   <div className="s-chart-card">
-                    <h3 className="s-chart-title">Accuracy by Assignment</h3>
+                    <h3 className="s-chart-title">🎯 Accuracy by Assignment</h3>
                     <div className="s-bar-chart">
                       {assignments
                         .filter(a => a.my_progress && a.my_progress.total_reviews > 0)
-                        .slice(0, 8)
+                        .slice(0, 10)
                         .map(a => {
                           const acc = Math.round(a.my_progress?.accuracy || 0);
                           const color = acc >= 80 ? '#10B981' : acc >= 60 ? '#F59E0B' : '#EF4444';
                           return (
                             <div className="s-bar-row" key={a.id}>
-                              <span className="s-bar-label" title={a.title}>{a.title.length > 16 ? a.title.slice(0, 16) + '…' : a.title}</span>
+                              <span className="s-bar-label" title={a.title}>{a.title.length > 20 ? a.title.slice(0, 20) + '…' : a.title}</span>
                               <div className="s-bar-track">
                                 <div className="s-bar-fill" style={{ width: `${acc}%`, background: color }}></div>
                               </div>
@@ -733,18 +831,47 @@ export default function StudentDashboard() {
                   </div>
                 )}
 
+                {/* XP Earned Per Assignment */}
+                {assignments.filter(a => a.my_progress && (a.my_progress.xp_earned || 0) > 0).length > 0 && (
+                  <div className="s-chart-card">
+                    <h3 className="s-chart-title">⚡ XP Earned by Assignment</h3>
+                    <div className="s-bar-chart">
+                      {assignments
+                        .filter(a => a.my_progress && (a.my_progress.xp_earned || 0) > 0)
+                        .map(a => {
+                          const earned = a.my_progress?.xp_earned || 0;
+                          const maxXP = a.xp_reward || 50;
+                          const pct = Math.min(100, Math.round((earned / maxXP) * 100));
+                          return (
+                            <div className="s-bar-row" key={a.id}>
+                              <span className="s-bar-label" title={a.title}>{a.title.length > 20 ? a.title.slice(0, 20) + '…' : a.title}</span>
+                              <div className="s-bar-track">
+                                <div className="s-bar-fill" style={{ width: `${pct}%`, background: '#F59E0B' }}></div>
+                              </div>
+                              <span className="s-bar-value">{earned}/{maxXP}</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Groups Activity */}
                 {groups.length > 0 && (
                   <div className="s-chart-card">
-                    <h3 className="s-chart-title">Groups</h3>
+                    <h3 className="s-chart-title">👥 Groups</h3>
                     <div className="s-groups-stats">
-                      {groups.map(g => (
-                        <div key={g.id} className="s-group-stat-row">
-                          <span className="s-group-dot" style={{ background: g.color }}></span>
-                          <span className="s-group-stat-name">{g.name}</span>
-                          <span className="s-group-stat-meta">{g.member_count} members · {g.assignment_count} tasks</span>
-                        </div>
-                      ))}
+                      {groups.map(g => {
+                        const groupTasks = assignments.filter(a => a.group_id === g.id);
+                        const groupCompleted = groupTasks.filter(a => a.my_progress?.status === "completed").length;
+                        return (
+                          <div key={g.id} className="s-group-stat-row">
+                            <span className="s-group-dot" style={{ background: g.color }}></span>
+                            <span className="s-group-stat-name">{g.name}</span>
+                            <span className="s-group-stat-meta">{groupCompleted}/{groupTasks.length} done · {g.member_count} members</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -771,11 +898,11 @@ export default function StudentDashboard() {
                   <div className="s-earn-grid">
                     <div className="s-earn-item">
                       <span className="s-earn-icon">📖</span>
-                      <div><strong>Review Cards</strong><span>+5 XP per session</span></div>
+                      <div><strong>Study Session</strong><span>+5 XP per session</span></div>
                     </div>
                     <div className="s-earn-item">
                       <span className="s-earn-icon">✅</span>
-                      <div><strong>Complete Task</strong><span>+50 XP (varies)</span></div>
+                      <div><strong>Complete Task</strong><span>XP × accuracy %</span></div>
                     </div>
                     <div className="s-earn-item">
                       <span className="s-earn-icon">🔥</span>
@@ -783,7 +910,11 @@ export default function StudentDashboard() {
                     </div>
                     <div className="s-earn-item">
                       <span className="s-earn-icon">🏆</span>
-                      <div><strong>Perfect Score</strong><span>+20 XP bonus</span></div>
+                      <div><strong>Perfect Score</strong><span>+20 XP bonus (100%)</span></div>
+                    </div>
+                    <div className="s-earn-item">
+                      <span className="s-earn-icon">⭐</span>
+                      <div><strong>Full Mastery</strong><span>+10% bonus XP</span></div>
                     </div>
                   </div>
                 </div>
@@ -826,6 +957,96 @@ export default function StudentDashboard() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* PROFILE TAB */}
+            {activeTab === "profile" && (
+              <div className="s-content">
+                <div className="s-page-header">
+                  <h1>My Profile</h1>
+                  <p className="s-subtitle">Manage your personal information</p>
+                </div>
+
+                <div className="s-profile-card">
+                  <div className="s-profile-header">
+                    <div className="s-profile-avatar-lg">
+                      {editAvatar ? (
+                        <img src={editAvatar} alt="Avatar" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      ) : (
+                        <span>{(editName || user?.email || "S").charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="s-profile-header-info">
+                      <h2>{editName || user?.email?.split("@")[0]}</h2>
+                      <p className="s-profile-role">STUDENT · Level {level}</p>
+                      <div className="s-profile-badges">
+                        <span className="s-profile-badge">⚡ {xp.total_xp} XP</span>
+                        {xp.current_streak > 0 && <span className="s-profile-badge">🔥 {xp.current_streak} day streak</span>}
+                        <span className="s-profile-badge">✅ {completedAssignments.length} completed</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={saveProfile} className="s-profile-form">
+                    <div className="t-form-group">
+                      <label>Display Name</label>
+                      <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name" maxLength={100} required />
+                    </div>
+                    <div className="t-form-group">
+                      <label>Bio</label>
+                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell others about yourself..." rows={3} maxLength={500} />
+                      <span className="t-char-count">{editBio.length}/500</span>
+                    </div>
+                    <div className="t-form-group">
+                      <label>Avatar URL</label>
+                      <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" />
+                      <span className="t-form-hint">Paste a link to your profile picture</span>
+                    </div>
+                    <button type="submit" className="s-btn s-btn-primary" disabled={savingProfile}>
+                      {savingProfile ? "Saving..." : "Save Profile"}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Achievements */}
+                <div className="s-section">
+                  <h2 className="s-section-title">🏅 Achievements</h2>
+                  <div className="s-achievements-grid">
+                    <div className={`s-achievement ${completedAssignments.length >= 1 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🎯</span>
+                      <div><strong>First Task</strong><span>Complete your first assignment</span></div>
+                    </div>
+                    <div className={`s-achievement ${completedAssignments.length >= 5 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">📚</span>
+                      <div><strong>Scholar</strong><span>Complete 5 assignments</span></div>
+                    </div>
+                    <div className={`s-achievement ${xp.current_streak >= 3 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🔥</span>
+                      <div><strong>On Fire</strong><span>3-day study streak</span></div>
+                    </div>
+                    <div className={`s-achievement ${xp.current_streak >= 7 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">⚡</span>
+                      <div><strong>Week Warrior</strong><span>7-day study streak</span></div>
+                    </div>
+                    <div className={`s-achievement ${xp.total_xp >= 100 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">💯</span>
+                      <div><strong>Century</strong><span>Earn 100 XP total</span></div>
+                    </div>
+                    <div className={`s-achievement ${xp.total_xp >= 500 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🌟</span>
+                      <div><strong>Star Student</strong><span>Earn 500 XP total</span></div>
+                    </div>
+                    <div className={`s-achievement ${groups.length >= 3 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">👥</span>
+                      <div><strong>Social Learner</strong><span>Join 3 groups</span></div>
+                    </div>
+                    <div className={`s-achievement ${assignments.some(a => (a.my_progress?.accuracy || 0) === 100) ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🏆</span>
+                      <div><strong>Perfect Score</strong><span>100% accuracy on an assignment</span></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

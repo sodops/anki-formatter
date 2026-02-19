@@ -124,22 +124,32 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
       setCurrentIndex(prev => prev + 1);
       setIsFlipped(false);
     } else {
-      finishSession();
+      finishSession(quality);
     }
   };
 
   // Submit results
-  const finishSession = async () => {
+  const finishSession = async (lastRating?: "again" | "hard" | "good" | "easy") => {
     setPhase("summary");
 
-    const totalReviews = results.again + results.hard + results.good + results.easy + 1; // +1 for current
-    const goodEasy = results.good + results.easy + (isFlipped ? 0 : 0); // last card counted in rateCard
+    // Include the last card's rating that hasn't been applied to state yet
+    const finalResults = lastRating
+      ? { ...results, [lastRating]: results[lastRating] + 1 }
+      : results;
+
+    const totalReviews = finalResults.again + finalResults.hard + finalResults.good + finalResults.easy;
+    const goodEasy = finalResults.good + finalResults.easy;
     const accuracy = totalReviews > 0 ? Math.round((goodEasy / totalReviews) * 100) : 0;
     const timeSpent = Math.round((Date.now() - startTime) / 1000);
 
+    // Update results state to include last rating for display
+    if (lastRating) {
+      setResults(finalResults);
+    }
+
     setSubmitting(true);
     try {
-      await fetch(`/api/assignments/${assignmentId}/study`, {
+      const res = await fetch(`/api/assignments/${assignmentId}/study`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,9 +158,15 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
           accuracy,
           total_reviews: totalReviews,
           time_spent_seconds: timeSpent,
-          ratings: results,
+          ratings: finalResults,
         }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.session_xp) {
+          setXpAwarded(prev => prev + data.session_xp);
+        }
+      }
     } catch {
       // silently fail, results tracked locally
     } finally {
@@ -307,7 +323,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
           <div className="as-study-title">{assignment?.title}</div>
           <div className="as-study-header-right">
             <div className="as-study-counter">{currentIndex + 1} / {sessionCards.length}</div>
-            <button className="as-btn as-btn-finish" onClick={finishSession} title="Finish session (Esc)">
+            <button className="as-btn as-btn-finish" onClick={() => finishSession()} title="Finish session (Esc)">
               <ion-icon name="flag-outline"></ion-icon> Finish
             </button>
           </div>
@@ -442,12 +458,14 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
               </div>
             </div>
 
-            {/* XP earned */}
-            {accuracy >= 70 && (
-              <div className="as-xp-earned">
-                ⚡ +{assignment?.xp_reward || 0} XP reward available!
-              </div>
-            )}
+            {/* XP info */}
+            <div className="as-xp-earned">
+              ⚡ +5 XP for this study session
+              {accuracy === 100 && <span> · 🏆 Perfect score bonus available!</span>}
+            </div>
+            <div className="as-xp-formula">
+              <span>Completion reward: up to {assignment?.xp_reward || 0} XP (based on {accuracy}% accuracy = ~{Math.round((assignment?.xp_reward || 0) * Math.max(0.1, accuracy / 100))} XP)</span>
+            </div>
 
             {submitting && <p className="as-saving">Saving results...</p>}
 

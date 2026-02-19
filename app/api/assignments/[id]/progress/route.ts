@@ -60,13 +60,7 @@ export async function PATCH(
       updates.started_at = new Date().toISOString();
     }
 
-    // Check if completed (all cards mastered)
-    const cardsTotal = existing.cards_total || 0;
-    const cardsMastered = body.cards_mastered !== undefined ? body.cards_mastered : existing.cards_mastered;
-    if (cardsMastered >= cardsTotal && cardsTotal > 0) {
-      updates.status = "completed";
-      updates.completed_at = new Date().toISOString();
-    }
+    // Don't auto-complete — let student manually complete via /complete endpoint
 
     const { data: updated, error } = await admin
       .from("student_progress")
@@ -77,47 +71,6 @@ export async function PATCH(
       .single();
 
     if (error) throw error;
-
-    // If just completed, award XP
-    if (updates.status === "completed" && existing.status !== "completed") {
-      const { data: assignment } = await admin
-        .from("assignments")
-        .select("xp_reward, title, teacher_id")
-        .eq("id", assignmentId)
-        .single();
-
-      if (assignment) {
-        // Award assignment XP
-        await admin.from("xp_events").insert({
-          user_id: user.id,
-          event_type: "assignment_complete",
-          xp_amount: assignment.xp_reward || 10,
-          source_id: assignmentId,
-          metadata: { title: assignment.title },
-        });
-
-        // Update profile total
-        try {
-          await admin.rpc("award_xp", {
-            p_user_id: user.id,
-            p_event_type: "assignment_complete",
-            p_xp_amount: assignment.xp_reward || 10,
-            p_source_id: assignmentId,
-          });
-        } catch {
-          // Fallback: manually update if RPC not available
-        }
-
-        // Notify teacher
-        await admin.from("notifications").insert({
-          user_id: assignment.teacher_id,
-          type: "assignment_graded",
-          title: "Assignment Completed",
-          message: `A student completed "${assignment.title}" with ${Math.round(body.accuracy || 0)}% accuracy`,
-          data: { assignment_id: assignmentId, student_id: user.id },
-        });
-      }
-    }
 
     return NextResponse.json({ progress: updated });
   } catch (error) {
