@@ -90,6 +90,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         assignments: (assignments || []).map(a => ({
           ...a,
+          group_name: a.groups?.name || null,
+          group_color: a.groups?.color || null,
+          status: a.is_active ? "active" : "inactive",
           progress_summary: progressSummary[a.id] || { total: 0, completed: 0, in_progress: 0, pending: 0, avg_accuracy: 0 },
         })),
         role,
@@ -143,6 +146,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         assignments: (assignments || []).map(a => ({
           ...a,
+          group_name: a.groups?.name || null,
+          group_color: a.groups?.color || null,
+          status: a.is_active ? "active" : "inactive",
           my_progress: progressMap[a.id] || null,
         })),
         role,

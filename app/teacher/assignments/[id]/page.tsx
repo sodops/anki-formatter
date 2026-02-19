@@ -101,6 +101,14 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
 
   return (
     <div className="teacher-container">
+      {/* Mobile Back Header */}
+      <div className="teacher-mobile-back">
+        <Link href="/teacher">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Dashboard
+        </Link>
+      </div>
+
       <aside className="teacher-sidebar">
         <div className="teacher-sidebar-header">
           <Link href="/teacher" className="teacher-logo">
@@ -181,7 +189,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
           </div>
         </div>
 
-        {/* Student Progress Table */}
+        {/* Student Progress */}
         {isTeacher && (
           <div className="teacher-section">
             <h2>Student Progress</h2>
@@ -190,66 +198,72 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                 <p>No students have been assigned yet.</p>
               </div>
             ) : (
-              <table className="teacher-progress-table teacher-progress-table-full">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Status</th>
-                    <th>Cards</th>
-                    <th>Mastered</th>
-                    <th>Accuracy</th>
-                    <th>Reviews</th>
-                    <th>Time Spent</th>
-                    <th>XP Earned</th>
-                    <th>Last Active</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {progress
-                    .sort((a, b) => {
-                      const statusOrder: Record<string, number> = { completed: 0, in_progress: 1, pending: 2, overdue: 3 };
-                      return (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
-                    })
-                    .map(p => {
-                      const progressPct = p.cards_total > 0 ? Math.round((p.cards_studied / p.cards_total) * 100) : 0;
-                      return (
-                        <tr key={p.student_id} className={p.status === "completed" ? "row-completed" : ""}>
-                          <td>
-                            <div className="teacher-member-inline">
-                              <div className="teacher-member-avatar-sm">
-                                {p.profiles?.avatar_url
-                                  ? <img src={p.profiles.avatar_url} alt="" />
-                                  : <span>{(p.profiles?.display_name || "?")[0].toUpperCase()}</span>}
-                              </div>
-                              <span>{p.profiles?.display_name || "Unknown"}</span>
+              <div className="teacher-progress-cards">
+                {progress
+                  .sort((a, b) => {
+                    const statusOrder: Record<string, number> = { completed: 0, in_progress: 1, pending: 2, overdue: 3 };
+                    return (statusOrder[a.status] || 9) - (statusOrder[b.status] || 9);
+                  })
+                  .map(p => {
+                    const progressPct = p.cards_total > 0 ? Math.round((p.cards_studied / p.cards_total) * 100) : 0;
+                    return (
+                      <div key={p.student_id} className={`teacher-progress-card ${p.status === "completed" ? "card-completed" : ""}`}>
+                        <div className="teacher-progress-card-header">
+                          <div className="teacher-member-inline">
+                            <div className="teacher-member-avatar-sm">
+                              {p.profiles?.avatar_url
+                                ? <img src={p.profiles.avatar_url} alt="" />
+                                : <span>{(p.profiles?.display_name || "?")[0].toUpperCase()}</span>}
                             </div>
-                          </td>
-                          <td>
-                            <span className={`teacher-status-badge status-${p.status}`}>
-                              {p.status.replace("_", " ")}
+                            <span>{p.profiles?.display_name || "Unknown"}</span>
+                          </div>
+                          <span className={`teacher-status-badge status-${p.status}`}>
+                            {p.status.replace("_", " ")}
+                          </span>
+                        </div>
+                        <div className="teacher-progress-card-bar">
+                          <div className="teacher-mini-bar">
+                            <div style={{ width: `${progressPct}%` }}></div>
+                          </div>
+                          <span className="teacher-progress-card-pct">{progressPct}%</span>
+                        </div>
+                        <div className="teacher-progress-card-stats">
+                          <div className="teacher-pcs">
+                            <span className="teacher-pcs-val">{p.cards_studied}/{p.cards_total}</span>
+                            <span className="teacher-pcs-label">Cards</span>
+                          </div>
+                          <div className="teacher-pcs">
+                            <span className="teacher-pcs-val">{p.cards_mastered}/{p.cards_total}</span>
+                            <span className="teacher-pcs-label">Mastered</span>
+                          </div>
+                          <div className="teacher-pcs">
+                            <span className={`teacher-pcs-val ${p.accuracy >= 80 ? "text-green" : p.accuracy >= 50 ? "text-yellow" : "text-red"}`}>
+                              {p.accuracy ? `${Math.round(p.accuracy)}%` : "—"}
                             </span>
-                          </td>
-                          <td>
-                            <div className="teacher-mini-progress">
-                              <div className="teacher-mini-bar">
-                                <div style={{ width: `${progressPct}%` }}></div>
-                              </div>
-                              <span>{p.cards_studied}/{p.cards_total}</span>
-                            </div>
-                          </td>
-                          <td>{p.cards_mastered}/{p.cards_total}</td>
-                          <td className={p.accuracy >= 80 ? "text-green" : p.accuracy >= 50 ? "text-yellow" : "text-red"}>
-                            {p.accuracy ? `${Math.round(p.accuracy)}%` : "—"}
-                          </td>
-                          <td>{p.total_reviews}</td>
-                          <td>{p.time_spent_seconds ? formatTime(p.time_spent_seconds) : "—"}</td>
-                          <td>{p.xp_earned > 0 ? `+${p.xp_earned}` : "—"}</td>
-                          <td>{p.last_studied_at ? new Date(p.last_studied_at).toLocaleDateString() : "—"}</td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
+                            <span className="teacher-pcs-label">Accuracy</span>
+                          </div>
+                          <div className="teacher-pcs">
+                            <span className="teacher-pcs-val">{p.total_reviews}</span>
+                            <span className="teacher-pcs-label">Reviews</span>
+                          </div>
+                          <div className="teacher-pcs">
+                            <span className="teacher-pcs-val">{p.time_spent_seconds ? formatTime(p.time_spent_seconds) : "—"}</span>
+                            <span className="teacher-pcs-label">Time</span>
+                          </div>
+                          <div className="teacher-pcs">
+                            <span className="teacher-pcs-val">{p.xp_earned > 0 ? `+${p.xp_earned}` : "—"}</span>
+                            <span className="teacher-pcs-label">XP</span>
+                          </div>
+                        </div>
+                        {p.last_studied_at && (
+                          <div className="teacher-progress-card-footer">
+                            Last active: {new Date(p.last_studied_at).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
             )}
           </div>
         )}

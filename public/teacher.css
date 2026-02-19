@@ -1177,8 +1177,139 @@ body:has(.teacher-container) {
   .teacher-join-code-large { flex-wrap: wrap; }
   .teacher-progress-table { font-size: 11px; display: block; overflow-x: auto; }
   .teacher-progress-table th, .teacher-progress-table td { padding: 6px 8px; white-space: nowrap; }
-  .teacher-stats-row { grid-template-columns: 1fr 1fr; }
+  .teacher-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .teacher-stat-card { padding: 12px 10px; }
+  .teacher-stat-value { font-size: 20px; }
+  .teacher-stat-label { font-size: 11px; }
   .t-student-grid { grid-template-columns: 1fr; }
+  .teacher-assignment-hero { padding: 16px; }
+  .teacher-assignment-hero h1 { font-size: 18px; }
+  .teacher-assignment-meta { gap: 8px; font-size: 12px; }
+  .teacher-section h2 { font-size: 16px; }
+  .teacher-assignment-detail { padding: 14px; }
+  .teacher-assignment-detail h3 { font-size: 15px; }
+  .teacher-nav-divider { margin: 8px 16px; border-color: #334155; }
+  .teacher-subsection-title { font-size: 13px; }
+  .teacher-member-card { padding: 10px 12px; }
+  .teacher-section-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+}
+
+/* ===== STUDENT PROGRESS CARDS (mobile-friendly) ===== */
+.teacher-progress-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.teacher-progress-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+}
+.teacher-progress-card.card-completed {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.04);
+}
+.teacher-progress-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+.teacher-progress-card-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.teacher-progress-card-bar .teacher-mini-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border, #e5e7eb);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.teacher-progress-card-bar .teacher-mini-bar div {
+  height: 100%;
+  background: #6366F1;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.card-completed .teacher-progress-card-bar .teacher-mini-bar div {
+  background: #10B981;
+}
+.teacher-progress-card-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+  min-width: 36px;
+  text-align: right;
+}
+.teacher-progress-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.teacher-pcs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 6px 0;
+}
+.teacher-pcs-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+.teacher-pcs-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+.teacher-progress-card-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border, #e5e7eb);
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Dark theme for progress cards */
+[data-theme="dark"] .teacher-progress-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+[data-theme="dark"] .teacher-progress-card.card-completed {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: #10B981;
+}
+[data-theme="dark"] .teacher-progress-card-pct,
+[data-theme="dark"] .teacher-pcs-val {
+  color: #f1f5f9;
+}
+[data-theme="dark"] .teacher-pcs-label {
+  color: #94a3b8;
+}
+[data-theme="dark"] .teacher-progress-card-footer {
+  border-color: #334155;
+  color: #94a3b8;
+}
+[data-theme="dark"] .teacher-progress-card-bar .teacher-mini-bar {
+  background: #334155;
+}
+
+@media (max-width: 480px) {
+  .teacher-progress-card-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  .teacher-pcs-val { font-size: 13px; }
+  .teacher-pcs-label { font-size: 10px; }
+  .teacher-stats-row { grid-template-columns: 1fr 1fr; }
 }
 
 /* ===== GROUP STATISTICS CHARTS ===== */
