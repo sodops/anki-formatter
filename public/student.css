@@ -700,7 +700,23 @@
 .s-group-joined {
   font-size: 11px;
   color: #94a3b8;
+}
+.s-group-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ffffff08;
+}
+.s-btn-danger {
+  background: transparent !important;
+  color: #EF4444 !important;
+  border: 1px solid #EF444430 !important;
+}
+.s-btn-danger:hover {
+  background: #EF444420 !important;
+  border-color: #EF4444 !important;
 }
 
 /* Level Card (Progress Tab) */
@@ -1055,6 +1071,7 @@
 [data-theme="light"] .s-hamburger { color: var(--s-text); }
 [data-theme="light"] .s-bottom-nav { background: var(--s-bg-card); border-color: var(--s-border); }
 [data-theme="light"] .s-bottom-nav-item:hover { color: var(--s-text); }
+[data-theme="light"] .s-group-footer { border-top-color: var(--s-border); }
 
 /* ============ Responsive ============ */
 @media (max-width: 768px) {

@@ -54,19 +54,43 @@ export async function GET(
       }
     }
 
-    // Get members with profiles
+    // Get members with profiles (separate queries for reliability)
     const { data: members, error: membersError } = await admin
       .from("group_members")
-      .select(`
-        id, user_id, role, joined_at,
-        profiles:user_id (display_name, avatar_url, total_xp, current_streak)
-      `)
+      .select("id, user_id, role, joined_at")
       .eq("group_id", id)
       .order("joined_at", { ascending: true });
 
     if (membersError) {
       console.error("Members query error:", membersError);
     }
+
+    // Fetch profiles for all members
+    const memberUserIds = (members || []).map(m => m.user_id);
+    let profilesMap: Record<string, any> = {};
+    if (memberUserIds.length > 0) {
+      const { data: profiles } = await admin
+        .from("profiles")
+        .select("id, display_name, avatar_url, total_xp, current_streak")
+        .in("id", memberUserIds);
+
+      if (profiles) {
+        for (const p of profiles) {
+          profilesMap[p.id] = p;
+        }
+      }
+    }
+
+    // Merge members with profiles
+    const membersWithProfiles = (members || []).map(m => ({
+      ...m,
+      profiles: profilesMap[m.user_id] || {
+        display_name: "Unknown",
+        avatar_url: null,
+        total_xp: 0,
+        current_streak: 0,
+      },
+    }));
 
     // Get assignments
     const { data: assignments } = await admin
@@ -98,7 +122,7 @@ export async function GET(
 
     return NextResponse.json({
       group,
-      members: members || [],
+      members: membersWithProfiles,
       assignments: (assignments || []).map(a => ({
         ...a,
         progress: progressMap[a.id] || [],

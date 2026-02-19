@@ -34,6 +34,8 @@ interface Group {
   member_count: number;
   assignment_count: number;
   joined_at: string;
+  is_owner?: boolean;
+  owner_id?: string;
 }
 
 interface XPData {
@@ -140,6 +142,20 @@ export default function StudentDashboard() {
       setJoinError(err.message);
     } finally {
       setJoiningGroup(false);
+    }
+  };
+
+  const handleLeaveGroup = async (groupId: string, groupName: string) => {
+    if (!confirm(`Are you sure you want to leave "${groupName}"? You will lose access to assignments in this group.`)) return;
+    try {
+      const res = await fetch(`/api/groups/${groupId}/members/${user?.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to leave group");
+      }
+      setGroups(prev => prev.filter(g => g.id !== groupId));
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -525,7 +541,18 @@ export default function StudentDashboard() {
                           <span><ion-icon name="people-outline"></ion-icon> {g.member_count} members</span>
                           <span><ion-icon name="document-text-outline"></ion-icon> {g.assignment_count} tasks</span>
                         </div>
-                        <div className="s-group-joined">Joined {new Date(g.joined_at).toLocaleDateString()}</div>
+                        <div className="s-group-footer">
+                          <span className="s-group-joined">Joined {new Date(g.joined_at).toLocaleDateString()}</span>
+                          {!g.is_owner && (
+                            <button
+                              className="s-btn s-btn-danger s-btn-sm"
+                              onClick={() => handleLeaveGroup(g.id, g.name)}
+                              title="Leave this group"
+                            >
+                              <ion-icon name="exit-outline"></ion-icon> Leave
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
