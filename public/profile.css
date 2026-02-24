@@ -180,7 +180,7 @@
   background: #e8a317;
   color: #fff;
 }
-.profile-btn-connect:hover { background: #4F46E5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,163,23,0.3); }
+.profile-btn-connect:hover { background: #d4940e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,163,23,0.3); }
 .profile-btn-connect:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 .profile-btn-connected {
   background: #10B98120;

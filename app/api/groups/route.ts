@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name: name.trim(),
         description: description?.trim() || null,
-        color: color || "#6366F1",
+        color: color || "#e8a317",
         owner_id: user.id,
       })
       .select()

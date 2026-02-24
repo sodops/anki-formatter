@@ -53,6 +53,8 @@ export function createKeyboardShortcutsModal() {
         { keys: ["Ctrl", "1"], description: "Library view" },
         { keys: ["Ctrl", "2"], description: "Study view" },
         { keys: ["Ctrl", "3"], description: "Stats view" },
+        { keys: ["Ctrl", "4"], description: "Settings view" },
+        { keys: ["Ctrl", "5"], description: "Dictionary view" },
       ],
     },
     {

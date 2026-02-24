@@ -74,6 +74,7 @@ body:has(.teacher-container) {
   overflow-y: auto;
   flex-shrink: 0;
   z-index: 20;
+  transition: width 0.25s ease;
 }
 
 .t-brand {
@@ -686,7 +687,7 @@ body:has(.teacher-container) {
 }
 
 .t-btn-primary { background: #e8a317; color: white; }
-.t-btn-primary:hover { background: #5558e8; }
+.t-btn-primary:hover { background: #d4940e; }
 .t-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .t-btn-outline { background: none; border: 1px solid var(--t-border); color: var(--t-text-secondary); }
@@ -1059,11 +1060,11 @@ body:has(.teacher-container) {
 .teacher-nav { padding: 4px 10px; }
 .teacher-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; color: #94a3b8; cursor: pointer; transition: all 0.15s; width: 100%; text-align: left; background: none; border: none; text-decoration: none; font-family: inherit; }
 .teacher-nav-item:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
-.teacher-nav-item.active { background: rgba(232,163,23,0.15); color: #a5b4fc; font-weight: 600; }
+.teacher-nav-item.active { background: rgba(232,163,23,0.15); color: #f0b840; font-weight: 600; }
 .teacher-nav-item ion-icon { font-size: 18px; flex-shrink: 0; }
-.teacher-nav-count { margin-left: auto; font-size: 11px; font-weight: 700; background: rgba(232,163,23,0.2); color: #a5b4fc; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
+.teacher-nav-count { margin-left: auto; font-size: 11px; font-weight: 700; background: rgba(232,163,23,0.2); color: #f0b840; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
 .teacher-nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 18px; border: none; }
-.teacher-main { flex: 1; margin-left: 260px; padding: 32px 28px; max-width: 1100px; }
+.teacher-main { flex: 1; margin-left: 260px; padding: 32px 28px; max-width: 1100px; transition: margin-left 0.25s ease; }
 .teacher-stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 24px; }
 .teacher-stat-card { background: var(--card-bg, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: 16px 18px; text-align: center; }
 .teacher-stat-value { font-size: 22px; font-weight: 800; color: var(--text-primary, #1e293b); }
@@ -1075,7 +1076,7 @@ body:has(.teacher-container) {
 .teacher-subsection-title { font-size: 14px; font-weight: 600; color: #64748b; margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 .teacher-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; text-decoration: none; font-family: inherit; }
 .teacher-btn-primary { background: #e8a317; color: #fff; }
-.teacher-btn-primary:hover { background: #4F46E5; }
+.teacher-btn-primary:hover { background: #d4940e; }
 .teacher-btn-outline { background: none; border: 1px solid var(--border, #d1d5db); color: var(--text-primary, #374151); }
 .teacher-btn-outline:hover { border-color: #e8a317; color: #e8a317; }
 .teacher-btn-sm { padding: 7px 14px; font-size: 13px; border-radius: 7px; }
@@ -1806,4 +1807,10 @@ body:has(.teacher-container) {
   .t-sidebar-toggle {
     display: none;
   }
+}
+
+/* Adjust detail page main content when sidebar is collapsed */
+.teacher-container:has(.t-sidebar.collapsed) .teacher-main {
+  margin-left: 64px;
+  transition: margin-left 0.25s ease;
 }

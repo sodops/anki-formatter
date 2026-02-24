@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         decks: decks.map((d) => ({
           id: d.id,
           name: d.name,
-          color: d.settings?.color || "#6366F1",
+          color: d.settings?.color || "#e8a317",
           createdAt: d.created_at,
           isDeleted: d.is_deleted, // Should be false here
           cards: cards
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
         decks: decks.map((d) => ({
           id: d.id,
           name: d.name,
-          color: d.settings?.color || "#6366F1",
+          color: d.settings?.color || "#e8a317",
           createdAt: d.created_at,
           isDeleted: d.is_deleted,
           updatedAt: d.updated_at,

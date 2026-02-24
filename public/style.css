@@ -4150,7 +4150,7 @@ noscript {
 .login-orb-2 {
   width: 400px;
   height: 400px;
-  background: rgba(139, 92, 246, 0.12);
+  background: rgba(240, 184, 64, 0.12);
   bottom: -10%;
   right: -5%;
   animation-delay: -7s;
@@ -4556,7 +4556,7 @@ noscript {
 }
 
 .login-mode-toggle button:hover {
-  color: #a5b4fc;
+  color: #f0b840;
   text-decoration: underline;
 }
 
@@ -4652,7 +4652,7 @@ noscript {
 }
 
 [data-theme="light"] .login-hero {
-  background: linear-gradient(135deg, rgba(232, 163, 23, 0.06), rgba(139, 92, 246, 0.04));
+  background: linear-gradient(135deg, rgba(232, 163, 23, 0.06), rgba(240, 184, 64, 0.04));
   border-right-color: rgba(0, 0, 0, 0.06);
 }
 

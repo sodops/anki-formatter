@@ -267,7 +267,7 @@ export default function Home() {
               <span>Study</span>
             </button>
             <button className="nav-tab" data-view="dictionary">
-              <ion-icon name="book"></ion-icon>
+              <ion-icon name="language-outline"></ion-icon>
               <span>Dictionary</span>
             </button>
           </div>
@@ -520,7 +520,7 @@ export default function Home() {
                 </div>
                 <div id="dictResult" className="dict-result">
                   <div className="dict-empty">
-                    <ion-icon name="book" style={{ fontSize: '48px', opacity: 0.3 }}></ion-icon>
+                    <ion-icon name="language-outline" style={{ fontSize: '48px', opacity: 0.3 }}></ion-icon>
                     <p>Search for a word to see its definitions, pronunciations, and examples.</p>
                   </div>
                 </div>

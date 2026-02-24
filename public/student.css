@@ -49,6 +49,7 @@
   bottom: 0;
   z-index: 100;
   overflow-y: auto;
+  transition: width 0.25s ease;
 }
 
 .s-brand {
@@ -258,6 +259,7 @@
   flex: 1;
   margin-left: 260px;
   min-height: 100vh;
+  transition: margin-left 0.25s ease;
 }
 .s-content {
   max-width: 960px;
@@ -462,7 +464,7 @@
   color: #fff;
 }
 .s-btn-primary:hover {
-  background: #4F46E5;
+  background: #d4940e;
 }
 .s-btn-primary:disabled {
   opacity: 0.5;
@@ -1517,4 +1519,10 @@
   .s-sidebar-toggle {
     display: none;
   }
+}
+
+/* Adjust main content when sidebar is collapsed */
+.s-dashboard:has(.s-sidebar.collapsed) .s-main {
+  margin-left: 64px;
+  transition: margin-left 0.25s ease;
 }
