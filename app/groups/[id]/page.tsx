@@ -122,7 +122,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
     return (
       <div className="teacher-loading">
         <h2>Group not found</h2>
-        <Link href={backPath} style={{ color: "#6366F1" }}>← Back to Dashboard</Link>
+        <Link href={backPath} style={{ color: "#e8a317" }}>← Back to Dashboard</Link>
       </div>
     );
   }
@@ -345,7 +345,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                           <span className={`teacher-status-badge status-${myProgress.status}`}>{myProgress.status.replace("_", " ")}</span>
                         </div>
                         <div className="teacher-mini-progress" style={{ width: '100%', height: '8px', marginBottom: '8px' }}>
-                          <div style={{ width: `${myProgress.cards_total > 0 ? Math.round((myProgress.cards_studied / myProgress.cards_total) * 100) : 0}%`, height: '100%', background: myProgress.status === 'completed' ? '#10B981' : 'linear-gradient(90deg, #6366F1, #a78bfa)', borderRadius: '4px' }}></div>
+                          <div style={{ width: `${myProgress.cards_total > 0 ? Math.round((myProgress.cards_studied / myProgress.cards_total) * 100) : 0}%`, height: '100%', background: myProgress.status === 'completed' ? '#10B981' : 'linear-gradient(90deg, #e8a317, #f0b840)', borderRadius: '4px' }}></div>
                         </div>
                         <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#64748b' }}>
                           <span>{myProgress.cards_studied}/{myProgress.cards_total} cards</span>
@@ -430,7 +430,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                       .map((s, i) => {
                         const maxXP = Math.max(...students.map(st => st.profiles?.total_xp || 0), 1);
                         const xpVal = s.profiles?.total_xp || 0;
-                        const colors = ['#F59E0B', '#9CA3AF', '#CD7F32', '#6366F1', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899'];
+                        const colors = ['#F59E0B', '#9CA3AF', '#CD7F32', '#E8A317', '#3B82F6', '#10B981', '#F0B840', '#EC4899'];
                         return (
                           <div className="t-bar-row" key={s.id}>
                             <span className="t-bar-rank">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
@@ -470,7 +470,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                 {/* Assignment Completion Overview */}
                 {assignments.length > 0 && (
                   <div className="t-chart-card">
-                    <h3 className="t-chart-title"><ion-icon name="bar-chart-outline" style={{ marginRight: '8px', color: '#6366F1' }}></ion-icon> Assignment Completion</h3>
+                    <h3 className="t-chart-title"><ion-icon name="bar-chart-outline" style={{ marginRight: '8px', color: '#e8a317' }}></ion-icon> Assignment Completion</h3>
                     <div className="t-bar-chart">
                       {assignments.map(a => {
                         const total = students.length || 1;
@@ -494,7 +494,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                 {/* Per-Student Assignment Progress */}
                 {assignments.length > 0 && (
                   <div className="t-chart-card">
-                    <h3 className="t-chart-title"><ion-icon name="people-outline" style={{ marginRight: '8px', color: '#8B5CF6' }}></ion-icon> Student Progress Summary</h3>
+                    <h3 className="t-chart-title"><ion-icon name="people-outline" style={{ marginRight: '8px', color: '#f0b840' }}></ion-icon> Student Progress Summary</h3>
                     <div className="t-student-grid">
                       {students.map(s => {
                         const studentProgress = assignments.flatMap(a =>

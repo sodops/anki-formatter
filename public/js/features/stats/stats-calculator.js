@@ -64,7 +64,7 @@ export function calculateAndRenderStats() {
 
             const count = deck.cards.length;
             totalCards += count;
-            cardsPerDeck.push({ name: deck.name, count: count, color: deck.color || '#6366F1' });
+            cardsPerDeck.push({ name: deck.name, count: count, color: deck.color || '#e8a317' });
             
             // Tags
             deck.cards.forEach(card => {
@@ -306,7 +306,7 @@ function renderMaturityChart(decks, containerId) {
         { label: 'New', count: newCount, color: '#3B82F6' },
         { label: 'Learning', count: learningCount, color: '#F59E0B' },
         { label: 'Young', count: youngCount, color: '#22C55E' },
-        { label: 'Mature', count: matureCount, color: '#6366F1' }
+        { label: 'Mature', count: matureCount, color: '#e8a317' }
     ];
     
     // Build horizontal stacked bar
@@ -561,7 +561,7 @@ function renderPerDeckStats(decks, containerId) {
         return `<tr>
             <td style="padding:8px 12px;">
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="width:10px;height:10px;border-radius:50%;background:${deck.color || '#6366F1'};display:inline-block;"></span>
+                    <span style="width:10px;height:10px;border-radius:50%;background:${deck.color || '#e8a317'};display:inline-block;"></span>
                     <strong>${escapeHtml(deck.name)}</strong>
                 </div>
             </td>

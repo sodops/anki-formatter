@@ -189,7 +189,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
       <main className="profile-main">
         {/* Profile Hero */}
         <div className="profile-hero">
-          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#10B981' : '#6366F1'}, ${profile.role === 'teacher' ? '#3B82F6' : '#8B5CF6'})` }}></div>
+          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#10B981' : '#e8a317'}, ${profile.role === 'teacher' ? '#3B82F6' : '#f0b840'})` }}></div>
           <div className="profile-hero-content">
             <div className="profile-avatar-container">
               <div className="profile-avatar-xl">
@@ -205,7 +205,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
             <div className="profile-hero-info">
               <h1>{profile.display_name}</h1>
               {profile.username && <span className="profile-username">@{profile.username}</span>}
-              <span className="profile-role-tag" style={{ background: profile.role === 'teacher' ? '#10B98120' : '#6366F120', color: profile.role === 'teacher' ? '#10B981' : '#6366F1' }}>
+              <span className="profile-role-tag" style={{ background: profile.role === 'teacher' ? '#10B98120' : '#e8a31720', color: profile.role === 'teacher' ? '#10B981' : '#e8a317' }}>
                 {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
               </span>
               {profile.bio && <p className="profile-bio">{profile.bio}</p>}

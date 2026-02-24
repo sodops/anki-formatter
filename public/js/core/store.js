@@ -756,7 +756,7 @@ class Store {
         const newDeck = {
             id: this._generateId(),
             name: name.trim(),
-            color: color || '#6366F1',
+            color: color || '#e8a317',
             cards: [],
             createdAt: new Date().toISOString(),
             isDeleted: false

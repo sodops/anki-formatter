@@ -85,6 +85,7 @@ function StudentDashboard() {
   const [joinSuccess, setJoinSuccess] = useState("");
   const [joiningGroup, setJoiningGroup] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [completingId, setCompletingId] = useState<string | null>(null);
 
   // Profile state
@@ -381,8 +382,11 @@ function StudentDashboard() {
       <div className={`s-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}></div>
 
       {/* Sidebar */}
-      <aside className={`s-sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`s-sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="s-brand">
+          <button className="s-sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title="Toggle sidebar">
+            <ion-icon name={sidebarCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'}></ion-icon>
+          </button>
           <span className="s-brand-icon">⚡</span>
           <span className="s-brand-name">AnkiFlow</span>
           <span className="s-role-tag">Student</span>
@@ -435,7 +439,7 @@ function StudentDashboard() {
         <nav className="s-nav">
           <a href="/app/study" className="s-nav-item">
             <ion-icon name="flash-outline"></ion-icon>
-            <span>Study Cards</span>
+            <span>Flashcards</span>
           </a>
           <button className={`s-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => switchTab('profile')}>
             <ion-icon name="person-outline"></ion-icon>
@@ -487,7 +491,7 @@ function StudentDashboard() {
                 {/* Stats */}
                 <div className="s-stats-row">
                   <div className="s-stat-card">
-                    <div className="s-stat-icon" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366F1' }}>
+                    <div className="s-stat-icon" style={{ background: 'rgba(232,163,23,0.1)', color: '#e8a317' }}>
                       <ion-icon name="document-text"></ion-icon>
                     </div>
                     <div>
@@ -538,7 +542,7 @@ function StudentDashboard() {
                   <div className="s-quick-actions">
                     <a href="/app/study" className="s-quick-action">
                       <ion-icon name="flash-outline"></ion-icon>
-                      <span>Study Cards</span>
+                      <span>Flashcards</span>
                     </a>
                     <button className="s-quick-action" onClick={() => setActiveTab("assignments")}>
                       <ion-icon name="document-text-outline"></ion-icon>
@@ -569,7 +573,7 @@ function StudentDashboard() {
                               <div>
                                 <div className="s-assign-title">{a.title}</div>
                                 <div className="s-assign-meta">
-                                  {a.group_name && <span className="s-group-chip" style={{ background: a.group_color || '#6366F1' }}>{a.group_name}</span>}
+                                  {a.group_name && <span className="s-group-chip" style={{ background: a.group_color || '#e8a317' }}>{a.group_name}</span>}
                                   {a.deadline && (
                                     <span className={`s-deadline ${isOverdue ? 'overdue' : ''}`}>
                                       <ion-icon name="time-outline"></ion-icon>
@@ -777,7 +781,7 @@ function StudentDashboard() {
                     <div className="s-stat-label-sm">Day Streak</div>
                   </div>
                   <div className="s-stat-card-mini">
-                    <div className="s-stat-icon" style={{ background: '#8B5CF620', color: '#8B5CF6' }}>🏆</div>
+                    <div className="s-stat-icon" style={{ background: '#f0b84020', color: '#f0b840' }}>🏆</div>
                     <div className="s-stat-value-sm">{xp.longest_streak}</div>
                     <div className="s-stat-label-sm">Best Streak</div>
                   </div>
@@ -1027,7 +1031,7 @@ function StudentDashboard() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {pendingRequests.map(req => (
                         <div key={req.connection_id} className="s-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16 }}>
-                          <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#6366F120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 600, color: '#6366F1', flexShrink: 0 }}>
+                          <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#e8a31720', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 600, color: '#e8a317', flexShrink: 0 }}>
                             {req.user?.avatar_url ? (
                               <img src={req.user.avatar_url} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
                             ) : (
@@ -1432,7 +1436,7 @@ function AssignmentCard({ a, onComplete, completingId }: { a: Assignment; onComp
           <div className="s-assign-title">{a.title}</div>
           {a.description && <div className="s-assign-desc">{a.description}</div>}
           <div className="s-assign-meta">
-            {a.group_name && <span className="s-group-chip" style={{ background: a.group_color || '#6366F1' }}>{a.group_name}</span>}
+            {a.group_name && <span className="s-group-chip" style={{ background: a.group_color || '#e8a317' }}>{a.group_name}</span>}
             {a.deadline && (
               <span className={`s-deadline ${isOverdue && !isCompleted ? 'overdue' : ''}`}>
                 <ion-icon name="time-outline"></ion-icon>

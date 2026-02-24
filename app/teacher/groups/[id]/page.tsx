@@ -111,7 +111,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
     return (
       <div className="teacher-loading">
         <h2>Group not found</h2>
-        <Link href="/teacher" style={{ color: "#6366F1" }}>← Back to Dashboard</Link>
+        <Link href="/teacher" style={{ color: "#e8a317" }}>← Back to Dashboard</Link>
       </div>
     );
   }
@@ -385,7 +385,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                       .map((s, i) => {
                         const maxXP = Math.max(...students.map(st => st.profiles?.total_xp || 0), 1);
                         const xpVal = s.profiles?.total_xp || 0;
-                        const colors = ['#F59E0B', '#9CA3AF', '#CD7F32', '#6366F1', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899'];
+                        const colors = ['#F59E0B', '#9CA3AF', '#CD7F32', '#E8A317', '#3B82F6', '#10B981', '#F0B840', '#EC4899'];
                         return (
                           <div className="t-bar-row" key={s.id}>
                             <span className="t-bar-rank">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
@@ -425,7 +425,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                 {/* Assignment Completion Overview */}
                 {assignments.length > 0 && (
                   <div className="t-chart-card">
-                    <h3 className="t-chart-title"><ion-icon name="bar-chart-outline" style={{ marginRight: '8px', color: '#6366F1' }}></ion-icon> Assignment Completion</h3>
+                    <h3 className="t-chart-title"><ion-icon name="bar-chart-outline" style={{ marginRight: '8px', color: '#e8a317' }}></ion-icon> Assignment Completion</h3>
                     <div className="t-bar-chart">
                       {assignments.map(a => {
                         const total = students.length || 1;
@@ -449,7 +449,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                 {/* Per-Student Assignment Progress */}
                 {assignments.length > 0 && (
                   <div className="t-chart-card">
-                    <h3 className="t-chart-title"><ion-icon name="people-outline" style={{ marginRight: '8px', color: '#8B5CF6' }}></ion-icon> Student Progress Summary</h3>
+                    <h3 className="t-chart-title"><ion-icon name="people-outline" style={{ marginRight: '8px', color: '#f0b840' }}></ion-icon> Student Progress Summary</h3>
                     <div className="t-student-grid">
                       {students.map(s => {
                         const studentProgress = assignments.flatMap(a =>

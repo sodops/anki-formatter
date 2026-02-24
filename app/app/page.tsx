@@ -43,7 +43,7 @@ export default function AppRedirector() {
         width: '24px',
         height: '24px',
         border: '3px solid var(--border, #2a2a3a)',
-        borderTopColor: '#6366F1',
+        borderTopColor: '#e8a317',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite',
       }} />

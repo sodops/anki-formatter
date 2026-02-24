@@ -12,7 +12,8 @@ export const VIEWS = {
     LIBRARY: 'library',
     STUDY: 'study',
     STATISTICS: 'statistics',
-    SETTINGS: 'settings'
+    SETTINGS: 'settings',
+    DICTIONARY: 'dictionary'
 };
 
 // Current active view
@@ -119,6 +120,10 @@ function setupKeyboardShortcuts() {
                 case '4':
                     e.preventDefault();
                     switchView(VIEWS.SETTINGS);
+                    break;
+                case '5':
+                    e.preventDefault();
+                    switchView(VIEWS.DICTIONARY);
                     break;
             }
         }

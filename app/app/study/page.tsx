@@ -266,6 +266,10 @@ export default function Home() {
               <ion-icon name="book-outline"></ion-icon>
               <span>Study</span>
             </button>
+            <button className="nav-tab" data-view="dictionary">
+              <ion-icon name="book"></ion-icon>
+              <span>Dictionary</span>
+            </button>
           </div>
 
           {/* LIBRARY VIEW */}
@@ -488,6 +492,36 @@ export default function Home() {
                         <kbd className="rating-kbd">4</kbd>
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* DICTIONARY VIEW */}
+          <div id="view-dictionary" className="view-container hidden">
+            <div className="workspace dict-workspace">
+              <div className="deck-header">
+                <h1>📖 Dictionary</h1>
+              </div>
+              <div className="dict-container">
+                <div className="dict-search-box">
+                  <ion-icon name="search-outline"></ion-icon>
+                  <input
+                    type="text"
+                    id="dictSearchInput"
+                    placeholder="Look up any English word..."
+                    autoComplete="off"
+                    aria-label="Search dictionary"
+                  />
+                  <button className="dict-search-btn" id="btnDictSearch">
+                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                  </button>
+                </div>
+                <div id="dictResult" className="dict-result">
+                  <div className="dict-empty">
+                    <ion-icon name="book" style={{ fontSize: '48px', opacity: 0.3 }}></ion-icon>
+                    <p>Search for a word to see its definitions, pronunciations, and examples.</p>
                   </div>
                 </div>
               </div>
@@ -733,8 +767,8 @@ export default function Home() {
           <h2>Choose Deck Color</h2>
           <div className="color-grid">
             {[
-              "#6366F1",
-              "#8B5CF6",
+              "#E8A317",
+              "#F0B840",
               "#EC4899",
               "#F43F5E",
               "#F97316",
@@ -744,7 +778,7 @@ export default function Home() {
               "#14B8A6",
               "#06B6D4",
               "#3B82F6",
-              "#6366F1",
+              "#f0b840",
             ].map((c, i) => (
               <button
                 key={i}

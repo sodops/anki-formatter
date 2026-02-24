@@ -15,7 +15,7 @@
   width: 28px;
   height: 28px;
   border: 3px solid #2a2a3a;
-  border-top-color: #6366F1;
+  border-top-color: #e8a317;
   border-radius: 50%;
   animation: as-spin 0.7s linear infinite;
 }
@@ -37,13 +37,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #6366F1;
+  color: #e8a317;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 24px;
 }
-.as-back-link:hover { color: #818cf8; }
+.as-back-link:hover { color: #f0b840; }
 
 /* ===== READY SCREEN ===== */
 .as-ready {
@@ -82,8 +82,8 @@
   color: #f59e0b;
 }
 .as-xp-badge {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+  background: rgba(232, 163, 23, 0.15);
+  color: #f0b840;
   padding: 4px 10px;
   border-radius: 12px;
   font-weight: 600;
@@ -104,7 +104,7 @@
 .as-ready-stat-val {
   font-size: 32px;
   font-weight: 800;
-  color: #6366F1;
+  color: #e8a317;
 }
 .as-ready-stat-label {
   font-size: 12px;
@@ -157,7 +157,7 @@
 .as-legend-item.again { background: rgba(239,68,68,0.15); color: #f87171; }
 .as-legend-item.hard { background: rgba(245,158,11,0.15); color: #fbbf24; }
 .as-legend-item.good { background: rgba(16,185,129,0.15); color: #34d399; }
-.as-legend-item.easy { background: rgba(99,102,241,0.15); color: #818cf8; }
+.as-legend-item.easy { background: rgba(232,163,23,0.15); color: #f0b840; }
 
 /* Buttons */
 .as-btn {
@@ -175,10 +175,10 @@
   transition: all 0.2s;
 }
 .as-btn-primary {
-  background: #6366F1;
-  color: #fff;
+  background: #e8a317;
+  color: #1a1a26;
 }
-.as-btn-primary:hover { background: #5558e6; }
+.as-btn-primary:hover { background: #d4940e; }
 .as-btn-secondary {
   background: #1e1e2e;
   color: #e5e7eb;
@@ -186,14 +186,14 @@
 }
 .as-btn-secondary:hover { background: #252535; }
 .as-btn-start {
-  background: linear-gradient(135deg, #6366F1, #8B5CF6);
-  color: #fff;
+  background: linear-gradient(135deg, #e8a317, #f0b840);
+  color: #1a1a26;
   width: 100%;
   padding: 16px;
   font-size: 17px;
   border-radius: 14px;
 }
-.as-btn-start:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+.as-btn-start:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,163,23,0.3); }
 
 /* ===== STUDY SESSION ===== */
 
@@ -266,7 +266,7 @@
 }
 .as-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366F1, #8B5CF6);
+  background: linear-gradient(90deg, #e8a317, #f0b840);
   transition: width 0.3s ease;
   border-radius: 0 2px 2px 0;
 }
@@ -322,7 +322,7 @@
 }
 .as-flashcard-back {
   background: linear-gradient(145deg, #1a1a3a, #1e1e2e);
-  border: 2px solid #6366F1;
+  border: 2px solid #e8a317;
   transform: rotateY(180deg);
 }
 
@@ -360,8 +360,8 @@
   justify-content: center;
 }
 .as-btn-show {
-  background: #6366F1;
-  color: #fff;
+  background: #e8a317;
+  color: #1a1a26;
   padding: 14px 32px;
   border-radius: 14px;
   font-size: 16px;
@@ -381,7 +381,7 @@
   border-radius: 4px;
   font-size: 12px;
 }
-.as-btn-show:hover { background: #5558e6; }
+.as-btn-show:hover { background: #d4940e; }
 
 /* Rating buttons */
 .as-rating-buttons {
@@ -431,11 +431,11 @@
 }
 .as-rate-good:hover { background: rgba(16,185,129,0.2); }
 .as-rate-easy {
-  background: rgba(99,102,241,0.1);
-  color: #818cf8;
-  border-color: rgba(99,102,241,0.2);
+  background: rgba(51,154,240,0.1);
+  color: #4dabf7;
+  border-color: rgba(51,154,240,0.2);
 }
-.as-rate-easy:hover { background: rgba(99,102,241,0.2); }
+.as-rate-easy:hover { background: rgba(51,154,240,0.2); }
 
 /* ===== SUMMARY ===== */
 .as-summary {
@@ -486,7 +486,7 @@
 }
 .as-ring-fill {
   fill: none;
-  stroke: #6366F1;
+  stroke: #e8a317;
   stroke-width: 3;
   stroke-linecap: round;
   transition: stroke-dasharray 1s ease;
@@ -560,8 +560,8 @@
 .as-rb-item.hard .as-rb-bar div { background: #f59e0b; }
 .as-rb-item.good .as-rb-label { color: #34d399; }
 .as-rb-item.good .as-rb-bar div { background: #10b981; }
-.as-rb-item.easy .as-rb-label { color: #818cf8; }
-.as-rb-item.easy .as-rb-bar div { background: #6366f1; }
+.as-rb-item.easy .as-rb-label { color: #4dabf7; }
+.as-rb-item.easy .as-rb-bar div { background: #339af0; }
 .as-rb-val {
   width: 24px;
   text-align: left;
@@ -572,8 +572,8 @@
 
 /* XP earned */
 .as-xp-earned {
-  background: rgba(99, 102, 241, 0.12);
-  color: #818cf8;
+  background: rgba(232, 163, 23, 0.12);
+  color: #f0b840;
   padding: 12px 20px;
   border-radius: 12px;
   font-size: 18px;
@@ -708,7 +708,7 @@
 }
 [data-theme="light"] .as-flashcard-back {
   background: linear-gradient(145deg, #f0f0ff, #fff);
-  border-color: #6366F1;
+  border-color: #e8a317;
 }
 [data-theme="light"] .as-card-text { color: #1e293b; }
 [data-theme="light"] .as-card-label { color: #94a3b8; }

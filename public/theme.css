@@ -13,8 +13,8 @@
   --text-primary: #ededef;
   --text-secondary: #a8a8aa;
   --text-tertiary: #8a8a8c;
-  --accent: #818cf8;
-  --accent-hover: #a5b4fc;
+  --accent: #e8a317;
+  --accent-hover: #f0b840;
   
   /* Common */
   --danger: #ef4444;
@@ -37,8 +37,8 @@
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
+  --accent: #d4940e;
+  --accent-hover: #e8a317;
 }
 
 /* Smooth theme transition */

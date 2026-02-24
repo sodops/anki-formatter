@@ -35,7 +35,7 @@
   align-items: center;
   gap: 6px;
   text-decoration: none;
-  color: #6366F1;
+  color: #e8a317;
   font-weight: 600;
   font-size: 14px;
 }
@@ -82,7 +82,7 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  background: linear-gradient(135deg, #e8a317, #f0b840);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +131,7 @@
 [data-theme="dark"] .profile-hero-info h1 { color: #f1f5f9; }
 .profile-username {
   font-size: 14px;
-  color: #6366F1;
+  color: #e8a317;
   font-weight: 500;
   display: block;
   margin-bottom: 6px;
@@ -177,10 +177,10 @@
 }
 .profile-btn ion-icon { font-size: 16px; }
 .profile-btn-connect {
-  background: #6366F1;
+  background: #e8a317;
   color: #fff;
 }
-.profile-btn-connect:hover { background: #4F46E5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.profile-btn-connect:hover { background: #4F46E5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,163,23,0.3); }
 .profile-btn-connect:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 .profile-btn-connected {
   background: #10B98120;
@@ -211,7 +211,7 @@
   color: #e5e7eb;
   border-color: #334155;
 }
-.profile-btn-edit:hover { border-color: #6366F1; color: #6366F1; }
+.profile-btn-edit:hover { border-color: #e8a317; color: #e8a317; }
 
 /* Stats Row */
 .profile-stats-row {
@@ -268,7 +268,7 @@
   gap: 8px;
 }
 [data-theme="dark"] .profile-section-title { color: #f1f5f9; }
-.profile-section-title ion-icon { font-size: 20px; color: #6366F1; }
+.profile-section-title ion-icon { font-size: 20px; color: #e8a317; }
 
 /* Achievements */
 .profile-achievements {
@@ -321,7 +321,7 @@
   background: #1a1a26;
   border-color: #2a2a3a;
 }
-.profile-group-chip-lg:hover { border-color: #6366F1; }
+.profile-group-chip-lg:hover { border-color: #e8a317; }
 .profile-group-dot {
   width: 10px;
   height: 10px;
@@ -338,9 +338,9 @@
 .profile-group-role {
   font-size: 11px;
   font-weight: 600;
-  color: #6366F1;
+  color: #e8a317;
   text-transform: capitalize;
-  background: #6366F110;
+  background: #e8a31710;
   padding: 2px 8px;
   border-radius: 6px;
 }
@@ -370,7 +370,7 @@
 [data-theme="dark"] .profile-activity-type { color: #e5e7eb; }
 .profile-activity-xp {
   font-weight: 700;
-  color: #6366F1;
+  color: #e8a317;
   margin-right: 16px;
 }
 .profile-activity-date {

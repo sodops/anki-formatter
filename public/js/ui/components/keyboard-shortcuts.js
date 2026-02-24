@@ -167,7 +167,7 @@ export function createKeyboardShortcutsModal() {
     outline: none;
     transition: border-color 0.2s;
   `;
-  searchInput.onfocus = () => (searchInput.style.borderColor = "var(--accent, #6366f1)");
+  searchInput.onfocus = () => (searchInput.style.borderColor = "var(--accent, #e8a317)");
   searchInput.onblur = () => (searchInput.style.borderColor = "var(--border)");
 
   searchContainer.appendChild(searchInput);

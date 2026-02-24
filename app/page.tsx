@@ -20,7 +20,8 @@ export default function LandingPage() {
         </Link>
         <div className="about-nav-links">
           <a href="#features">Features</a>
-          <a href="#algorithm">Algorithm</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#dictionary">Dictionary</a>
           <a href="#roadmap">Roadmap</a>
           {!loading &&
             (user ? (
@@ -46,6 +47,9 @@ export default function LandingPage() {
                     <Link href="/app" className="about-nav-dropdown-item">
                       📊 Dashboard
                     </Link>
+                    <Link href="/app/study" className="about-nav-dropdown-item">
+                      📚 Flashcards
+                    </Link>
                     <button className="about-nav-dropdown-item danger" onClick={signOut}>
                       🚪 Sign Out
                     </button>
@@ -54,7 +58,7 @@ export default function LandingPage() {
               </>
             ) : (
               <Link href="/login" className="about-nav-cta">
-                Sign In →
+                Get Started →
               </Link>
             ))}
         </div>
@@ -62,46 +66,32 @@ export default function LandingPage() {
 
       {/* ============ HERO SECTION ============ */}
       <section className="about-hero">
-        <div className="about-hero-badge">⚡ SM-2 Spaced Repetition</div>
+        <div className="about-hero-badge">⚡ Smart Flashcards + Dictionary</div>
         <h1 className="about-hero-title">
-          Strengthen Your Memory <span className="about-gradient-text">Scientifically</span>
+          Learn Smarter, <span className="about-gradient-text">Remember Forever</span>
         </h1>
         <p className="about-hero-subtitle">
-          AnkiFlow — create flashcards, import content, and study with scientifically proven spaced repetition algorithms. 
-          Write once, remember forever.
+          Create flashcards, look up words in the dictionary, and master any subject with 
+          scientifically proven spaced repetition. Your all-in-one learning companion.
         </p>
         <div className="about-hero-actions">
           {user ? (
             <Link href="/app" className="about-btn-primary">
               <span>Go to Dashboard</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
           ) : (
             <Link href="/login" className="about-btn-primary">
-              <span>Start Free</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+              <span>Start Free — No Card Required</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
           )}
-          <a href="#algorithm" className="about-btn-secondary">
-            How It Works?
+          <a href="#how-it-works" className="about-btn-secondary">
+            See How It Works
           </a>
         </div>
 
@@ -123,6 +113,11 @@ export default function LandingPage() {
           </div>
           <div className="about-stat-divider"></div>
           <div className="about-stat">
+            <span className="about-stat-value">📖</span>
+            <span className="about-stat-label">Dictionary</span>
+          </div>
+          <div className="about-stat-divider"></div>
+          <div className="about-stat">
             <span className="about-stat-value">☁️</span>
             <span className="about-stat-label">Cloud Sync</span>
           </div>
@@ -137,17 +132,17 @@ export default function LandingPage() {
             Everything You Need <em>to Learn</em>
           </h2>
           <p className="about-section-subtitle">
-            From smart flashcard creation to advanced spaced repetition algorithms — all in one platform.
+            From smart flashcard creation to built-in dictionary — all in one platform.
           </p>
         </div>
 
         <div className="about-features-grid">
           <div className="about-feature-card">
-            <div className="about-feature-icon">📥</div>
-            <h3>Smart Import</h3>
+            <div className="about-feature-icon">📖</div>
+            <h3>Built-in Dictionary</h3>
             <p>
-              Paste TXT, CSV, DOCX files or Google Docs links — AnkiFlow automatically separates terms and definitions. 
-              Even works with <code>word = translation</code> format.
+              Look up any word instantly with definitions, pronunciation, examples, and phonetics. 
+              Powered by comprehensive dictionary data — no need to leave the app.
             </p>
           </div>
 
@@ -155,17 +150,17 @@ export default function LandingPage() {
             <div className="about-feature-icon">🧠</div>
             <h3>Spaced Repetition (SRS)</h3>
             <p>
-              Based on SM-2 algorithm. Shows what you don't know more often, what you know less frequently. 
+              Based on SM-2 algorithm. Shows what you don&apos;t know more often, what you know less frequently. 
               Saves your time, increases efficiency.
             </p>
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">📋</div>
-            <h3>Bulk Paste</h3>
+            <div className="about-feature-icon">📥</div>
+            <h3>Smart Import</h3>
             <p>
-              Paste multi-line text at once — each line becomes a separate card. 
-              Import 20+ cards instantly.
+              Paste TXT, CSV, DOCX files or Google Docs links — AnkiFlow automatically separates terms and definitions. 
+              Even works with <code>word = translation</code> format.
             </p>
           </div>
 
@@ -186,24 +181,91 @@ export default function LandingPage() {
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">📊</div>
-            <h3>Statistics</h3>
+            <div className="about-feature-icon">👨‍🏫</div>
+            <h3>Teacher &amp; Student Mode</h3>
             <p>
-              Daily goals, streaks, review history, accuracy percentage — track your progress.
+              Teachers create groups and assignments. Students join, study flashcards, earn XP, and track progress together.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ============ SRS ALGORITHM SECTION ============ */}
-      <section className="about-section about-algo-section" id="algorithm">
+      {/* ============ DICTIONARY PREVIEW SECTION ============ */}
+      <section className="about-section about-dict-section" id="dictionary">
+        <div className="about-section-header">
+          <span className="about-section-badge">New Feature</span>
+          <h2 className="about-section-title">
+            Built-in <em>Dictionary</em>
+          </h2>
+          <p className="about-section-subtitle">
+            Look up any English word — get definitions, pronunciation, examples, and phonetics. 
+            All without leaving your study session.
+          </p>
+        </div>
+
+        <div className="about-dict-preview">
+          <div className="about-dict-card">
+            <div className="about-dict-header">
+              <div className="about-dict-word">example</div>
+              <div className="about-dict-phonetic">/ɪɡˈzɑːmpəl/</div>
+              <div className="about-dict-audio">🔊</div>
+            </div>
+            <div className="about-dict-meanings">
+              <div className="about-dict-pos">noun</div>
+              <div className="about-dict-def">
+                A thing characteristic of its kind or illustrating a general rule.
+              </div>
+              <div className="about-dict-example">
+                &quot;it&apos;s a good example of how European architecture influenced the city&quot;
+              </div>
+              <div className="about-dict-pos" style={{ marginTop: '16px' }}>verb</div>
+              <div className="about-dict-def">
+                To be illustrated or exemplified.
+              </div>
+            </div>
+          </div>
+          <div className="about-dict-features">
+            <div className="about-dict-feat">
+              <span className="about-dict-feat-icon">📝</span>
+              <div>
+                <strong>Definitions</strong>
+                <p>Multiple meanings with part of speech</p>
+              </div>
+            </div>
+            <div className="about-dict-feat">
+              <span className="about-dict-feat-icon">🗣️</span>
+              <div>
+                <strong>Pronunciation</strong>
+                <p>IPA phonetics with audio playback</p>
+              </div>
+            </div>
+            <div className="about-dict-feat">
+              <span className="about-dict-feat-icon">💡</span>
+              <div>
+                <strong>Examples</strong>
+                <p>Real-world usage examples</p>
+              </div>
+            </div>
+            <div className="about-dict-feat">
+              <span className="about-dict-feat-icon">📚</span>
+              <div>
+                <strong>Add to Flashcards</strong>
+                <p>Save words directly to your decks</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ HOW IT WORKS SECTION ============ */}
+      <section className="about-section about-algo-section" id="how-it-works">
         <div className="about-section-header">
           <span className="about-section-badge">Scientific Foundation</span>
           <h2 className="about-section-title">
             SM-2: <em>Science-Based</em> Memory Algorithm
           </h2>
           <p className="about-section-subtitle">
-            Developed by scientist Piotr Woźniak in 1987. Based on Ebbinghaus's forgetting curve.
+            Developed by scientist Piotr Woźniak in 1987. Based on Ebbinghaus&apos;s forgetting curve.
           </p>
         </div>
 
@@ -291,7 +353,7 @@ export default function LandingPage() {
           <div className="about-ratings-grid">
             <div className="about-rating-card about-rating-again">
               <div className="about-rating-btn-label">Again</div>
-              <p>Couldn't remember at all</p>
+              <p>Couldn&apos;t remember at all</p>
               <span className="about-rating-effect">
                 → Restarts after 1 minute
                 <br />→ Returns after 3-8 cards in session
@@ -328,7 +390,7 @@ export default function LandingPage() {
       {/* ============ BENEFITS SECTION ============ */}
       <section className="about-section about-benefits-section">
         <div className="about-section-header">
-          <span className="about-section-badge">Why?</span>
+          <span className="about-section-badge">Why AnkiFlow?</span>
           <h2 className="about-section-title">
             Not Just Repetition, <em>Smart</em> Repetition
           </h2>
@@ -339,7 +401,7 @@ export default function LandingPage() {
             <div className="about-benefit-icon">⏱️</div>
             <h3>Save Time</h3>
             <p>
-              Only see cards you're about to forget. Don't waste time on what you already know.
+              Only see cards you&apos;re about to forget. Don&apos;t waste time on what you already know.
             </p>
           </div>
           <div className="about-benefit">
@@ -354,7 +416,7 @@ export default function LandingPage() {
             <div className="about-benefit-icon">🎯</div>
             <h3>Personalized</h3>
             <p>
-              Ease Factor adapts to each card individually. Words you find difficult repeat more often, easy ones less frequently.
+              Ease Factor adapts to each card individually. Words you find difficult repeat more often.
             </p>
           </div>
           <div className="about-benefit">
@@ -375,7 +437,7 @@ export default function LandingPage() {
             Planned <em>New</em> Features
           </h2>
           <p className="about-section-subtitle">
-            AnkiFlow is constantly evolving. Here's what's next:
+            AnkiFlow is constantly evolving. Here&apos;s what&apos;s next:
           </p>
         </div>
 
@@ -404,6 +466,14 @@ export default function LandingPage() {
               <p>Sign in via Google/GitHub, sync across all devices</p>
             </div>
           </div>
+          <div className="about-roadmap-item about-roadmap-done">
+            <div className="about-roadmap-dot"></div>
+            <div className="about-roadmap-content">
+              <span className="about-roadmap-status">✅ Done</span>
+              <h4>Built-in Dictionary</h4>
+              <p>Look up English words with definitions, phonetics, pronunciation, and examples</p>
+            </div>
+          </div>
           <div className="about-roadmap-item about-roadmap-progress">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
@@ -430,20 +500,12 @@ export default function LandingPage() {
               <p>Native app for iOS and Android — works offline</p>
             </div>
           </div>
-          <div className="about-roadmap-item">
-            <div className="about-roadmap-dot"></div>
-            <div className="about-roadmap-content">
-              <span className="about-roadmap-status">📋 Planned</span>
-              <h4>Collaborative Decks</h4>
-              <p>Share decks, collaborative learning, public deck library</p>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* ============ CTA SECTION ============ */}
       <section className="about-cta-section">
-        <h2>Start Now</h2>
+        <h2>Start Learning Today</h2>
         <p>
           Sign up for free and start creating flashcards.
           <br />
@@ -452,28 +514,14 @@ export default function LandingPage() {
         {user ? (
           <Link href="/app" className="about-btn-primary about-btn-large">
             <span>Go to Dashboard</span>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>
         ) : (
           <Link href="/login" className="about-btn-primary about-btn-large">
             <span>Start Free</span>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>

@@ -25,6 +25,7 @@ import { initThemeManager, switchTheme, toggleTheme, getCurrentTheme, THEMES } f
 import { setSpeechLanguage, setSpeechRate, setSpeechPitch, getAvailableVoices } from './utils/tts-helper.js';
 import { createKeyboardShortcutsModal } from './ui/components/keyboard-shortcuts.js';
 import { offlineManager } from './core/offline-manager.js';
+import { initDictionary } from './features/dictionary/dictionary.js';
 
 
 // --- Command Registry ---
@@ -59,7 +60,7 @@ function initAnkiFlow() {
         if (!currentState.decks || currentState.decks.length === 0) {
             const newDeck = store.dispatch('DECK_CREATE', { 
                 name: "My First Deck",
-                color: '#6366F1'
+                color: '#e8a317'
             });
             // Auto-select the new deck
             if (newDeck && newDeck.id) {
@@ -94,6 +95,10 @@ function initAnkiFlow() {
         // Initialize multi-view navigation
         try { initViewManager(); initTabNavigation(); }
         catch (e) { console.error('[INIT] initViewManager FAILED:', e); }
+        
+        // Initialize dictionary
+        try { initDictionary(); }
+        catch (e) { console.error('[INIT] initDictionary FAILED:', e); }
         
         // Initialize daily goal widget
         try { loadDailyGoal(); } catch (e) { console.error('[INIT] loadDailyGoal FAILED:', e); }
@@ -180,7 +185,7 @@ function initAnkiFlow() {
                 if (!s.decks || s.decks.length === 0) {
                     const newDeck = store.dispatch('DECK_CREATE', {
                         name: "My First Deck",
-                        color: '#6366F1'
+                        color: '#e8a317'
                     });
                     if (newDeck && newDeck.id) {
                         store.dispatch('DECK_SELECT', newDeck.id);
