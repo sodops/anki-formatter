@@ -243,15 +243,35 @@ body {
 .sidebar.collapsed .brand span { display: none; }
 .sidebar.collapsed .sidebar-collapse-btn ion-icon { transform: rotate(180deg); }
 .sidebar.collapsed .sidebar-section h3 { display: none; }
-.sidebar.collapsed .deck-item .deck-name { display: none; }
+.sidebar.collapsed .deck-item span { display: none; }
 .sidebar.collapsed .deck-item .due-badge { display: none; }
-.sidebar.collapsed .new-deck-btn span,
-.sidebar.collapsed .new-deck-btn { font-size: 0; justify-content: center; }
+.sidebar.collapsed .deck-item {
+  justify-content: center;
+  padding: 8px;
+}
+.sidebar.collapsed .deck-item > div {
+  justify-content: center;
+  min-width: 0;
+}
+.sidebar.collapsed .new-deck-btn {
+  font-size: 0;
+  justify-content: center;
+  gap: 0;
+  padding: 8px;
+}
 .sidebar.collapsed .new-deck-btn ion-icon { font-size: 18px; }
 .sidebar.collapsed .deck-toolbar { display: none; }
 .sidebar.collapsed .goal-text { display: none; }
 .sidebar.collapsed .goal-info { justify-content: center; }
 .sidebar.collapsed .status-indicator span:not(.dot) { display: none; }
+.sidebar.collapsed .sidebar-trash-btn {
+  font-size: 0;
+  gap: 0;
+  padding: 8px;
+}
+.sidebar.collapsed .sidebar-trash-btn ion-icon { font-size: 16px; }
+.sidebar.collapsed .empty-trash-btn { display: none; }
+.sidebar.collapsed #sidebarFooter { text-align: center; }
 
 .brand {
   display: flex;
