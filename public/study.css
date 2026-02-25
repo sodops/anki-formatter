@@ -275,24 +275,25 @@
 .as-card-area {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   perspective: 1000px;
+  min-height: 0;
 }
 
 /* Flashcard */
 .as-flashcard {
   width: 100%;
-  max-width: 480px;
-  min-height: 280px;
+  max-width: 700px;
+  height: 100%;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .as-flashcard-inner {
   position: relative;
   width: 100%;
-  min-height: 280px;
+  height: 100%;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
 }
@@ -340,6 +341,14 @@
   color: #f1f5f9;
   line-height: 1.4;
   word-break: break-word;
+  max-width: 100%;
+  overflow-y: auto;
+}
+.as-card-text img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
 }
 .as-tap-hint {
   position: absolute;
@@ -736,8 +745,6 @@
 
 /* ===== MOBILE ===== */
 @media (max-width: 480px) {
-  .as-flashcard { min-height: 240px; }
-  .as-flashcard-inner { min-height: 240px; }
   .as-flashcard-front, .as-flashcard-back { padding: 24px 16px; }
   .as-card-text { font-size: 20px; }
   .as-rating-buttons { gap: 6px; }

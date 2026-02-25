@@ -2027,10 +2027,11 @@ tr[draggable="true"]:active {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   font-size: 18px;
   font-weight: 500;
   color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .study-progress-pill {
@@ -2047,17 +2048,20 @@ tr[draggable="true"]:active {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   perspective: 1200px;
   cursor: pointer;
-  padding: 20px;
+  padding: 16px;
+  width: 100%;
+  min-height: 0;
 }
 
 .flashcard-inner {
   position: relative;
   width: 100%;
-  max-width: 640px;
-  height: 400px;
+  max-width: 800px;
+  height: 100%;
+  margin: 0 auto;
   text-align: center;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   transform-style: preserve-3d;
@@ -2150,6 +2154,12 @@ tr[draggable="true"]:active {
 .card-content p {
   margin: 0;
 }
+.card-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
 .card-content strong {
   color: var(--accent);
 }
@@ -2173,12 +2183,13 @@ tr[draggable="true"]:active {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  margin-top: 32px;
+  gap: 12px;
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
+  flex-shrink: 0;
+  padding: 8px 0 16px;
 }
 
 .study-controls .spacer {
@@ -2772,6 +2783,8 @@ tr[draggable="true"]:active {
   height: 100vh;
   background: var(--bg-base);
   position: relative;
+  overflow: hidden;
+  padding: 16px 20px;
 }
 
 .study-workspace::before {
@@ -2797,8 +2810,10 @@ tr[draggable="true"]:active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 20px;
-  gap: 24px;
+  padding: 16px 20px;
+  gap: 16px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .study-placeholder {
@@ -2814,11 +2829,12 @@ tr[draggable="true"]:active {
 
 .study-interface {
   width: 100%;
-  max-width: 800px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  min-height: 0;
 }
 
 /* --- Sidebar Stats Button --- */
@@ -3082,7 +3098,8 @@ tr[draggable="true"]:active {
    =========================== */
 .study-progress-container {
   padding: 0 24px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .study-progress-bar-outer {
@@ -3465,6 +3482,10 @@ tr[draggable="true"]:active {
     padding: 16px;
   }
 
+  .study-workspace {
+    padding: 12px;
+  }
+
   .deck-header {
     flex-wrap: wrap;
     gap: 12px;
@@ -3517,12 +3538,11 @@ tr[draggable="true"]:active {
 
   .flashcard-inner {
     max-width: 100%;
-    height: 300px;
   }
 
   .flashcard-front,
   .flashcard-back {
-    padding: 24px;
+    padding: 20px;
   }
 
   .card-content {
@@ -3604,6 +3624,10 @@ tr[draggable="true"]:active {
     padding: 12px;
   }
 
+  .study-workspace {
+    padding: 8px;
+  }
+
   .nav-tab {
     padding: 8px 10px;
   }
@@ -3613,8 +3637,12 @@ tr[draggable="true"]:active {
   }
 
   .flashcard-inner {
-    height: 250px;
     border-radius: 16px;
+  }
+
+  .flashcard-front,
+  .flashcard-back {
+    padding: 16px;
   }
 
   .card-content {
@@ -3635,7 +3663,7 @@ tr[draggable="true"]:active {
   }
 
   .study-controls {
-    margin-top: 16px;
+    padding: 4px 0 8px;
   }
 }
 
