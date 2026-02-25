@@ -3,6 +3,15 @@
    Inspired by Linear.app, Vercel, Raycast
    =========================== */
 
+/* CSS Consolidation — all stylesheets loaded via single entry point */
+@import url('/about.css');
+@import url('/teacher.css');
+@import url('/student.css');
+@import url('/study.css');
+@import url('/profile.css');
+@import url('/admin.css');
+@import url('/theme.css');
+
 :root {
   /* Core Colors (Proper Dark Grays, not pure black) */
   --bg-base: #0a0a0f;
@@ -2168,6 +2177,12 @@ tr[draggable="true"]:active {
   overflow-wrap: break-word;
   max-width: 100%;
   overflow-y: auto;
+  animation: cardContentIn 0.3s ease;
+}
+
+@keyframes cardContentIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Markdown in Flashcard */
@@ -2306,6 +2321,45 @@ tr[draggable="true"]:active {
 
 .rating-btn ion-icon {
   font-size: 18px;
+}
+
+/* Rating button press feedback */
+.rating-btn:active {
+  transform: scale(0.92) !important;
+  box-shadow: none !important;
+  transition: transform 0.08s ease;
+}
+
+/* Animated reveal for rating buttons */
+.study-rating-buttons:not(.hidden) {
+  animation: ratingReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.study-rating-buttons:not(.hidden) .rating-btn {
+  animation: ratingBtnIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.study-rating-buttons:not(.hidden) .rating-btn:nth-child(1) { animation-delay: 0.05s; }
+.study-rating-buttons:not(.hidden) .rating-btn:nth-child(2) { animation-delay: 0.1s; }
+.study-rating-buttons:not(.hidden) .rating-btn:nth-child(3) { animation-delay: 0.15s; }
+.study-rating-buttons:not(.hidden) .rating-btn:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes ratingReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ratingBtnIn {
+  from { opacity: 0; transform: scale(0.85) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* View container enter animation */
+.view-container:not(.hidden) {
+  animation: viewIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Bulk Action Bar */
@@ -2899,10 +2953,39 @@ tr[draggable="true"]:active {
   width: 240px;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-subtle);
-  padding: 24px 16px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.skeleton-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+.skeleton-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.skeleton-deck-item {
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
 }
 
 .skeleton-main {
@@ -2915,13 +2998,52 @@ tr[draggable="true"]:active {
   height: 60px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
 }
 
 .skeleton-content {
-  padding: 32px;
+  flex: 1;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: center;
+}
+
+.skeleton-tabs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.skeleton-tab {
+  height: 36px;
+  flex: 1;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+.skeleton-tab.active {
+  background: rgba(124, 92, 252, 0.15);
+  animation: none;
+}
+
+.skeleton-flashcard {
+  width: 100%;
+  max-width: 700px;
+  flex: 1;
+  min-height: 300px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border: 1px solid var(--border-subtle);
 }
 
 .skeleton-line {
@@ -5538,4 +5660,59 @@ noscript {
 [data-theme="light"] .dict-error {
   background: rgba(239, 68, 68, 0.04);
   border-color: rgba(239, 68, 68, 0.12);
+}
+
+/* ===========================
+   SERVICE WORKER UPDATE TOAST
+   =========================== */
+.sw-update-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-surface);
+  border: 1px solid var(--accent);
+  color: var(--text-primary);
+  padding: 12px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sw-update-toast.visible {
+  transform: translateX(-50%) translateY(0);
+}
+.sw-update-toast button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}
+.sw-update-toast ion-icon {
+  font-size: 20px;
+  color: var(--accent);
+}
+
+/* ===========================
+   ACCESSIBILITY: Reduced Motion
+   =========================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .flashcard-inner {
+    transition: none !important;
+  }
 }

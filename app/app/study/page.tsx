@@ -96,6 +96,22 @@ export default function Home() {
         .register('/sw.js')
         .then((registration) => {
           console.log('Service Worker registered:', registration);
+          // Listen for updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'activated') {
+                  // New version available — show subtle update notice
+                  const toast = document.createElement('div');
+                  toast.className = 'sw-update-toast';
+                  toast.innerHTML = '<ion-icon name="cloud-download-outline"></ion-icon> New version available <button onclick="location.reload()">Update</button>';
+                  document.body.appendChild(toast);
+                  setTimeout(() => toast.classList.add('visible'), 100);
+                }
+              });
+            }
+          });
         })
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
@@ -372,7 +388,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="study-progress-container" id="studyProgressContainer">
+              <div className="study-progress-container" id="studyProgressContainer" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} aria-label="Study progress">
                 <div className="study-progress-bar-outer">
                   <div className="study-progress-bar-inner" id="studyProgressBar"></div>
                 </div>
@@ -390,7 +406,7 @@ export default function Home() {
                 </div>
 
                 {/* Session Summary */}
-                <div id="sessionSummary" className="session-summary hidden">
+                <div id="sessionSummary" className="session-summary hidden" role="alert" aria-live="assertive">
                   <div className="summary-icon"><ion-icon name="trophy-outline" style={{ fontSize: 48 }}></ion-icon></div>
                   <h2>Session Complete!</h2>
                   <p className="summary-subtitle" id="summarySubtitle">
@@ -453,19 +469,21 @@ export default function Home() {
                 </div>
 
                 {/* Study Interface */}
-                <div id="studyInterface" className="study-interface hidden">
-                  <div className="flashcard-area" id="flashcard">
+                <div id="studyInterface" className="study-interface hidden" role="region" aria-label="Flashcard study area">
+                  {/* Screen reader announcements */}
+                  <div id="studyAnnounce" className="sr-only" aria-live="assertive" aria-atomic="true"></div>
+                  <div className="flashcard-area" id="flashcard" role="button" aria-label="Flashcard - click or press Space to flip" tabIndex={0}>
                     <div className="flashcard-inner">
-                      <div className="flashcard-front">
-                        <button className="tts-btn tts-icon" data-text-role="term" title="Listen">
+                      <div className="flashcard-front" aria-live="polite">
+                        <button className="tts-btn tts-icon" data-text-role="term" title="Listen" aria-label="Read term aloud">
                           <ion-icon name="volume-high-outline"></ion-icon>
                         </button>
                         <div className="card-label">TERM</div>
                         <div className="card-content" id="studyFront"></div>
-                        <div className="hint-text">Click to Flip (Space)</div>
+                        <div className="hint-text" aria-hidden="true">Click to Flip (Space)</div>
                       </div>
-                      <div className="flashcard-back">
-                        <button className="tts-btn tts-icon" data-text-role="def" title="Listen">
+                      <div className="flashcard-back" aria-live="polite">
+                        <button className="tts-btn tts-icon" data-text-role="def" title="Listen" aria-label="Read definition aloud">
                           <ion-icon name="volume-high-outline"></ion-icon>
                         </button>
                         <div className="card-label">DEFINITION</div>
@@ -477,20 +495,20 @@ export default function Home() {
                     <button className="action-btn primary large" id="btnStudyFlip">
                       Show Answer (Space)
                     </button>
-                    <div className="study-rating-buttons hidden">
-                      <button className="rating-btn rating-again" id="btnAgain">
+                    <div className="study-rating-buttons hidden" role="group" aria-label="Rate your answer">
+                      <button className="rating-btn rating-again" id="btnAgain" aria-label="Again - press 1">
                         <ion-icon name="close-circle"></ion-icon> Again{" "}
                         <kbd className="rating-kbd">1</kbd>
                       </button>
-                      <button className="rating-btn rating-hard" id="btnHard">
+                      <button className="rating-btn rating-hard" id="btnHard" aria-label="Hard - press 2">
                         <ion-icon name="sad-outline"></ion-icon> Hard{" "}
                         <kbd className="rating-kbd">2</kbd>
                       </button>
-                      <button className="rating-btn rating-good" id="btnGood">
+                      <button className="rating-btn rating-good" id="btnGood" aria-label="Good - press 3">
                         <ion-icon name="checkmark-circle"></ion-icon> Good{" "}
                         <kbd className="rating-kbd">3</kbd>
                       </button>
-                      <button className="rating-btn rating-easy" id="btnEasy">
+                      <button className="rating-btn rating-easy" id="btnEasy" aria-label="Easy - press 4">
                         <ion-icon name="happy-outline"></ion-icon> Easy{" "}
                         <kbd className="rating-kbd">4</kbd>
                       </button>

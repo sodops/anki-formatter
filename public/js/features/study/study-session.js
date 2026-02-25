@@ -386,6 +386,11 @@ function renderStudyCard() {
     
     // Update UI for answer-hidden state
     updateButtonsForAnswerState();
+
+    // Focus the flashcard area for keyboard accessibility
+    if (dom.flashcard) {
+        dom.flashcard.focus({ preventScroll: true });
+    }
 }
 
 /**
@@ -442,6 +447,10 @@ function updateButtonsForAnswerState() {
             buttonsContainer.querySelectorAll('.rating-kbd').forEach(el => {
                 el.style.display = showHints ? '' : 'none';
             });
+
+            // Announce to screen readers
+            const srAnnounce = document.getElementById('studyAnnounce');
+            if (srAnnounce) srAnnounce.textContent = 'Answer shown. Rate your response.';
         }
     }
 }

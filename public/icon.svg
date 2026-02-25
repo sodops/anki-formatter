@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7C5CFC"/>
+      <stop offset="100%" stop-color="#6B4EE6"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="200" y1="80" x2="320" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0d4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Lightning bolt -->
+  <path d="M296 80L168 272h80l-48 160 128-192h-80l48-160z" fill="url(#bolt)"/>
+</svg>

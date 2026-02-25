@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/og.svg",
+        url: "/og.png",
         width: 1200,
         height: 630,
         alt: "AnkiFlow — Smart flashcard study platform with spaced repetition",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AnkiFlow — Scientific Learning Platform",
     description: "Create, import, and efficiently learn flashcards with SM-2 spaced repetition algorithm",
-    images: ["/og.svg"],
+    images: ["/og.png"],
     creator: "@ankiflow",
   },
   alternates: {
@@ -64,8 +64,11 @@ export const metadata: Metadata = {
     // yandex: "your-yandex-verification-code",
   },
   icons: {
-    icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E",
-    apple: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E",
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.webmanifest",
 };
@@ -74,16 +77,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preconnect to external origins for faster loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
+        {/* Single entry CSS — style.css @imports all others */}
         <link rel="stylesheet" href="/style.css" />
-        <link rel="stylesheet" href="/about.css" />
-        <link rel="stylesheet" href="/teacher.css" />
-        <link rel="stylesheet" href="/student.css" />
-        <link rel="stylesheet" href="/study.css" />
-        <link rel="stylesheet" href="/profile.css" />
         {/* Inline theme detection — must run before paint to prevent FOUC */}
         <script
           dangerouslySetInnerHTML={{
@@ -118,6 +120,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         ></script>
         <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+        {/* Global error monitoring */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var errorLog = [];
+                var MAX_ERRORS = 50;
+                window.addEventListener('error', function(e) {
+                  if (errorLog.length >= MAX_ERRORS) return;
+                  var entry = { type: 'error', msg: e.message, src: e.filename, line: e.lineno, col: e.colno, ts: Date.now() };
+                  errorLog.push(entry);
+                  if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/api/logs', JSON.stringify({ level: 'error', message: e.message, source: e.filename, line: e.lineno, context: 'client' }));
+                  }
+                });
+                window.addEventListener('unhandledrejection', function(e) {
+                  if (errorLog.length >= MAX_ERRORS) return;
+                  var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Unknown rejection';
+                  errorLog.push({ type: 'rejection', msg: msg, ts: Date.now() });
+                  if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/api/logs', JSON.stringify({ level: 'error', message: 'Unhandled rejection: ' + msg, context: 'client' }));
+                  }
+                });
+                window.__ankiflow_errors = errorLog;
+              })();
+            `,
+          }}
+        />
       </head>
       <body suppressHydrationWarning>
         <ErrorBoundary>

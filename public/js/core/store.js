@@ -5,6 +5,8 @@
  * Cloud sync via /api/sync when authenticated
  */
 
+import { idbSet, idbGet, idbDelete } from './idb-cache.js';
+
 // Default state structure
 const DEFAULT_STATE = {
     decks: [],
@@ -293,7 +295,16 @@ class Store {
                 console.log(`[STORE] Cache hit: ${key} (will be overridden by cloud)`);
             } else {
                 this.state = { ...DEFAULT_STATE };
-                console.log(`[STORE] No cache for ${key}, waiting for cloud`);
+                console.log(`[STORE] No localStorage cache for ${key}, trying IndexedDB...`);
+                // Try IndexedDB as fallback (async)
+                idbGet(key).then(data => {
+                    if (data && !this._cloudLoaded) {
+                        this.state = { ...DEFAULT_STATE, ...data };
+                        this._normalizeDecks();
+                        this._notify();
+                        console.log('[STORE] Recovered from IndexedDB cache');
+                    }
+                }).catch(() => {});
             }
         } catch (e) {
             console.error('[STORE] Cache load failed:', e);
@@ -308,6 +319,7 @@ class Store {
         try {
             const key = this._getStateKey();
             localStorage.removeItem(key);
+            idbDelete(key).catch(() => {});
             if (this._authUser && this._authUser.id) {
                 const suffix = `_${this._authUser.id}`;
                 localStorage.removeItem(`ankiflow_settings${suffix}`);
@@ -333,16 +345,17 @@ class Store {
         if (this._persistTimer) clearTimeout(this._persistTimer);
         
         this._persistTimer = setTimeout(() => {
+            const key = this._getStateKey();
+            const stateData = this.state;
             try {
-                const key = this._getStateKey();
-                const stateString = JSON.stringify(this.state);
-                localStorage.setItem(key, stateString);
-                // console.debug('[STORE] Cache updated');
+                localStorage.setItem(key, JSON.stringify(stateData));
             } catch (error) {
                 // localStorage full or unavailable — not a problem, cloud has the data
                 console.warn('[STORE] Cache write failed (non-critical):', error.name);
             }
-        }, 500); // 500ms debounce for heavier localStorage write
+            // Also persist to IndexedDB as robust fallback
+            idbSet(key, stateData).catch(() => {});
+        }, 500); // 500ms debounce for heavier cache write
     }
 
     /**
