@@ -1200,12 +1200,12 @@ function TeacherDashboard() {
               </div>
             )}
 
-            {/* PROFILE TAB */}
+            {/* PROFILE TAB — View Only */}
             {activeTab === "profile" && (
               <div className="t-content">
                 <div className="t-page-header">
                   <h1>My Profile</h1>
-                  <p className="t-subtitle">Manage your personal information</p>
+                  <p className="t-subtitle">Your profile overview</p>
                 </div>
 
                 <div className="t-profile-card">
@@ -1220,49 +1220,44 @@ function TeacherDashboard() {
                     <div className="t-profile-header-info">
                       <h2>{editName || user?.email?.split("@")[0]}</h2>
                       <p className="t-profile-role">{role?.toUpperCase()} · {user?.email}</p>
+                      {editNickname && <p className="t-profile-username">@{editNickname}</p>}
                       {profileData && (
                         <p className="t-profile-joined">Joined {new Date(profileData.created_at).toLocaleDateString()}</p>
                       )}
                     </div>
                   </div>
 
-                  <form onSubmit={saveProfile} className="t-profile-form">
-                    <div className="t-form-row">
-                      <div className="t-form-group">
-                        <label>Display Name *</label>
-                        <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
+                  {/* View-only info */}
+                  <div className="t-profile-details">
+                    {editBio && (
+                      <div className="t-profile-detail-row">
+                        <span className="t-profile-detail-label">Bio</span>
+                        <p className="t-profile-detail-value">{editBio}</p>
                       </div>
-                      <div className="t-form-group">
-                        <label>Username</label>
-                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ''))} placeholder="username" maxLength={50} />
-                        <span className="t-form-hint">{editNickname ? `anki.sodops.uz/profile/${editNickname}` : 'Set a username for your public profile URL'}</span>
+                    )}
+                    <div className="t-profile-detail-row">
+                      <span className="t-profile-detail-label">Email</span>
+                      <p className="t-profile-detail-value">{profileData?.email || user?.email || "—"}</p>
+                    </div>
+                    {editPhone && (
+                      <div className="t-profile-detail-row">
+                        <span className="t-profile-detail-label">Phone</span>
+                        <p className="t-profile-detail-value">{editPhone}</p>
                       </div>
-                    </div>
-                    <div className="t-form-group">
-                      <label>Bio</label>
-                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell your students about yourself, your teaching experience..." rows={3} maxLength={500} />
-                      <span className="t-char-count">{editBio.length}/500</span>
-                    </div>
-                    <div className="t-form-row">
-                      <div className="t-form-group">
-                        <label>Phone</label>
-                        <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={20} />
+                    )}
+                    {editNickname && (
+                      <div className="t-profile-detail-row">
+                        <span className="t-profile-detail-label">Profile URL</span>
+                        <p className="t-profile-detail-value">
+                          <a href={`/profile/${editNickname}`} style={{ color: '#7C5CFC', textDecoration: 'none' }}>anki.sodops.uz/profile/{editNickname}</a>
+                        </p>
                       </div>
-                      <div className="t-form-group">
-                        <label>Email</label>
-                        <input type="email" value={profileData?.email || user?.email || ""} disabled style={{ opacity: 0.6 }} />
-                        <span className="t-form-hint">Email cannot be changed here</span>
-                      </div>
-                    </div>
-                    <div className="t-form-group">
-                      <label>Avatar URL</label>
-                      <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" />
-                      <span className="t-form-hint">Paste a link to your profile picture</span>
-                    </div>
-                    <button type="submit" className="t-btn t-btn-primary" disabled={savingProfile}>
-                      {savingProfile ? "Saving..." : "Save Profile"}
-                    </button>
-                  </form>
+                    )}
+                  </div>
+
+                  <button className="t-btn t-btn-outline" onClick={() => setActiveTab("settings")} style={{ marginTop: 16 }}>
+                    <ion-icon name="settings-outline"></ion-icon> Edit Profile in Settings
+                  </button>
                 </div>
 
                 {/* Quick Stats */}
@@ -1318,6 +1313,45 @@ function TeacherDashboard() {
                         Sign Out
                       </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Profile Editing Section — moved from Profile tab */}
+                <div className="t-section">
+                  <h2 className="t-section-title">Edit Profile</h2>
+                  <div className="t-settings-card">
+                    <form onSubmit={saveProfile} className="t-profile-form">
+                      <div className="t-form-row">
+                        <div className="t-form-group">
+                          <label>Display Name *</label>
+                          <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
+                        </div>
+                        <div className="t-form-group">
+                          <label>Username</label>
+                          <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ''))} placeholder="username" maxLength={50} />
+                          <span className="t-form-hint">{editNickname ? `anki.sodops.uz/profile/${editNickname}` : 'Set a username for your public profile URL'}</span>
+                        </div>
+                      </div>
+                      <div className="t-form-group">
+                        <label>Bio</label>
+                        <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell your students about yourself, your teaching experience..." rows={3} maxLength={500} />
+                        <span className="t-char-count">{editBio.length}/500</span>
+                      </div>
+                      <div className="t-form-row">
+                        <div className="t-form-group">
+                          <label>Phone</label>
+                          <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={20} />
+                        </div>
+                        <div className="t-form-group">
+                          <label>Avatar URL</label>
+                          <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" />
+                          <span className="t-form-hint">Paste a link to your profile picture</span>
+                        </div>
+                      </div>
+                      <button type="submit" className="t-btn t-btn-primary" disabled={savingProfile} style={{ marginTop: 8 }}>
+                        {savingProfile ? "Saving..." : "Save Profile"}
+                      </button>
+                    </form>
                   </div>
                 </div>
 
