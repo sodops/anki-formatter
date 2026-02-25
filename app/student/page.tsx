@@ -73,7 +73,7 @@ function StudentDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "statistics" | "inbox" | "profile" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "assignments" | "groups" | "inbox" | "profile" | "settings">("dashboard");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [xp, setXP] = useState<XPData>({ total_xp: 0, today_xp: 0, level: 1, xp_to_next: 100, current_streak: 0, longest_streak: 0, recent_events: [] });
@@ -102,8 +102,26 @@ function StudentDashboard() {
   const [myConnections, setMyConnections] = useState<any[]>([]);
   const [inboxLoading, setInboxLoading] = useState(false);
 
+  // Modern toast/modal state (replaces native alert/confirm)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void; onCancel?: () => void } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmModal({ message, onConfirm });
+  };
+
   const handleCompleteAssignment = async (assignmentId: string, title: string) => {
-    if (!confirm(`Mark "${title}" as completed? You'll earn XP for this!`)) return;
+    showConfirm(`Mark "${title}" as completed? You'll earn XP for this!`, async () => {
+      await doCompleteAssignment(assignmentId);
+    });
+  };
+
+  const doCompleteAssignment = async (assignmentId: string) => {
     setCompletingId(assignmentId);
     try {
       const res = await fetch(`/api/assignments/${assignmentId}/complete`, {
@@ -129,9 +147,9 @@ function StudentDashboard() {
         setXP(d);
       }
 
-      alert(`🎉 Assignment completed! +${data.xp_awarded || 0} XP earned!`);
+      showToast(`🎉 Assignment completed! +${data.xp_awarded || 0} XP earned!`, 'success');
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setCompletingId(null);
     }
@@ -209,17 +227,19 @@ function StudentDashboard() {
   };
 
   const handleLeaveGroup = async (groupId: string, groupName: string) => {
-    if (!confirm(`Are you sure you want to leave "${groupName}"? You will lose access to assignments in this group.`)) return;
-    try {
-      const res = await fetch(`/api/groups/${groupId}/members/${user?.id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to leave group");
+    showConfirm(`Are you sure you want to leave "${groupName}"? You will lose access to assignments in this group.`, async () => {
+      try {
+        const res = await fetch(`/api/groups/${groupId}/members/${user?.id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to leave group");
+        }
+        setGroups(prev => prev.filter(g => g.id !== groupId));
+        showToast(`Left "${groupName}"`, 'info');
+      } catch (err: any) {
+        showToast(err.message, 'error');
       }
-      setGroups(prev => prev.filter(g => g.id !== groupId));
-    } catch (err: any) {
-      alert(err.message);
-    }
+    });
   };
 
   const markAllRead = async () => {
@@ -274,7 +294,7 @@ function StudentDashboard() {
       if (!res.ok) throw new Error("Failed");
       fetchInbox();
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 
@@ -310,10 +330,10 @@ function StudentDashboard() {
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed");
-      alert("Profile updated!");
+      showToast("Profile updated!", 'success');
       fetchProfile();
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setSavingProfile(false);
     }
@@ -327,7 +347,7 @@ function StudentDashboard() {
   // Read query params on mount
   useEffect(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["dashboard", "assignments", "groups", "statistics", "inbox", "profile", "settings"];
+    const validTabs = ["dashboard", "assignments", "groups", "inbox", "profile", "settings"];
     if (tab && validTabs.includes(tab)) setActiveTab(tab as any);
   }, [searchParams]);
 
@@ -423,10 +443,6 @@ function StudentDashboard() {
             <ion-icon name="people-outline"></ion-icon>
             <span>My Groups</span>
             {groups.length > 0 && <span className="s-nav-count">{groups.length}</span>}
-          </button>
-          <button className={`s-nav-item ${activeTab === 'statistics' ? 'active' : ''}`} onClick={() => switchTab('statistics')}>
-            <ion-icon name="stats-chart-outline"></ion-icon>
-            <span>Statistics</span>
           </button>
           <button className={`s-nav-item ${activeTab === 'inbox' ? 'active' : ''}`} onClick={() => switchTab('inbox')}>
             <ion-icon name="mail-outline"></ion-icon>
@@ -737,12 +753,66 @@ function StudentDashboard() {
               </div>
             )}
 
-            {/* PROGRESS TAB */}
-            {activeTab === "statistics" && (
+            {/* PROFILE TAB — View Only + Full Statistics */}
+            {activeTab === "profile" && (
               <div className="s-content">
                 <div className="s-page-header">
-                  <h1>Statistics</h1>
-                  <p className="s-subtitle">Your learning analytics</p>
+                  <h1>My Profile</h1>
+                  <p className="s-subtitle">Your profile &amp; learning analytics</p>
+                </div>
+
+                <div className="s-profile-card">
+                  <div className="s-profile-header">
+                    <div className="s-profile-avatar-lg">
+                      {editAvatar ? (
+                        <img src={editAvatar} alt="Avatar" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      ) : (
+                        <span>{(editName || user?.email || "S").charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="s-profile-header-info">
+                      <h2>{editName || user?.email?.split("@")[0]}</h2>
+                      <p className="s-profile-role">STUDENT · Level {level}</p>
+                      {editNickname && <p className="s-profile-username">@{editNickname}</p>}
+                      <div className="s-profile-badges">
+                        <span className="s-profile-badge">⚡ {xp.total_xp} XP</span>
+                        {xp.current_streak > 0 && <span className="s-profile-badge">🔥 {xp.current_streak} day streak</span>}
+                        <span className="s-profile-badge">✅ {completedAssignments.length} completed</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* View-only info */}
+                  <div className="s-profile-details">
+                    {editBio && (
+                      <div className="s-profile-detail-row">
+                        <span className="s-profile-detail-label">Bio</span>
+                        <p className="s-profile-detail-value">{editBio}</p>
+                      </div>
+                    )}
+                    <div className="s-profile-detail-row">
+                      <span className="s-profile-detail-label">Email</span>
+                      <p className="s-profile-detail-value">{profileData?.email || user?.email || "—"}</p>
+                    </div>
+                    {editPhone && (
+                      <div className="s-profile-detail-row">
+                        <span className="s-profile-detail-label">Phone</span>
+                        <p className="s-profile-detail-value">{editPhone}</p>
+                      </div>
+                    )}
+                    {editNickname && (
+                      <div className="s-profile-detail-row">
+                        <span className="s-profile-detail-label">Profile URL</span>
+                        <p className="s-profile-detail-value">
+                          <a href={`/profile/${editNickname}`} style={{ color: '#7C5CFC', textDecoration: 'none' }}>anki.sodops.uz/profile/{editNickname}</a>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <button className="s-btn s-btn-outline" onClick={() => setActiveTab("settings")} style={{ marginTop: 16 }}>
+                    <ion-icon name="settings-outline"></ion-icon> Edit Profile in Settings
+                  </button>
                 </div>
 
                 {/* Level & XP Card */}
@@ -850,31 +920,23 @@ function StudentDashboard() {
                           <>
                             <div className="s-bar-row">
                               <span className="s-bar-label">Completed</span>
-                              <div className="s-bar-track">
-                                <div className="s-bar-fill" style={{ width: `${(completed / total) * 100}%`, background: '#10B981' }}></div>
-                              </div>
+                              <div className="s-bar-track"><div className="s-bar-fill" style={{ width: `${(completed / total) * 100}%`, background: '#10B981' }}></div></div>
                               <span className="s-bar-value">{completed}</span>
                             </div>
                             <div className="s-bar-row">
                               <span className="s-bar-label">In Progress</span>
-                              <div className="s-bar-track">
-                                <div className="s-bar-fill" style={{ width: `${(inProgress / total) * 100}%`, background: '#3B82F6' }}></div>
-                              </div>
+                              <div className="s-bar-track"><div className="s-bar-fill" style={{ width: `${(inProgress / total) * 100}%`, background: '#3B82F6' }}></div></div>
                               <span className="s-bar-value">{inProgress}</span>
                             </div>
                             <div className="s-bar-row">
                               <span className="s-bar-label">Not Started</span>
-                              <div className="s-bar-track">
-                                <div className="s-bar-fill" style={{ width: `${(notStarted / total) * 100}%`, background: '#6B7280' }}></div>
-                              </div>
+                              <div className="s-bar-track"><div className="s-bar-fill" style={{ width: `${(notStarted / total) * 100}%`, background: '#6B7280' }}></div></div>
                               <span className="s-bar-value">{notStarted}</span>
                             </div>
                             {overdue > 0 && (
                               <div className="s-bar-row">
                                 <span className="s-bar-label">Overdue</span>
-                                <div className="s-bar-track">
-                                  <div className="s-bar-fill" style={{ width: `${(overdue / total) * 100}%`, background: '#EF4444' }}></div>
-                                </div>
+                                <div className="s-bar-track"><div className="s-bar-fill" style={{ width: `${(overdue / total) * 100}%`, background: '#EF4444' }}></div></div>
                                 <span className="s-bar-value">{overdue}</span>
                               </div>
                             )}
@@ -884,76 +946,6 @@ function StudentDashboard() {
                     </div>
                   )}
                 </div>
-
-                {/* Per-Assignment Accuracy Chart */}
-                {assignments.filter(a => a.my_progress && a.my_progress.total_reviews > 0).length > 0 && (
-                  <div className="s-chart-card">
-                    <h3 className="s-chart-title">🎯 Accuracy by Assignment</h3>
-                    <div className="s-bar-chart">
-                      {assignments
-                        .filter(a => a.my_progress && a.my_progress.total_reviews > 0)
-                        .slice(0, 10)
-                        .map(a => {
-                          const acc = Math.round(a.my_progress?.accuracy || 0);
-                          const color = acc >= 80 ? '#10B981' : acc >= 60 ? '#F59E0B' : '#EF4444';
-                          return (
-                            <div className="s-bar-row" key={a.id}>
-                              <span className="s-bar-label" title={a.title}>{a.title.length > 20 ? a.title.slice(0, 20) + '…' : a.title}</span>
-                              <div className="s-bar-track">
-                                <div className="s-bar-fill" style={{ width: `${acc}%`, background: color }}></div>
-                              </div>
-                              <span className="s-bar-value">{acc}%</span>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
-                {/* XP Earned Per Assignment */}
-                {assignments.filter(a => a.my_progress && (a.my_progress.xp_earned || 0) > 0).length > 0 && (
-                  <div className="s-chart-card">
-                    <h3 className="s-chart-title">⚡ XP Earned by Assignment</h3>
-                    <div className="s-bar-chart">
-                      {assignments
-                        .filter(a => a.my_progress && (a.my_progress.xp_earned || 0) > 0)
-                        .map(a => {
-                          const earned = a.my_progress?.xp_earned || 0;
-                          const maxXP = a.xp_reward || 50;
-                          const pct = Math.min(100, Math.round((earned / maxXP) * 100));
-                          return (
-                            <div className="s-bar-row" key={a.id}>
-                              <span className="s-bar-label" title={a.title}>{a.title.length > 20 ? a.title.slice(0, 20) + '…' : a.title}</span>
-                              <div className="s-bar-track">
-                                <div className="s-bar-fill" style={{ width: `${pct}%`, background: '#F59E0B' }}></div>
-                              </div>
-                              <span className="s-bar-value">{earned}/{maxXP}</span>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Groups Activity */}
-                {groups.length > 0 && (
-                  <div className="s-chart-card">
-                    <h3 className="s-chart-title">👥 Groups</h3>
-                    <div className="s-groups-stats">
-                      {groups.map(g => {
-                        const groupTasks = assignments.filter(a => a.group_id === g.id);
-                        const groupCompleted = groupTasks.filter(a => a.my_progress?.status === "completed").length;
-                        return (
-                          <div key={g.id} className="s-group-stat-row">
-                            <span className="s-group-dot" style={{ background: g.color }}></span>
-                            <span className="s-group-stat-name">{g.name}</span>
-                            <span className="s-group-stat-meta">{groupCompleted}/{groupTasks.length} done · {g.member_count} members</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {/* XP History */}
                 {xp.recent_events && xp.recent_events.length > 0 && (
@@ -971,29 +963,41 @@ function StudentDashboard() {
                   </div>
                 )}
 
-                {/* How to Earn */}
-                <div className="s-chart-card">
-                  <h3 className="s-chart-title">How to Earn XP</h3>
-                  <div className="s-earn-grid">
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">📖</span>
-                      <div><strong>Study Session</strong><span>+5 XP per session</span></div>
+                {/* Achievements */}
+                <div className="s-section">
+                  <h2 className="s-section-title">🏅 Achievements</h2>
+                  <div className="s-achievements-grid">
+                    <div className={`s-achievement ${completedAssignments.length >= 1 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🎯</span>
+                      <div><strong>First Task</strong><span>Complete your first assignment</span></div>
                     </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">✅</span>
-                      <div><strong>Complete Task</strong><span>XP × accuracy %</span></div>
+                    <div className={`s-achievement ${completedAssignments.length >= 5 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">📚</span>
+                      <div><strong>Scholar</strong><span>Complete 5 assignments</span></div>
                     </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">🔥</span>
-                      <div><strong>Daily Streak</strong><span>+10 XP per day</span></div>
+                    <div className={`s-achievement ${xp.current_streak >= 3 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🔥</span>
+                      <div><strong>On Fire</strong><span>3-day study streak</span></div>
                     </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">🏆</span>
-                      <div><strong>Perfect Score</strong><span>+20 XP bonus (100%)</span></div>
+                    <div className={`s-achievement ${xp.current_streak >= 7 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">⚡</span>
+                      <div><strong>Week Warrior</strong><span>7-day study streak</span></div>
                     </div>
-                    <div className="s-earn-item">
-                      <span className="s-earn-icon">⭐</span>
-                      <div><strong>Full Mastery</strong><span>+10% bonus XP</span></div>
+                    <div className={`s-achievement ${xp.total_xp >= 100 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">💯</span>
+                      <div><strong>Century</strong><span>Earn 100 XP total</span></div>
+                    </div>
+                    <div className={`s-achievement ${xp.total_xp >= 500 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🌟</span>
+                      <div><strong>Star Student</strong><span>Earn 500 XP total</span></div>
+                    </div>
+                    <div className={`s-achievement ${groups.length >= 3 ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">👥</span>
+                      <div><strong>Social Learner</strong><span>Join 3 groups</span></div>
+                    </div>
+                    <div className={`s-achievement ${assignments.some(a => (a.my_progress?.accuracy || 0) === 100) ? 'unlocked' : 'locked'}`}>
+                      <span className="s-ach-icon">🏆</span>
+                      <div><strong>Perfect Score</strong><span>100% accuracy on an assignment</span></div>
                     </div>
                   </div>
                 </div>
@@ -1120,120 +1124,6 @@ function StudentDashboard() {
                       ))}
                     </div>
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* PROFILE TAB — View Only */}
-            {activeTab === "profile" && (
-              <div className="s-content">
-                <div className="s-page-header">
-                  <h1>My Profile</h1>
-                  <p className="s-subtitle">Your public profile information</p>
-                </div>
-
-                <div className="s-profile-card">
-                  <div className="s-profile-header">
-                    <div className="s-profile-avatar-lg">
-                      {editAvatar ? (
-                        <img src={editAvatar} alt="Avatar" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                      ) : (
-                        <span>{(editName || user?.email || "S").charAt(0).toUpperCase()}</span>
-                      )}
-                    </div>
-                    <div className="s-profile-header-info">
-                      <h2>{editName || user?.email?.split("@")[0]}</h2>
-                      <p className="s-profile-role">STUDENT · Level {level}</p>
-                      {editNickname && <p className="s-profile-username">@{editNickname}</p>}
-                      <div className="s-profile-badges">
-                        <span className="s-profile-badge">⚡ {xp.total_xp} XP</span>
-                        {xp.current_streak > 0 && <span className="s-profile-badge">🔥 {xp.current_streak} day streak</span>}
-                        <span className="s-profile-badge">✅ {completedAssignments.length} completed</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* View-only info */}
-                  <div className="s-profile-details">
-                    {editBio && (
-                      <div className="s-profile-detail-row">
-                        <span className="s-profile-detail-label">Bio</span>
-                        <p className="s-profile-detail-value">{editBio}</p>
-                      </div>
-                    )}
-                    <div className="s-profile-detail-row">
-                      <span className="s-profile-detail-label">Email</span>
-                      <p className="s-profile-detail-value">{profileData?.email || user?.email || "—"}</p>
-                    </div>
-                    {editPhone && (
-                      <div className="s-profile-detail-row">
-                        <span className="s-profile-detail-label">Phone</span>
-                        <p className="s-profile-detail-value">{editPhone}</p>
-                      </div>
-                    )}
-                    {editNickname && (
-                      <div className="s-profile-detail-row">
-                        <span className="s-profile-detail-label">Profile URL</span>
-                        <p className="s-profile-detail-value">
-                          <a href={`/profile/${editNickname}`} style={{ color: '#7C5CFC', textDecoration: 'none' }}>anki.sodops.uz/profile/{editNickname}</a>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <button className="s-btn s-btn-outline" onClick={() => setActiveTab("settings")} style={{ marginTop: 16 }}>
-                    <ion-icon name="settings-outline"></ion-icon> Edit Profile in Settings
-                  </button>
-                </div>
-
-                {/* Statistics Summary */}
-                <div className="s-section">
-                  <h2 className="s-section-title">📊 Stats Overview</h2>
-                  <div className="s-stats-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-                    <div className="s-stat-card"><div className="s-stat-value">{xp.total_xp}</div><div className="s-stat-label">Total XP</div></div>
-                    <div className="s-stat-card"><div className="s-stat-value">{xp.current_streak}</div><div className="s-stat-label">Day Streak</div></div>
-                    <div className="s-stat-card"><div className="s-stat-value">{completedAssignments.length}</div><div className="s-stat-label">Completed</div></div>
-                    <div className="s-stat-card"><div className="s-stat-value">{groups.length}</div><div className="s-stat-label">Groups</div></div>
-                  </div>
-                </div>
-
-                {/* Achievements */}
-                <div className="s-section">
-                  <h2 className="s-section-title">🏅 Achievements</h2>
-                  <div className="s-achievements-grid">
-                    <div className={`s-achievement ${completedAssignments.length >= 1 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🎯</span>
-                      <div><strong>First Task</strong><span>Complete your first assignment</span></div>
-                    </div>
-                    <div className={`s-achievement ${completedAssignments.length >= 5 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">📚</span>
-                      <div><strong>Scholar</strong><span>Complete 5 assignments</span></div>
-                    </div>
-                    <div className={`s-achievement ${xp.current_streak >= 3 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🔥</span>
-                      <div><strong>On Fire</strong><span>3-day study streak</span></div>
-                    </div>
-                    <div className={`s-achievement ${xp.current_streak >= 7 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">⚡</span>
-                      <div><strong>Week Warrior</strong><span>7-day study streak</span></div>
-                    </div>
-                    <div className={`s-achievement ${xp.total_xp >= 100 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">💯</span>
-                      <div><strong>Century</strong><span>Earn 100 XP total</span></div>
-                    </div>
-                    <div className={`s-achievement ${xp.total_xp >= 500 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🌟</span>
-                      <div><strong>Star Student</strong><span>Earn 500 XP total</span></div>
-                    </div>
-                    <div className={`s-achievement ${groups.length >= 3 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">👥</span>
-                      <div><strong>Social Learner</strong><span>Join 3 groups</span></div>
-                    </div>
-                    <div className={`s-achievement ${assignments.some(a => (a.my_progress?.accuracy || 0) === 100) ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🏆</span>
-                      <div><strong>Perfect Score</strong><span>100% accuracy on an assignment</span></div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -1462,6 +1352,33 @@ function StudentDashboard() {
           <span>Settings</span>
         </button>
       </nav>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="s-toast-overlay">
+          <div className={`s-toast s-toast-${toast.type}`}>
+            <span className="s-toast-icon">
+              {toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : 'ℹ️'}
+            </span>
+            <span className="s-toast-msg">{toast.message}</span>
+            <button className="s-toast-close" onClick={() => setToast(null)}>×</button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div className="s-modal-overlay" onClick={() => { confirmModal.onCancel?.(); setConfirmModal(null); }}>
+          <div className="s-modal-card" onClick={e => e.stopPropagation()}>
+            <h3 className="s-modal-title">Confirm</h3>
+            <p className="s-modal-message">{confirmModal.message}</p>
+            <div className="s-modal-actions">
+              <button className="s-btn s-btn-outline" onClick={() => { confirmModal.onCancel?.(); setConfirmModal(null); }}>Cancel</button>
+              <button className="s-btn s-btn-primary" onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -286,19 +286,43 @@ body {
 .delete-btn,
 .restore-btn,
 .share-btn {
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
+  display: none;
 }
 
 .deck-item:hover .delete-btn,
 .deck-item:hover .restore-btn,
 .deck-item:hover .share-btn {
-  opacity: 1;
+  display: none;
 }
+
+/* Deck Toolbar — actions for active deck, shown above deck list */
+.deck-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+.deck-toolbar .icon-btn {
+  font-size: 16px;
+  padding: 5px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  cursor: pointer;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+}
+.deck-toolbar .icon-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+.deck-toolbar .icon-btn.share-toolbar-btn:hover { color: #7C5CFC; }
+.deck-toolbar .icon-btn.delete-toolbar-btn:hover { color: var(--danger); }
+.deck-toolbar .icon-btn.restore-toolbar-btn:hover { color: var(--success); }
 
 /* Due Cards Badge */
 .due-badge {
@@ -2027,10 +2051,16 @@ tr[draggable="true"]:active {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px 48px;
+  padding: 32px 36px;
   border-radius: 20px;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+/* Auto-shrink font for long definitions */
+.flashcard-back .card-content {
+  font-size: clamp(16px, 3vw, 28px);
+  line-height: 1.5;
 }
 
 .flashcard-front {
@@ -2070,6 +2100,10 @@ tr[draggable="true"]:active {
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow-y: auto;
 }
 
 /* Markdown in Flashcard */

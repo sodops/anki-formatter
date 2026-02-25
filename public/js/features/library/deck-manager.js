@@ -314,7 +314,7 @@ let _showingTrash = false;
  * @param {string} deckName
  */
 export async function shareDeck(deckId, deckName) {
-    const username = prompt(`Share "${deckName}" — Enter the recipient's username:`);
+    const username = await ui.prompt(`Share "${deckName}" — Enter the recipient's username:`);
     if (!username || !username.trim()) return;
 
     try {
@@ -352,6 +352,84 @@ export function renderSidebar() {
         _showingTrash ? d.isDeleted : !d.isDeleted
     );
 
+    // Render deck toolbar for the active deck (action buttons above the list)
+    let toolbar = document.getElementById('deckToolbar');
+    if (!toolbar) {
+        toolbar = document.createElement('div');
+        toolbar.id = 'deckToolbar';
+        toolbar.className = 'deck-toolbar';
+        dom.deckList.parentElement.insertBefore(toolbar, dom.deckList);
+    }
+    toolbar.innerHTML = '';
+    
+    const activeDeck = currentState.decks.find(d => d.id === currentState.activeDeckId);
+    if (activeDeck && !activeDeck.isDeleted && !_showingTrash) {
+        const toolbarLabel = document.createElement('span');
+        toolbarLabel.style.cssText = 'flex:1; font-size:12px; color:var(--text-tertiary); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+        toolbarLabel.textContent = activeDeck.name;
+        toolbar.appendChild(toolbarLabel);
+        
+        const colorBtn = document.createElement('button');
+        colorBtn.className = 'icon-btn';
+        colorBtn.innerHTML = '<ion-icon name="color-palette-outline"></ion-icon>';
+        colorBtn.title = 'Change color';
+        colorBtn.onclick = () => {
+            ui.colorPicker(activeDeck.color || '#7C5CFC', activeDeck.gradient).then(res => {
+                if (res) {
+                    try {
+                        store.dispatch('DECK_UPDATE', { deckId: activeDeck.id, updates: { color: res.color, gradient: res.gradient } });
+                        eventBus.emit(EVENTS.DECK_UPDATED, { id: activeDeck.id });
+                        renderSidebar();
+                    } catch (error) { showToast("Failed to update color"); }
+                }
+            });
+        };
+        toolbar.appendChild(colorBtn);
+        
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'icon-btn';
+        settingsBtn.innerHTML = '<ion-icon name="settings-outline"></ion-icon>';
+        settingsBtn.title = 'Deck settings';
+        settingsBtn.onclick = () => editDeckSettings(activeDeck.id);
+        toolbar.appendChild(settingsBtn);
+        
+        const renameBtn = document.createElement('button');
+        renameBtn.className = 'icon-btn';
+        renameBtn.innerHTML = '<ion-icon name="pencil-outline"></ion-icon>';
+        renameBtn.title = 'Rename';
+        renameBtn.onclick = () => renameDeck(activeDeck.id);
+        toolbar.appendChild(renameBtn);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'icon-btn delete-toolbar-btn';
+        deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+        deleteBtn.title = 'Delete';
+        deleteBtn.onclick = () => deleteDeck(activeDeck.id);
+        toolbar.appendChild(deleteBtn);
+        
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'icon-btn share-toolbar-btn';
+        shareBtn.innerHTML = '<ion-icon name="share-outline"></ion-icon>';
+        shareBtn.title = 'Share deck';
+        shareBtn.onclick = () => shareDeck(activeDeck.id, activeDeck.name);
+        toolbar.appendChild(shareBtn);
+    } else if (_showingTrash && activeDeck && activeDeck.isDeleted) {
+        const toolbarLabel = document.createElement('span');
+        toolbarLabel.style.cssText = 'flex:1; font-size:12px; color:var(--text-tertiary); font-weight:500;';
+        toolbarLabel.textContent = activeDeck.name;
+        toolbar.appendChild(toolbarLabel);
+        
+        const restoreBtn = document.createElement('button');
+        restoreBtn.className = 'icon-btn restore-toolbar-btn';
+        restoreBtn.innerHTML = '<ion-icon name="refresh-outline"></ion-icon>';
+        restoreBtn.title = 'Restore deck';
+        restoreBtn.onclick = () => restoreDeck(activeDeck.id);
+        toolbar.appendChild(restoreBtn);
+    } else {
+        toolbar.style.display = 'none';
+    }
+    if (toolbar.children.length > 0) toolbar.style.display = '';
+
     filteredDecks.forEach(deck => {
         const li = document.createElement('li');
         li.className = `deck-item ${deck.id === currentState.activeDeckId ? 'active' : ''}`;
@@ -364,18 +442,10 @@ export function renderSidebar() {
         const borderStyle = `border-left: 3px solid ${color}`;
         
         li.style.cssText = `${backgroundStyle}; ${borderStyle}`;
-
-        // Action Buttons
-        let actionBtn = '';
-        if (_showingTrash) {
-             // Restore Button (we'll render as HTML string then attach listeners via delegation or onclick for now)
-             // Using data-attributes for event delegation would be cleaner, but keeping explicit onclick requires global scope.
-             // We will Attach listeners to the created elements.
-        }
         
         // Create content container
         const contentDiv = document.createElement('div');
-        contentDiv.style.cssText = "display:flex; align-items:center; gap:8px; flex:1";
+        contentDiv.style.cssText = "display:flex; align-items:center; gap:8px; flex:1; min-width:0;";
         
         const icon = document.createElement('ion-icon');
         icon.name = _showingTrash ? 'trash-outline' : 'folder-open-outline';
@@ -383,6 +453,7 @@ export function renderSidebar() {
         
         const nameSpan = document.createElement('span');
         nameSpan.textContent = deck.name;
+        nameSpan.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
         contentDiv.appendChild(nameSpan);
         
         // Due cards badge
@@ -400,92 +471,10 @@ export function renderSidebar() {
         }
         
         li.appendChild(contentDiv);
-
-        // Buttons Container
-        const btnsDiv = document.createElement('div');
-        btnsDiv.className = 'deck-actions';
-        
-        if (!_showingTrash) {
-            const colorBtn = document.createElement('button');
-            colorBtn.className = 'icon-btn color-picker-btn';
-            colorBtn.innerHTML = '<ion-icon name="color-palette-outline"></ion-icon>';
-            colorBtn.title = 'Change color';
-            colorBtn.onclick = (e) => {
-                e.stopPropagation();
-                ui.colorPicker(deck.color || '#7C5CFC', deck.gradient).then(res => {
-                    if (res) {
-                        try {
-                            store.dispatch('DECK_UPDATE', {
-                                deckId: deck.id,
-                                updates: { color: res.color, gradient: res.gradient }
-                            });
-                            eventBus.emit(EVENTS.DECK_UPDATED, { id: deck.id });
-                            renderSidebar();
-                            appLogger.info(`Deck color updated: ${res.color}`);
-                        } catch (error) {
-                            appLogger.error("Failed to update deck color", error);
-                            showToast("Failed to update color");
-                        }
-                    }
-                });
-            };
-            btnsDiv.appendChild(colorBtn);
-            // Settings Button
-            const settingsBtn = document.createElement('button');
-            settingsBtn.className = 'icon-btn';
-            settingsBtn.innerHTML = '<ion-icon name="settings-outline"></ion-icon>';
-            settingsBtn.title = 'Deck settings';
-            settingsBtn.onclick = (e) => editDeckSettings(deck.id, e);
-            btnsDiv.appendChild(settingsBtn);
-            
-            // Rename Button
-            const renameBtn = document.createElement('button');
-            renameBtn.className = 'icon-btn';
-            renameBtn.innerHTML = '<ion-icon name="pencil-outline"></ion-icon>';
-            renameBtn.title = 'Rename deck';
-            renameBtn.setAttribute('aria-label', 'Rename deck');
-            renameBtn.onclick = (e) => renameDeck(deck.id, e);
-            btnsDiv.appendChild(renameBtn);
-            
-            // Delete Button
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'icon-btn delete-btn';
-            deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
-            deleteBtn.title = 'Delete deck';
-            deleteBtn.setAttribute('aria-label', 'Delete deck');
-            deleteBtn.onclick = (e) => deleteDeck(deck.id, e);
-            btnsDiv.appendChild(deleteBtn);
-
-            // Share Button
-            const shareBtn = document.createElement('button');
-            shareBtn.className = 'icon-btn share-btn';
-            shareBtn.innerHTML = '<ion-icon name="share-outline"></ion-icon>';
-            shareBtn.title = 'Share deck with a friend';
-            shareBtn.setAttribute('aria-label', 'Share deck');
-            shareBtn.onclick = (e) => {
-                e.stopPropagation();
-                shareDeck(deck.id, deck.name);
-            };
-            btnsDiv.appendChild(shareBtn);
-            
-        } else {
-            // Restore Button
-            const restoreBtn = document.createElement('button');
-            restoreBtn.className = 'icon-btn restore-btn';
-            restoreBtn.innerHTML = '<ion-icon name="refresh-outline"></ion-icon>';
-            restoreBtn.title = 'Restore';
-            restoreBtn.onclick = (e) => restoreDeck(deck.id, e);
-            btnsDiv.appendChild(restoreBtn);
-        }
-        
-        li.appendChild(btnsDiv);
         
         // Click handler for switching
-        li.onclick = (e) => {
-            // Check if we clicked an action button
-            if (!e.target.closest('button')) {
-                if(!_showingTrash) switchDeck(deck.id);
-            }
+        li.onclick = () => {
+            if(!_showingTrash) switchDeck(deck.id);
         };
         
         dom.deckList.appendChild(li);
