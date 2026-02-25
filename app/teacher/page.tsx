@@ -110,6 +110,13 @@ function TeacherDashboard() {
     setTimeout(() => setSuccess(""), 2000);
   };
 
+  const copyJoinLink = (code: string) => {
+    const link = `${window.location.origin}/join?code=${code}`;
+    navigator.clipboard.writeText(link);
+    setSuccess("Invite link copied!");
+    setTimeout(() => setSuccess(""), 2000);
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const [groupsRes, assignRes, syncRes] = await Promise.all([
@@ -613,6 +620,9 @@ function TeacherDashboard() {
                             <span>Code: <strong>{g.join_code}</strong></span>
                             <ion-icon name="copy-outline"></ion-icon>
                           </div>
+                          <div className="t-group-code t-group-link" onClick={(e) => { e.preventDefault(); copyJoinLink(g.join_code); }}>
+                            <span><ion-icon name="link-outline"></ion-icon> Copy Invite Link</span>
+                          </div>
                         </Link>
                       ))}
                     </div>
@@ -713,6 +723,9 @@ function TeacherDashboard() {
                         <div className="t-group-code" onClick={() => copyCode(g.join_code)}>
                           <span>Join Code: <strong>{g.join_code}</strong></span>
                           <ion-icon name="copy-outline"></ion-icon>
+                        </div>
+                        <div className="t-group-code t-group-link" onClick={() => copyJoinLink(g.join_code)}>
+                          <span><ion-icon name="link-outline"></ion-icon> Copy Invite Link</span>
                         </div>
                         <div className="t-group-actions">
                           <Link href={`/groups/${g.id}`} className="t-btn t-btn-sm t-btn-outline">

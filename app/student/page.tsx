@@ -327,7 +327,8 @@ function StudentDashboard() {
   // Read query params on mount
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "inbox") setActiveTab("inbox");
+    const validTabs = ["dashboard", "assignments", "groups", "statistics", "inbox", "profile", "settings"];
+    if (tab && validTabs.includes(tab)) setActiveTab(tab as any);
   }, [searchParams]);
 
   if (loading) {
@@ -642,8 +643,7 @@ function StudentDashboard() {
                   <div className="s-empty-state">
                     <div className="s-empty-icon">📋</div>
                     <h3>No assignments yet</h3>
-                    <p>Join a group to receive assignments from your teacher.</p>
-                    <button className="s-btn s-btn-primary" onClick={() => setActiveTab("groups")}>Join a Group</button>
+                    <p>Your assignments from teachers will appear here once you join a group.</p>
                   </div>
                 ) : (
                   <>
@@ -687,13 +687,13 @@ function StudentDashboard() {
                 {/* Join Group Form */}
                 <div className="s-join-card">
                   <h3>Join a Group</h3>
-                  <p className="s-join-desc">Enter the join code from your teacher</p>
+                  <p className="s-join-desc">Use an invite link from your teacher, or enter the code manually</p>
                   <form onSubmit={handleJoinGroup} className="s-join-form">
                     <input
                       type="text"
                       value={joinCode}
                       onChange={e => setJoinCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code (e.g. ABC123)"
+                      placeholder="Paste invite code"
                       maxLength={10}
                       className="s-join-input"
                     />
@@ -1124,12 +1124,12 @@ function StudentDashboard() {
               </div>
             )}
 
-            {/* PROFILE TAB */}
+            {/* PROFILE TAB — View Only */}
             {activeTab === "profile" && (
               <div className="s-content">
                 <div className="s-page-header">
                   <h1>My Profile</h1>
-                  <p className="s-subtitle">Manage your personal information</p>
+                  <p className="s-subtitle">Your public profile information</p>
                 </div>
 
                 <div className="s-profile-card">
@@ -1144,6 +1144,7 @@ function StudentDashboard() {
                     <div className="s-profile-header-info">
                       <h2>{editName || user?.email?.split("@")[0]}</h2>
                       <p className="s-profile-role">STUDENT · Level {level}</p>
+                      {editNickname && <p className="s-profile-username">@{editNickname}</p>}
                       <div className="s-profile-badges">
                         <span className="s-profile-badge">⚡ {xp.total_xp} XP</span>
                         {xp.current_streak > 0 && <span className="s-profile-badge">🔥 {xp.current_streak} day streak</span>}
@@ -1152,43 +1153,48 @@ function StudentDashboard() {
                     </div>
                   </div>
 
-                  <form onSubmit={saveProfile} className="s-profile-form">
-                    <div className="s-form-row">
-                      <div className="s-form-group">
-                        <label>Display Name *</label>
-                        <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
+                  {/* View-only info */}
+                  <div className="s-profile-details">
+                    {editBio && (
+                      <div className="s-profile-detail-row">
+                        <span className="s-profile-detail-label">Bio</span>
+                        <p className="s-profile-detail-value">{editBio}</p>
                       </div>
-                      <div className="s-form-group">
-                        <label>Username</label>
-                        <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ''))} placeholder="username" maxLength={50} />
-                        <span className="s-form-hint">{editNickname ? `anki.sodops.uz/profile/${editNickname}` : 'Set a username for your public profile URL'}</span>
+                    )}
+                    <div className="s-profile-detail-row">
+                      <span className="s-profile-detail-label">Email</span>
+                      <p className="s-profile-detail-value">{profileData?.email || user?.email || "—"}</p>
+                    </div>
+                    {editPhone && (
+                      <div className="s-profile-detail-row">
+                        <span className="s-profile-detail-label">Phone</span>
+                        <p className="s-profile-detail-value">{editPhone}</p>
                       </div>
-                    </div>
-                    <div className="s-form-group">
-                      <label>Bio</label>
-                      <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell others about yourself, your interests, what you're studying..." rows={3} maxLength={500} />
-                      <span className="s-char-count">{editBio.length}/500</span>
-                    </div>
-                    <div className="s-form-row">
-                      <div className="s-form-group">
-                        <label>Phone</label>
-                        <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={20} />
+                    )}
+                    {editNickname && (
+                      <div className="s-profile-detail-row">
+                        <span className="s-profile-detail-label">Profile URL</span>
+                        <p className="s-profile-detail-value">
+                          <a href={`/profile/${editNickname}`} style={{ color: '#7C5CFC', textDecoration: 'none' }}>anki.sodops.uz/profile/{editNickname}</a>
+                        </p>
                       </div>
-                      <div className="s-form-group">
-                        <label>Email</label>
-                        <input type="email" value={profileData?.email || user?.email || ""} disabled style={{ opacity: 0.6 }} />
-                        <span className="s-form-hint">Email cannot be changed here</span>
-                      </div>
-                    </div>
-                    <div className="s-form-group">
-                      <label>Avatar URL</label>
-                      <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" />
-                      <span className="s-form-hint">Paste a link to your profile picture</span>
-                    </div>
-                    <button type="submit" className="s-btn s-btn-primary" disabled={savingProfile}>
-                      {savingProfile ? "Saving..." : "Save Profile"}
-                    </button>
-                  </form>
+                    )}
+                  </div>
+
+                  <button className="s-btn s-btn-outline" onClick={() => setActiveTab("settings")} style={{ marginTop: 16 }}>
+                    <ion-icon name="settings-outline"></ion-icon> Edit Profile in Settings
+                  </button>
+                </div>
+
+                {/* Statistics Summary */}
+                <div className="s-section">
+                  <h2 className="s-section-title">📊 Stats Overview</h2>
+                  <div className="s-stats-row" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                    <div className="s-stat-card"><div className="s-stat-value">{xp.total_xp}</div><div className="s-stat-label">Total XP</div></div>
+                    <div className="s-stat-card"><div className="s-stat-value">{xp.current_streak}</div><div className="s-stat-label">Day Streak</div></div>
+                    <div className="s-stat-card"><div className="s-stat-value">{completedAssignments.length}</div><div className="s-stat-label">Completed</div></div>
+                    <div className="s-stat-card"><div className="s-stat-value">{groups.length}</div><div className="s-stat-label">Groups</div></div>
+                  </div>
                 </div>
 
                 {/* Achievements */}
@@ -1238,6 +1244,45 @@ function StudentDashboard() {
                 <div className="s-page-header">
                   <h1>Settings</h1>
                   <p className="s-subtitle">Manage your account and preferences</p>
+                </div>
+
+                {/* Profile Editing Section — moved from Profile tab */}
+                <div className="s-section">
+                  <h2 className="s-section-title">Edit Profile</h2>
+                  <div className="t-settings-card">
+                    <form onSubmit={saveProfile} className="s-profile-form">
+                      <div className="s-form-row">
+                        <div className="s-form-group">
+                          <label>Display Name *</label>
+                          <input type="text" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your full name" maxLength={100} required />
+                        </div>
+                        <div className="s-form-group">
+                          <label>Username</label>
+                          <input type="text" value={editNickname} onChange={e => setEditNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ''))} placeholder="username" maxLength={50} />
+                          <span className="s-form-hint">{editNickname ? `anki.sodops.uz/profile/${editNickname}` : 'Set a username for your public profile URL'}</span>
+                        </div>
+                      </div>
+                      <div className="s-form-group">
+                        <label>Bio</label>
+                        <textarea value={editBio} onChange={e => setEditBio(e.target.value)} placeholder="Tell others about yourself..." rows={3} maxLength={500} />
+                        <span className="s-char-count">{editBio.length}/500</span>
+                      </div>
+                      <div className="s-form-row">
+                        <div className="s-form-group">
+                          <label>Phone</label>
+                          <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={20} />
+                        </div>
+                        <div className="s-form-group">
+                          <label>Avatar URL</label>
+                          <input type="url" value={editAvatar} onChange={e => setEditAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" />
+                          <span className="s-form-hint">Paste a link to your profile picture</span>
+                        </div>
+                      </div>
+                      <button type="submit" className="s-btn s-btn-primary" disabled={savingProfile} style={{ marginTop: 8 }}>
+                        {savingProfile ? "Saving..." : "Save Profile"}
+                      </button>
+                    </form>
+                  </div>
                 </div>
 
                 {/* Account */}

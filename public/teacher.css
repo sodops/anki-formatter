@@ -505,6 +505,19 @@ body:has(.teacher-container) {
 .t-group-code:hover { background: rgba(124, 92, 252, 0.08); }
 .t-group-code strong { font-family: 'SF Mono', monospace; letter-spacing: 1.5px; }
 .t-group-code ion-icon { font-size: 14px; color: #7C5CFC; }
+.t-group-link {
+  background: rgba(124, 92, 252, 0.06);
+  border: 1px dashed rgba(124, 92, 252, 0.2);
+  color: #7C5CFC;
+  font-weight: 500;
+  margin-top: 4px;
+  justify-content: center;
+  gap: 4px;
+}
+.t-group-link:hover {
+  background: rgba(124, 92, 252, 0.12);
+  border-color: rgba(124, 92, 252, 0.4);
+}
 
 .t-group-actions {
   display: flex;

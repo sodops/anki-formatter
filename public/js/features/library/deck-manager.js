@@ -309,6 +309,31 @@ export async function editDeckSettings(id, event) {
 let _showingTrash = false;
 
 /**
+ * Share a deck with another user by username
+ * @param {string} deckId
+ * @param {string} deckName
+ */
+export async function shareDeck(deckId, deckName) {
+    const username = prompt(`Share "${deckName}" — Enter the recipient's username:`);
+    if (!username || !username.trim()) return;
+
+    try {
+        showToast(`Sharing deck...`, 'info');
+        const res = await fetch('/api/decks/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deck_id: deckId, recipient_username: username.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to share deck');
+        showToast(`✅ ${data.message}`, 'success');
+    } catch (err) {
+        showToast(`❌ ${err.message}`, 'error');
+        appLogger.error('Failed to share deck', err);
+    }
+}
+
+/**
  * Toggle trash view
  */
 export function toggleTrash() {
@@ -430,6 +455,18 @@ export function renderSidebar() {
             deleteBtn.setAttribute('aria-label', 'Delete deck');
             deleteBtn.onclick = (e) => deleteDeck(deck.id, e);
             btnsDiv.appendChild(deleteBtn);
+
+            // Share Button
+            const shareBtn = document.createElement('button');
+            shareBtn.className = 'icon-btn share-btn';
+            shareBtn.innerHTML = '<ion-icon name="share-outline"></ion-icon>';
+            shareBtn.title = 'Share deck with a friend';
+            shareBtn.setAttribute('aria-label', 'Share deck');
+            shareBtn.onclick = (e) => {
+                e.stopPropagation();
+                shareDeck(deck.id, deck.name);
+            };
+            btnsDiv.appendChild(shareBtn);
             
         } else {
             // Restore Button

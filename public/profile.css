@@ -33,11 +33,25 @@
 .profile-back-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   text-decoration: none;
-  color: #7C5CFC;
-  font-weight: 600;
+  color: var(--text-primary, #374151);
+  font-weight: 500;
   font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.profile-back-btn:hover {
+  background: rgba(124, 92, 252, 0.08);
+  color: #7C5CFC;
+}
+[data-theme="dark"] .profile-back-btn {
+  color: #9ca3af;
+}
+[data-theme="dark"] .profile-back-btn:hover {
+  background: rgba(124, 92, 252, 0.12);
+  color: #9B7FFF;
 }
 .profile-back-btn ion-icon { font-size: 18px; }
 .profile-topbar-brand {
@@ -221,18 +235,24 @@
   margin-bottom: 24px;
 }
 .profile-stat {
-  background: rgba(22, 22, 30, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(124, 92, 252, 0.1);
+  background: #ffffff;
+  border: 1px solid rgba(124, 92, 252, 0.15);
   border-radius: 14px;
   padding: 16px 12px;
   text-align: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: 0 2px 12px rgba(124, 92, 252, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.profile-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.12);
 }
 [data-theme="dark"] .profile-stat {
   background: rgba(22, 22, 30, 0.6);
-  border-color: rgba(124, 92, 252, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(124, 92, 252, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 .profile-stat-value {
   font-size: 22px;
@@ -251,18 +271,19 @@
 
 /* Sections */
 .profile-section {
-  background: rgba(22, 22, 30, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(124, 92, 252, 0.08);
+  background: #ffffff;
+  border: 1px solid rgba(124, 92, 252, 0.1);
   border-radius: 14px;
   padding: 20px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: 0 2px 12px rgba(124, 92, 252, 0.04);
 }
 [data-theme="dark"] .profile-section {
   background: rgba(22, 22, 30, 0.6);
-  border-color: rgba(124, 92, 252, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(124, 92, 252, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 .profile-section-title {
   font-size: 16px;
@@ -398,6 +419,14 @@
 
 /* Responsive */
 @media (max-width: 640px) {
+  /* Enable scrolling on mobile - override body overflow:hidden */
+  html:has(.profile-page),
+  body:has(.profile-page) {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
   .profile-hero-content {
     flex-direction: column;
     align-items: center;
