@@ -172,6 +172,9 @@ export default function Home() {
           <div className="brand">
             <ion-icon name="flash"></ion-icon>
             <span>AnkiFlow</span>
+            <button className="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Toggle sidebar" title="Toggle sidebar">
+              <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
             <button className="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
               <ion-icon name="close-outline"></ion-icon>
             </button>
@@ -381,14 +384,14 @@ export default function Home() {
 
               <div className="study-view-container">
                 <div id="studyPlaceholder" className="study-placeholder">
-                  <div className="placeholder-icon">📚</div>
+                  <div className="placeholder-icon"><ion-icon name="library-outline" style={{ fontSize: 48 }}></ion-icon></div>
                   <h3>Start Studying</h3>
                   <p>Select a deck from the Library to begin reviewing cards.</p>
                 </div>
 
                 {/* Session Summary */}
                 <div id="sessionSummary" className="session-summary hidden">
-                  <div className="summary-icon">🎉</div>
+                  <div className="summary-icon"><ion-icon name="trophy-outline" style={{ fontSize: 48 }}></ion-icon></div>
                   <h2>Session Complete!</h2>
                   <p className="summary-subtitle" id="summarySubtitle">
                     You reviewed 0 cards
@@ -502,7 +505,7 @@ export default function Home() {
           <div id="view-dictionary" className="view-container hidden">
             <div className="workspace dict-workspace">
               <div className="deck-header">
-                <h1>📖 Dictionary</h1>
+                <h1><ion-icon name="book-outline" style={{ marginRight: 8, verticalAlign: 'middle' }}></ion-icon> Dictionary</h1>
               </div>
               <div className="dict-container">
                 <div className="dict-search-box">
@@ -824,7 +827,7 @@ export default function Home() {
       {/* IMPORT PREVIEW MODAL */}
       <div id="importPreviewModal" className="modal hidden">
         <div className="preview-modal-content">
-          <h2>📥 Import Preview</h2>
+          <h2><ion-icon name="download-outline" style={{ marginRight: 8, verticalAlign: 'middle' }}></ion-icon> Import Preview</h2>
           <div className="import-stats">
             <span>
               Total: <strong id="importTotal">0</strong> cards

@@ -78,7 +78,7 @@ export default function LoginPage() {
         {/* Left — Hero */}
         <div className="login-hero">
           <div className="login-hero-content">
-            <div className="login-brand-mark">⚡</div>
+            <div className="login-brand-mark"><ion-icon name="flash"></ion-icon></div>
             <h1>AnkiFlow</h1>
             <p className="login-hero-tagline">
               {mode === "signin"
@@ -89,14 +89,14 @@ export default function LoginPage() {
             </p>
             <div className="login-hero-features">
               <div className="login-hero-feature">
-                <span className="login-hero-feature-icon">🔄</span>
+                <span className="login-hero-feature-icon"><ion-icon name="sync-outline"></ion-icon></span>
                 <div>
                   <strong>Cloud Sync</strong>
                   <span>Sync across all your devices</span>
                 </div>
               </div>
               <div className="login-hero-feature">
-                <span className="login-hero-feature-icon">📊</span>
+                <span className="login-hero-feature-icon"><ion-icon name="bar-chart-outline"></ion-icon></span>
                 <div>
                   <strong>Statistics</strong>
                   <span>Track your progress in real-time</span>
@@ -196,7 +196,7 @@ export default function LoginPage() {
                       color: 'var(--text-primary)',
                     }}
                   >
-                    <span style={{ fontSize: '24px' }}>🎓</span>
+                    <span style={{ fontSize: '24px' }}><ion-icon name="school-outline"></ion-icon></span>
                     <span style={{ fontSize: '13px', fontWeight: 600 }}>Student</span>
                     <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Learn & study</span>
                   </button>
@@ -217,7 +217,7 @@ export default function LoginPage() {
                       color: 'var(--text-primary)',
                     }}
                   >
-                    <span style={{ fontSize: '24px' }}>👨‍🏫</span>
+                    <span style={{ fontSize: '24px' }}><ion-icon name="people-circle-outline"></ion-icon></span>
                     <span style={{ fontSize: '13px', fontWeight: 600 }}>Teacher</span>
                     <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Create & assign</span>
                   </button>

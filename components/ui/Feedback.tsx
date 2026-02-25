@@ -173,7 +173,7 @@ export function ErrorMessage({
   return (
     <div style={containerStyle}>
       <div style={cardStyle}>
-        <div style={iconStyle}>⚠️</div>
+        <div style={iconStyle}><ion-icon name="alert-circle" style={{ fontSize: 'inherit' }}></ion-icon></div>
         <h3 style={titleStyle}>{title}</h3>
         <p style={messageStyle}>{message}</p>
         <div style={buttonContainerStyle}>
@@ -240,7 +240,7 @@ export function SuccessMessage({ message, onDismiss }: SuccessMessageProps) {
         }
       `}</style>
       <div style={containerStyle} role="alert">
-        <span>✓</span>
+        <ion-icon name="checkmark-circle" style={{ fontSize: '1.25rem' }}></ion-icon>
         <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>{message}</span>
         {onDismiss && (
           <button style={closeButtonStyle} onClick={onDismiss} aria-label="Close">
@@ -261,7 +261,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon = "📭",
+  icon = "mail-open-outline",
   title,
   message,
   actionLabel,
@@ -307,7 +307,7 @@ export function EmptyState({
 
   return (
     <div style={containerStyle}>
-      <div style={iconStyle}>{icon}</div>
+      <div style={iconStyle}><ion-icon name={icon} style={{ fontSize: 'inherit' }}></ion-icon></div>
       <h3 style={titleStyle}>{title}</h3>
       <p style={messageStyle}>{message}</p>
       {actionLabel && onAction && (

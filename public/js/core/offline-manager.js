@@ -116,30 +116,30 @@ class OfflineManager {
     let bgColor = "var(--bg-secondary)";
 
     if (!this.isOnline) {
-      icon = "📡";
+      icon = "cloud-offline-outline";
       text = "Offline";
       color = "#f59e0b";
       bgColor = "#fef3c7";
     } else if (this.syncStatus === "syncing") {
-      icon = "🔄";
+      icon = "sync-outline";
       text = "Sinxronlanmoqda...";
       color = "#3b82f6";
     } else if (this.syncStatus === "success") {
-      icon = "✓";
+      icon = "checkmark-circle-outline";
       text = "Saqlandi";
       color = "#22c55e";
     } else if (this.syncStatus === "error") {
-      icon = "⚠";
+      icon = "alert-circle-outline";
       text = "Sync xatosi";
       color = "#ef4444";
     } else if (this.pendingChanges > 0) {
-      icon = "💾";
+      icon = "save-outline";
       text = `${this.pendingChanges} o'zgarish saqlanmagan`;
       color = "#f59e0b";
     }
 
     this.indicator.innerHTML = `
-      <span style="font-size: 1.25rem;">${icon}</span>
+      <ion-icon name="${icon}" style="font-size: 1.25rem; color: ${color};"></ion-icon>
       <span style="color: ${color}; font-weight: 600;">${text}</span>
     `;
 

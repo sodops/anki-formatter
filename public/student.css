@@ -64,8 +64,11 @@
   overflow: hidden;
 }
 .s-brand-icon {
-  font-size: 26px;
+  font-size: 24px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: #7C5CFC;
 }
 .s-brand-name {
   font-size: 20px;
@@ -83,7 +86,7 @@
   border-radius: 10px;
   font-weight: 600;
   white-space: nowrap;
-  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* XP mini in sidebar */
@@ -1427,7 +1430,7 @@
 .s-achievement:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .s-achievement.locked { opacity: 0.4; filter: grayscale(0.8); }
 .s-achievement.unlocked { border-color: #F59E0B40; background: linear-gradient(135deg, var(--card-bg), #F59E0B08); }
-.s-ach-icon { font-size: 32px; margin-bottom: 6px; display: block; }
+.s-ach-icon { font-size: 28px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #F59E0B; }
 .s-achievement strong { font-size: 12px; color: var(--text); display: block; margin-bottom: 2px; }
 .s-achievement span:last-child { font-size: 10px; color: var(--text-secondary); display: block; }
 

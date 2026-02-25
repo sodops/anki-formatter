@@ -90,6 +90,9 @@ body:has(.teacher-container) {
 
 .t-brand-icon {
   font-size: 22px;
+  display: flex;
+  align-items: center;
+  color: #7C5CFC;
 }
 
 .t-brand-name {

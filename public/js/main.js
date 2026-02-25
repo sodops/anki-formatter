@@ -984,6 +984,7 @@ function setupHamburgerMenu() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     const closeBtn = document.getElementById('sidebarCloseBtn');
+    const collapseBtn = document.getElementById('sidebarCollapseBtn');
     
     function openSidebar() {
         if (sidebar) sidebar.classList.add('open');
@@ -993,6 +994,16 @@ function setupHamburgerMenu() {
     function closeSidebar() {
         if (sidebar) sidebar.classList.remove('open');
         if (overlay) overlay.classList.remove('active');
+    }
+
+    // Sidebar collapse toggle (desktop)
+    if (collapseBtn && sidebar) {
+        const saved = localStorage.getItem('ankiflow_sidebar_collapsed');
+        if (saved === 'true') sidebar.classList.add('collapsed');
+        collapseBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('ankiflow_sidebar_collapsed', sidebar.classList.contains('collapsed'));
+        });
     }
     
     if (hamburgerBtn) hamburgerBtn.addEventListener('click', openSidebar);

@@ -4,7 +4,7 @@
 
 export function createEmptyState(config) {
   const {
-    icon = "📭",
+    icon = "mail-open-outline",
     title = "Bo'sh",
     description = "",
     actions = [],
@@ -37,12 +37,12 @@ export function createEmptyState(config) {
     container.appendChild(img);
   } else {
     const iconEl = document.createElement("div");
-    iconEl.textContent = icon;
+    iconEl.innerHTML = `<ion-icon name="${icon}" style="font-size:5rem;"></ion-icon>`;
     iconEl.style.cssText = `
-      font-size: 5rem;
       margin-bottom: 1.5rem;
       opacity: 0.5;
       animation: float 3s ease-in-out infinite;
+      color: var(--text-tertiary);
     `;
     container.appendChild(iconEl);
   }
@@ -147,12 +147,12 @@ export function createEmptyState(config) {
 export const EmptyStates = {
   noDeck: (onCreateDeck) =>
     createEmptyState({
-      icon: "📚",
+      icon: "library-outline",
       title: "Birinchi deckingizni yarating",
-      description: "Flashcard o'rganishni boshlash uchun deck yarating. Har bir deck alohida mavzu yoki kurs bo'lishi mumkin.",
+      description: "Flashcard o\u2019rganishni boshlash uchun deck yarating. Har bir deck alohida mavzu yoki kurs bo\u2019lishi mumkin.",
       actions: [
         {
-          label: "➕ Deck yaratish",
+          label: "Deck yaratish",
           primary: true,
           onClick: onCreateDeck,
         },
@@ -161,17 +161,17 @@ export const EmptyStates = {
 
   noCards: (onAddCard, onImport) =>
     createEmptyState({
-      icon: "🎴",
-      title: "Bu deckda cardlar yo'q",
-      description: "Flashcardlarni bitta-bitta qo'shing yoki fayldan import qiling.",
+      icon: "albums-outline",
+      title: "Bu deckda cardlar yo\u2019q",
+      description: "Flashcardlarni bitta-bitta qo\u2019shing yoki fayldan import qiling.",
       actions: [
         {
-          label: "➕ Card qo'shish",
+          label: "Card qo\u2019shish",
           primary: true,
           onClick: onAddCard,
         },
         {
-          label: "📤 Import qilish",
+          label: "Import qilish",
           primary: false,
           onClick: onImport,
         },
@@ -180,7 +180,7 @@ export const EmptyStates = {
 
   noDueCards: () =>
     createEmptyState({
-      icon: "🎉",
+      icon: "trophy-outline",
       title: "Barcha cardlar o'rganildi!",
       description: "Ajoyib! Hozirda takrorlanadigan cardlar yo'q. Ertaga qaytib keling yoki yangi cardlar qo'shing.",
       actions: [],
@@ -188,7 +188,7 @@ export const EmptyStates = {
 
   noSearchResults: (query, onClear) =>
     createEmptyState({
-      icon: "🔍",
+      icon: "search-outline",
       title: "Hech narsa topilmadi",
       description: `"${query}" so'rovi bo'yicha natija yo'q. Boshqa kalit so'z bilan qidiring.`,
       actions: [
@@ -202,7 +202,7 @@ export const EmptyStates = {
 
   trashEmpty: () =>
     createEmptyState({
-      icon: "🗑️",
+      icon: "trash-outline",
       title: "Trash bo'sh",
       description: "O'chirilgan decklar bu yerda ko'rinadi.",
       actions: [],
@@ -210,7 +210,7 @@ export const EmptyStates = {
 
   offlineNoData: () =>
     createEmptyState({
-      icon: "📡",
+      icon: "cloud-offline-outline",
       title: "Offline rejim",
       description: "Internet yo'q va lokal keshda ma'lumot yo'q. Internetga ulanib, sync qiling.",
       actions: [],
@@ -218,12 +218,12 @@ export const EmptyStates = {
 
   syncError: (onRetry) =>
     createEmptyState({
-      icon: "⚠️",
+      icon: "alert-circle-outline",
       title: "Sync xatosi",
-      description: "Ma'lumotlarni yuklashda xatolik yuz berdi. Internetni tekshiring va qaytadan urinib ko'ring.",
+      description: "Ma\u2019lumotlarni yuklashda xatolik yuz berdi. Internetni tekshiring va qaytadan urinib ko\u2019ring.",
       actions: [
         {
-          label: "🔄 Qayta urinish",
+          label: "Qayta urinish",
           primary: true,
           onClick: onRetry,
         },
@@ -232,12 +232,12 @@ export const EmptyStates = {
 
   firstStudy: (onStart) =>
     createEmptyState({
-      icon: "🚀",
-      title: "O'qishni boshlang!",
-      description: "Spaced Repetition algoritmi yordamida samarali o'rganing. Har kuni bir oz vaqt ajrating!",
+      icon: "rocket-outline",
+      title: "O\u2019qishni boshlang!",
+      description: "Spaced Repetition algoritmi yordamida samarali o\u2019rganing. Har kuni bir oz vaqt ajrating!",
       actions: [
         {
-          label: "📖 Boshlash",
+          label: "Boshlash",
           primary: true,
           onClick: onStart,
         },

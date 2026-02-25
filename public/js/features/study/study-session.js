@@ -258,7 +258,7 @@ export function startStudySession(skipViewSwitch = false) {
     const dueCards = getDueCards(deck);
     
     if (dueCards.length === 0) {
-        ui.alert("No cards are due for review right now! 🎉\n\nCome back later or add new cards.");
+        ui.alert("No cards are due for review right now!\n\nCome back later or add new cards.");
         return;
     }
     

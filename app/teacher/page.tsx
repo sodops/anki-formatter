@@ -402,7 +402,7 @@ function TeacherDashboard() {
         <button className="t-hamburger" onClick={() => setSidebarOpen(true)}>
           <ion-icon name="menu-outline"></ion-icon>
         </button>
-        <span className="t-brand-icon">⚡</span>
+        <span className="t-brand-icon"><ion-icon name="flash"></ion-icon></span>
         <span className="t-brand-name">AnkiFlow</span>
         <span className="t-role-tag">Teacher</span>
       </div>
@@ -416,7 +416,7 @@ function TeacherDashboard() {
           <button className="t-sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title="Toggle sidebar">
             <ion-icon name={sidebarCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'}></ion-icon>
           </button>
-          <span className="t-brand-icon">⚡</span>
+          <span className="t-brand-icon"><ion-icon name="flash"></ion-icon></span>
           <span className="t-brand-name">AnkiFlow</span>
           <span className="t-role-tag">Teacher</span>
         </div>
@@ -533,7 +533,7 @@ function TeacherDashboard() {
               <div className="t-content">
                 <div className="t-page-header">
                   <div>
-                    <h1>Welcome back, {user.user_metadata?.full_name || user.email?.split("@")[0] || "Teacher"} 👋</h1>
+                    <h1>Welcome back, {user.user_metadata?.full_name || user.email?.split("@")[0] || "Teacher"}</h1>
                     <p className="t-subtitle">Here&apos;s what&apos;s happening with your classes</p>
                   </div>
                 </div>
@@ -655,7 +655,7 @@ function TeacherDashboard() {
                                       {new Date(a.deadline).toLocaleDateString()}
                                     </span>
                                   )}
-                                  <span className="t-assign-xp">⚡ {a.xp_reward} XP</span>
+                                  <span className="t-assign-xp"><ion-icon name="flash" style={{ fontSize: 12 }}></ion-icon> {a.xp_reward} XP</span>
                                 </div>
                               </div>
                             </div>
@@ -674,7 +674,7 @@ function TeacherDashboard() {
 
                 {groups.length === 0 && (
                   <div className="t-empty-state">
-                    <div className="t-empty-icon">📚</div>
+                    <div className="t-empty-icon"><ion-icon name="library-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>Get Started!</h3>
                     <p>Create your first group and start assigning tasks to students.</p>
                     <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>
@@ -702,7 +702,7 @@ function TeacherDashboard() {
 
                 {groups.length === 0 ? (
                   <div className="t-empty-state">
-                    <div className="t-empty-icon">👥</div>
+                    <div className="t-empty-icon"><ion-icon name="people-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>No groups yet</h3>
                     <p>Create a group and share the join code with your students.</p>
                     <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>Create Group</button>
@@ -758,7 +758,7 @@ function TeacherDashboard() {
 
                 {assignments.length === 0 ? (
                   <div className="t-empty-state">
-                    <div className="t-empty-icon">📝</div>
+                    <div className="t-empty-icon"><ion-icon name="document-text-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>No assignments yet</h3>
                     <p>Create an assignment and assign it to one of your groups.</p>
                     <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-assignment")}>Create Assignment</button>
@@ -784,7 +784,7 @@ function TeacherDashboard() {
                                     {isOverdue ? 'Overdue: ' : 'Due: '}{new Date(a.deadline).toLocaleDateString()}
                                   </span>
                                 )}
-                                <span className="t-assign-xp">⚡ {a.xp_reward} XP</span>
+                                <span className="t-assign-xp"><ion-icon name="flash" style={{ fontSize: 12 }}></ion-icon> {a.xp_reward} XP</span>
                               </div>
                             </div>
                             <span className={`t-status-badge ${a.status}`}>{a.status}</span>
@@ -851,7 +851,7 @@ function TeacherDashboard() {
                 </div>
                 {groups.length === 0 ? (
                   <div className="t-empty-state">
-                    <div className="t-empty-icon">⚠️</div>
+                    <div className="t-empty-icon"><ion-icon name="alert-circle-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>Create a group first</h3>
                     <p>You need at least one group before creating assignments.</p>
                     <button className="t-btn t-btn-primary" onClick={() => setActiveTab("create-group")}>Create Group</button>
@@ -957,7 +957,7 @@ function TeacherDashboard() {
                     {/* Group Performance */}
                     {teacherStats.group_stats.length > 0 && (
                       <div className="t-section">
-                        <h2 className="t-section-title">📊 Group Performance</h2>
+                        <h2 className="t-section-title"><ion-icon name="bar-chart-outline" style={{ marginRight: 8 }}></ion-icon> Group Performance</h2>
                         <div className="t-stats-table">
                           <div className="t-stats-table-header">
                             <span>Group</span>
@@ -994,11 +994,11 @@ function TeacherDashboard() {
                     {/* Top Students Leaderboard */}
                     {teacherStats.top_students.length > 0 && (
                       <div className="t-section">
-                        <h2 className="t-section-title">🏆 Top Students</h2>
+                        <h2 className="t-section-title"><ion-icon name="trophy-outline" style={{ marginRight: 8 }}></ion-icon> Top Students</h2>
                         <div className="t-leaderboard">
                           {teacherStats.top_students.map((s: any, i: number) => (
                             <div key={s.id} className={`t-leaderboard-item ${i < 3 ? 'top-' + (i + 1) : ''}`}>
-                              <span className="t-lb-rank">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</span>
+                              <span className="t-lb-rank">{`#${i + 1}`}</span>
                               <div className="t-lb-avatar">
                                 {s.avatar_url ? (
                                   <img src={s.avatar_url} alt="" />
@@ -1010,10 +1010,10 @@ function TeacherDashboard() {
                                 <div className="t-lb-name">{s.name}</div>
                                 <div className="t-lb-meta">
                                   {s.completed_tasks}/{s.total_tasks} tasks · {s.avg_accuracy}% accuracy
-                                  {s.current_streak > 0 && <span> · 🔥{s.current_streak}</span>}
+                                  {s.current_streak > 0 && <span> · <ion-icon name="flame" style={{ fontSize: 14, verticalAlign: 'middle', color: '#F59E0B' }}></ion-icon>{s.current_streak}</span>}
                                 </div>
                               </div>
-                              <div className="t-lb-xp">⚡ {s.total_xp} XP</div>
+                              <div className="t-lb-xp"><ion-icon name="flash" style={{ fontSize: 14 }}></ion-icon> {s.total_xp} XP</div>
                             </div>
                           ))}
                         </div>
@@ -1023,7 +1023,7 @@ function TeacherDashboard() {
                     {/* All Students Table */}
                     {teacherStats.students.length > 0 && (
                       <div className="t-section">
-                        <h2 className="t-section-title">👥 All Students ({teacherStats.students.length})</h2>
+                        <h2 className="t-section-title"><ion-icon name="people-outline" style={{ marginRight: 8 }}></ion-icon> All Students ({teacherStats.students.length})</h2>
                         <div className="t-stats-table">
                           <div className="t-stats-table-header">
                             <span>Student</span>
@@ -1047,7 +1047,7 @@ function TeacherDashboard() {
                               </span>
                               <span>{s.total_reviews}</span>
                               <span>{Math.round(s.total_time_seconds / 60)}m</span>
-                              <span>⚡ {s.total_xp}</span>
+                              <span><ion-icon name="flash" style={{ fontSize: 12 }}></ion-icon> {s.total_xp}</span>
                             </div>
                           ))}
                         </div>
@@ -1056,7 +1056,7 @@ function TeacherDashboard() {
 
                     {teacherStats.students.length === 0 && (
                       <div className="t-empty-state">
-                        <div className="t-empty-icon">📊</div>
+                        <div className="t-empty-icon"><ion-icon name="bar-chart-outline" style={{ fontSize: 48 }}></ion-icon></div>
                         <h3>No student data yet</h3>
                         <p>Statistics will appear once students join your groups and start studying.</p>
                       </div>
@@ -1064,7 +1064,7 @@ function TeacherDashboard() {
                   </>
                 ) : (
                   <div className="t-empty-state">
-                    <div className="t-empty-icon">📊</div>
+                    <div className="t-empty-icon"><ion-icon name="bar-chart-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>No statistics available</h3>
                     <p>Create groups and assignments to see student analytics.</p>
                   </div>
@@ -1099,7 +1099,7 @@ function TeacherDashboard() {
                       </h2>
                       {inboxRequests.length === 0 ? (
                         <div className="t-empty-state" style={{ padding: '2rem' }}>
-                          <div className="t-empty-icon">👋</div>
+                          <div className="t-empty-icon"><ion-icon name="hand-left-outline" style={{ fontSize: 48 }}></ion-icon></div>
                           <p>No pending friend requests</p>
                         </div>
                       ) : (
@@ -1174,7 +1174,7 @@ function TeacherDashboard() {
                       </h2>
                       {inboxNotifications.length === 0 ? (
                         <div className="t-empty-state" style={{ padding: '2rem' }}>
-                          <div className="t-empty-icon">🔔</div>
+                          <div className="t-empty-icon"><ion-icon name="notifications-outline" style={{ fontSize: 48 }}></ion-icon></div>
                           <p>No notifications yet</p>
                         </div>
                       ) : (
@@ -1182,7 +1182,7 @@ function TeacherDashboard() {
                           {inboxNotifications.map(n => (
                             <div key={n.id} onClick={() => !n.is_read && markNotifRead(n.id)} className="t-card" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, cursor: !n.is_read ? 'pointer' : 'default', opacity: n.is_read ? 0.6 : 1, borderLeft: !n.is_read ? '3px solid #7C5CFC' : '3px solid transparent' }}>
                               <div style={{ fontSize: 20, flexShrink: 0 }}>
-                                {n.type === 'connection_request' ? '👋' : n.type === 'connection_accepted' ? '🤝' : n.type === 'assignment_new' ? '📝' : n.type === 'assignment_graded' ? '⭐' : n.type === 'xp_earned' ? '⚡' : '🔔'}
+                                <ion-icon name={n.type === 'connection_request' ? 'hand-left-outline' : n.type === 'connection_accepted' ? 'people-outline' : n.type === 'assignment_new' ? 'document-text-outline' : n.type === 'assignment_graded' ? 'star-outline' : n.type === 'xp_earned' ? 'flash-outline' : 'notifications-outline'}></ion-icon>
                               </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontWeight: 600, color: '#fff', fontSize: 14 }}>{n.title}</div>

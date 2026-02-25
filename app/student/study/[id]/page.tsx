@@ -243,7 +243,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
   if (error) {
     return (
       <div className="as-loading">
-        <div className="as-error-icon">⚠️</div>
+        <div className="as-error-icon"><ion-icon name="alert-circle-outline" style={{ fontSize: 48 }}></ion-icon></div>
         <h2>Error</h2>
         <p>{error}</p>
         <Link href="/student" className="as-btn as-btn-primary">← Back</Link>
@@ -261,7 +261,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
           </Link>
 
           <div className="as-ready-card">
-            <div className="as-ready-icon">📚</div>
+            <div className="as-ready-icon"><ion-icon name="library-outline" style={{ fontSize: 48 }}></ion-icon></div>
             <h1>{assignment.title}</h1>
             <div className="as-ready-meta">
               {assignment.deadline && (
@@ -270,7 +270,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
                   Due: {new Date(assignment.deadline).toLocaleDateString()}
                 </span>
               )}
-              <span className="as-xp-badge">⚡ {assignment.xp_reward} XP</span>
+              <span className="as-xp-badge"><ion-icon name="flash" style={{ fontSize: 14 }}></ion-icon> {assignment.xp_reward} XP</span>
             </div>
 
             <div className="as-ready-stats">
@@ -410,7 +410,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
       <div className="as-container">
         <div className="as-summary">
           <div className="as-summary-card">
-            <div className="as-summary-icon">🎉</div>
+            <div className="as-summary-icon"><ion-icon name="trophy-outline" style={{ fontSize: 48 }}></ion-icon></div>
             <h1>Session Complete!</h1>
             <p className="as-summary-subtitle">{assignment?.title}</p>
 
@@ -465,8 +465,8 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
 
             {/* XP info */}
             <div className="as-xp-earned">
-              ⚡ +5 XP for this study session
-              {accuracy === 100 && <span> · 🏆 Perfect score bonus available!</span>}
+              <ion-icon name="flash" style={{ fontSize: 16, verticalAlign: 'middle' }}></ion-icon> +5 XP for this study session
+              {accuracy === 100 && <span> · <ion-icon name="trophy" style={{ fontSize: 14, verticalAlign: 'middle', color: '#F59E0B' }}></ion-icon> Perfect score bonus available!</span>}
             </div>
             <div className="as-xp-formula">
               <span>Completion reward: up to {assignment?.xp_reward || 0} XP (based on {accuracy}% accuracy = ~{Math.round((assignment?.xp_reward || 0) * Math.max(0.1, accuracy / 100))} XP)</span>
@@ -492,9 +492,9 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
               </div>
             ) : (
               <div className="as-complete-success">
-                <div className="as-complete-check">✅</div>
+                <div className="as-complete-check"><ion-icon name="checkmark-circle" style={{ fontSize: 40, color: '#10B981' }}></ion-icon></div>
                 <h3>Assignment Completed!</h3>
-                <p className="as-xp-awarded">⚡ +{xpAwarded} XP earned!</p>
+                <p className="as-xp-awarded"><ion-icon name="flash" style={{ fontSize: 16, verticalAlign: 'middle' }}></ion-icon> +{xpAwarded} XP earned!</p>
               </div>
             )}
 

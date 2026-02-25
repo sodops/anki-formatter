@@ -146,7 +146,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
       <aside className="teacher-sidebar">
         <div className="teacher-sidebar-header">
           <Link href="/teacher" className="teacher-logo">
-            <span className="teacher-logo-icon">⚡</span>
+            <span className="teacher-logo-icon"><ion-icon name="flash"></ion-icon></span>
             <span>AnkiFlow</span>
           </Link>
         </div>
@@ -339,11 +339,11 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
                               </div>
                               <div className="teacher-sd-item">
                                 <span className="teacher-sd-label">Student Total XP</span>
-                                <span className="teacher-sd-val">⚡ {p.profiles?.total_xp || 0}</span>
+                                <span className="teacher-sd-val"><ion-icon name="flash" style={{ fontSize: 14 }}></ion-icon> {p.profiles?.total_xp || 0}</span>
                               </div>
                               <div className="teacher-sd-item">
                                 <span className="teacher-sd-label">Current Streak</span>
-                                <span className="teacher-sd-val">🔥 {p.profiles?.current_streak || 0} days</span>
+                                <span className="teacher-sd-val"><ion-icon name="flame" style={{ fontSize: 14, color: '#F59E0B' }}></ion-icon> {p.profiles?.current_streak || 0} days</span>
                               </div>
                               <div className="teacher-sd-item">
                                 <span className="teacher-sd-label">Cards Studied</span>

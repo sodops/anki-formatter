@@ -310,6 +310,7 @@ let _showingTrash = false;
 
 /**
  * Share a deck with another user by username
+ * Shows a persistent modal with loading/success/error status
  * @param {string} deckId
  * @param {string} deckName
  */
@@ -317,8 +318,21 @@ export async function shareDeck(deckId, deckName) {
     const username = await ui.prompt(`Share "${deckName}" — Enter the recipient's username:`);
     if (!username || !username.trim()) return;
 
+    // Keep modal open and show loading state
+    dom.customModalTitle.textContent = `Sharing "${deckName}"`;
+    dom.customModalInputContainer.classList.add('hidden');
+    dom.customModalContent.style.display = 'block';
+    dom.customModalContent.innerHTML = `
+        <div style="text-align:center;padding:16px 0;">
+            <div style="width:32px;height:32px;border:3px solid var(--border-default,#333);border-top-color:var(--accent,#7C5CFC);border-radius:50%;animation:dictSpin 0.7s linear infinite;margin:0 auto 12px;"></div>
+            <p style="color:var(--text-secondary,#94a3b8);font-size:14px;">Sharing with <strong>@${username.trim()}</strong>...</p>
+        </div>
+    `;
+    dom.btnModalCancel.style.display = 'none';
+    dom.btnModalConfirm.style.display = 'none';
+    dom.customModal.classList.remove('hidden');
+
     try {
-        showToast(`Sharing deck...`, 'info');
         const res = await fetch('/api/decks/share', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -326,9 +340,43 @@ export async function shareDeck(deckId, deckName) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to share deck');
-        showToast(`✅ ${data.message}`, 'success');
+
+        // Show success
+        dom.customModalContent.innerHTML = `
+            <div style="text-align:center;padding:16px 0;">
+                <ion-icon name="checkmark-circle" style="font-size:40px;color:#10B981;display:block;margin:0 auto 12px;"></ion-icon>
+                <p style="color:var(--text-primary,#fff);font-size:15px;font-weight:600;">${data.message || 'Deck shared successfully!'}</p>
+                <p style="color:var(--text-secondary,#94a3b8);font-size:13px;margin-top:4px;">Shared with @${username.trim()}</p>
+            </div>
+        `;
+        dom.btnModalConfirm.textContent = 'Done';
+        dom.btnModalConfirm.style.display = 'block';
+        const doneHandler = () => {
+            dom.customModal.classList.add('hidden');
+            dom.btnModalConfirm.removeEventListener('click', doneHandler);
+        };
+        dom.btnModalConfirm.addEventListener('click', doneHandler);
+        // Auto-close after 3s
+        setTimeout(() => {
+            dom.customModal.classList.add('hidden');
+            dom.btnModalConfirm.removeEventListener('click', doneHandler);
+        }, 3000);
     } catch (err) {
-        showToast(`❌ ${err.message}`, 'error');
+        // Show error
+        dom.customModalContent.innerHTML = `
+            <div style="text-align:center;padding:16px 0;">
+                <ion-icon name="close-circle" style="font-size:40px;color:#EF4444;display:block;margin:0 auto 12px;"></ion-icon>
+                <p style="color:var(--text-primary,#fff);font-size:15px;font-weight:600;">Failed to share</p>
+                <p style="color:#f87171;font-size:13px;margin-top:4px;">${err.message}</p>
+            </div>
+        `;
+        dom.btnModalConfirm.textContent = 'Close';
+        dom.btnModalConfirm.style.display = 'block';
+        const closeHandler = () => {
+            dom.customModal.classList.add('hidden');
+            dom.btnModalConfirm.removeEventListener('click', closeHandler);
+        };
+        dom.btnModalConfirm.addEventListener('click', closeHandler);
         appLogger.error('Failed to share deck', err);
     }
 }

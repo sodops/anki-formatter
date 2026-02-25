@@ -120,10 +120,14 @@ function renderResult(data, container) {
   if (audioBtn) {
     audioBtn.addEventListener('click', () => {
       const url = audioBtn.dataset.audio;
-      if (url) {
-        if (dictAudio) dictAudio.pause();
-        dictAudio = new Audio(url);
-        dictAudio.play().catch(() => {});
+      if (url && url.startsWith('http')) {
+        if (dictAudio) { dictAudio.pause(); dictAudio = null; }
+        dictAudio = new Audio();
+        dictAudio.preload = 'none';
+        dictAudio.src = url;
+        dictAudio.play().catch(() => {
+          // Audio not available — silently ignore
+        });
       }
     });
   }

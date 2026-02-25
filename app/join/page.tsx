@@ -65,7 +65,7 @@ function JoinGroupContent() {
     return (
       <div className="join-page">
         <div className="join-card">
-          <div className="join-icon">🔒</div>
+          <div className="join-icon"><ion-icon name="lock-closed-outline" style={{ fontSize: 48 }}></ion-icon></div>
           <h1>Sign in to Join</h1>
           <p>You need to be signed in to join a study group.</p>
           <Link href={`/login?redirect=/join?code=${encodeURIComponent(code)}`} className="join-btn join-btn-primary">
@@ -82,7 +82,7 @@ function JoinGroupContent() {
       <div className="join-card">
         {status === "idle" && (
           <>
-            <div className="join-icon">👥</div>
+            <div className="join-icon"><ion-icon name="people-outline" style={{ fontSize: 48 }}></ion-icon></div>
             <h1>Join a Study Group</h1>
             <p>Enter the invite code or use a join link from your teacher.</p>
             <form onSubmit={handleManualJoin} className="join-form">
@@ -113,7 +113,7 @@ function JoinGroupContent() {
 
         {status === "success" && (
           <>
-            <div className="join-icon join-success-icon">✅</div>
+            <div className="join-icon join-success-icon"><ion-icon name="checkmark-circle" style={{ fontSize: 48, color: '#10B981' }}></ion-icon></div>
             <h1>You&apos;re In!</h1>
             <p>{message}</p>
             <div className="join-actions">
@@ -129,7 +129,7 @@ function JoinGroupContent() {
 
         {status === "error" && (
           <>
-            <div className="join-icon join-error-icon">❌</div>
+            <div className="join-icon join-error-icon"><ion-icon name="close-circle" style={{ fontSize: 48, color: '#EF4444' }}></ion-icon></div>
             <h1>Couldn&apos;t Join</h1>
             <p className="join-error-msg">{message}</p>
             <div className="join-actions">

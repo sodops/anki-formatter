@@ -16,7 +16,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="about-nav">
         <Link href="/" className="about-nav-brand">
-          ⚡ AnkiFlow
+          <ion-icon name="flash" style={{ verticalAlign: 'middle' }}></ion-icon> AnkiFlow
         </Link>
         <div className="about-nav-links">
           <a href="#features">Features</a>
@@ -45,13 +45,13 @@ export default function LandingPage() {
                       <div className="about-nav-dropdown-email">{user?.email}</div>
                     </div>
                     <Link href="/app" className="about-nav-dropdown-item">
-                      📊 Dashboard
+                      <ion-icon name="bar-chart-outline"></ion-icon> Dashboard
                     </Link>
                     <Link href="/app/study" className="about-nav-dropdown-item">
-                      📚 Flashcards
+                      <ion-icon name="library-outline"></ion-icon> Flashcards
                     </Link>
                     <button className="about-nav-dropdown-item danger" onClick={signOut}>
-                      🚪 Sign Out
+                      <ion-icon name="log-out-outline"></ion-icon> Sign Out
                     </button>
                   </div>
                 </div>
@@ -66,7 +66,7 @@ export default function LandingPage() {
 
       {/* ============ HERO SECTION ============ */}
       <section className="about-hero">
-        <div className="about-hero-badge">⚡ Smart Flashcards + Dictionary</div>
+        <div className="about-hero-badge"><ion-icon name="flash" style={{ verticalAlign: 'middle' }}></ion-icon> Smart Flashcards + Dictionary</div>
         <h1 className="about-hero-title">
           Learn Smarter, <span className="about-gradient-text">Remember Forever</span>
         </h1>
@@ -113,12 +113,12 @@ export default function LandingPage() {
           </div>
           <div className="about-stat-divider"></div>
           <div className="about-stat">
-            <span className="about-stat-value">📖</span>
+            <span className="about-stat-value"><ion-icon name="book-outline"></ion-icon></span>
             <span className="about-stat-label">Dictionary</span>
           </div>
           <div className="about-stat-divider"></div>
           <div className="about-stat">
-            <span className="about-stat-value">☁️</span>
+            <span className="about-stat-value"><ion-icon name="cloud-outline"></ion-icon></span>
             <span className="about-stat-label">Cloud Sync</span>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function LandingPage() {
 
         <div className="about-features-grid">
           <div className="about-feature-card">
-            <div className="about-feature-icon">📖</div>
+            <div className="about-feature-icon"><ion-icon name="book-outline"></ion-icon></div>
             <h3>Built-in Dictionary</h3>
             <p>
               Look up any word instantly with definitions, pronunciation, examples, and phonetics. 
@@ -147,7 +147,7 @@ export default function LandingPage() {
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">🧠</div>
+            <div className="about-feature-icon"><ion-icon name="bulb-outline"></ion-icon></div>
             <h3>Spaced Repetition (SRS)</h3>
             <p>
               Based on SM-2 algorithm. Shows what you don&apos;t know more often, what you know less frequently. 
@@ -156,7 +156,7 @@ export default function LandingPage() {
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">📥</div>
+            <div className="about-feature-icon"><ion-icon name="download-outline"></ion-icon></div>
             <h3>Smart Import</h3>
             <p>
               Paste TXT, CSV, DOCX files or Google Docs links — AnkiFlow automatically separates terms and definitions. 
@@ -165,7 +165,7 @@ export default function LandingPage() {
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">🔊</div>
+            <div className="about-feature-icon"><ion-icon name="volume-high-outline"></ion-icon></div>
             <h3>Text-to-Speech</h3>
             <p>
               Learn by listening. Hear pronunciation in any language — ideal for language learning.
@@ -173,7 +173,7 @@ export default function LandingPage() {
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">☁️</div>
+            <div className="about-feature-icon"><ion-icon name="cloud-outline"></ion-icon></div>
             <h3>Cloud Sync</h3>
             <p>
               All your cards are automatically saved. Create on computer, study on phone — synced everywhere.
@@ -181,7 +181,7 @@ export default function LandingPage() {
           </div>
 
           <div className="about-feature-card">
-            <div className="about-feature-icon">👨‍🏫</div>
+            <div className="about-feature-icon"><ion-icon name="school-outline"></ion-icon></div>
             <h3>Teacher &amp; Student Mode</h3>
             <p>
               Teachers create groups and assignments. Students join, study flashcards, earn XP, and track progress together.
@@ -208,7 +208,7 @@ export default function LandingPage() {
             <div className="about-dict-header">
               <div className="about-dict-word">example</div>
               <div className="about-dict-phonetic">/ɪɡˈzɑːmpəl/</div>
-              <div className="about-dict-audio">🔊</div>
+              <div className="about-dict-audio"><ion-icon name="volume-high-outline"></ion-icon></div>
             </div>
             <div className="about-dict-meanings">
               <div className="about-dict-pos">noun</div>
@@ -226,28 +226,28 @@ export default function LandingPage() {
           </div>
           <div className="about-dict-features">
             <div className="about-dict-feat">
-              <span className="about-dict-feat-icon">📝</span>
+              <span className="about-dict-feat-icon"><ion-icon name="document-text-outline"></ion-icon></span>
               <div>
                 <strong>Definitions</strong>
                 <p>Multiple meanings with part of speech</p>
               </div>
             </div>
             <div className="about-dict-feat">
-              <span className="about-dict-feat-icon">🗣️</span>
+              <span className="about-dict-feat-icon"><ion-icon name="mic-outline"></ion-icon></span>
               <div>
                 <strong>Pronunciation</strong>
                 <p>IPA phonetics with audio playback</p>
               </div>
             </div>
             <div className="about-dict-feat">
-              <span className="about-dict-feat-icon">💡</span>
+              <span className="about-dict-feat-icon"><ion-icon name="bulb-outline"></ion-icon></span>
               <div>
                 <strong>Examples</strong>
                 <p>Real-world usage examples</p>
               </div>
             </div>
             <div className="about-dict-feat">
-              <span className="about-dict-feat-icon">📚</span>
+              <span className="about-dict-feat-icon"><ion-icon name="library-outline"></ion-icon></span>
               <div>
                 <strong>Add to Flashcards</strong>
                 <p>Save words directly to your decks</p>
@@ -272,7 +272,7 @@ export default function LandingPage() {
         {/* Forgetting Curve Visual */}
         <div className="about-algo-visual">
           <div className="about-algo-card">
-            <h3>🧪 Problem: The Forgetting Curve</h3>
+            <h3><ion-icon name="flask-outline" style={{ verticalAlign: 'middle', marginRight: 6 }}></ion-icon> Problem: The Forgetting Curve</h3>
             <p>After learning something, without review:</p>
             <div className="about-forget-bars">
               <div className="about-forget-row">
@@ -303,7 +303,7 @@ export default function LandingPage() {
           </div>
 
           <div className="about-algo-card about-algo-solution">
-            <h3>✅ Solution: Optimal Repetition</h3>
+            <h3><ion-icon name="checkmark-circle" style={{ verticalAlign: 'middle', marginRight: 6 }}></ion-icon> Solution: Optimal Repetition</h3>
             <p>
               SM-2 algorithm shows cards <strong>before you forget</strong>:
             </p>
@@ -398,14 +398,14 @@ export default function LandingPage() {
 
         <div className="about-benefits-grid">
           <div className="about-benefit">
-            <div className="about-benefit-icon">⏱️</div>
+            <div className="about-benefit-icon"><ion-icon name="timer-outline"></ion-icon></div>
             <h3>Save Time</h3>
             <p>
               Only see cards you&apos;re about to forget. Don&apos;t waste time on what you already know.
             </p>
           </div>
           <div className="about-benefit">
-            <div className="about-benefit-icon">📈</div>
+            <div className="about-benefit-icon"><ion-icon name="trending-up-outline"></ion-icon></div>
             <h3>95% Efficiency</h3>
             <p>
               Research shows people who learn with SRS retain 95% of information
@@ -413,14 +413,14 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="about-benefit">
-            <div className="about-benefit-icon">🎯</div>
+            <div className="about-benefit-icon"><ion-icon name="flag-outline"></ion-icon></div>
             <h3>Personalized</h3>
             <p>
               Ease Factor adapts to each card individually. Words you find difficult repeat more often.
             </p>
           </div>
           <div className="about-benefit">
-            <div className="about-benefit-icon">🌍</div>
+            <div className="about-benefit-icon"><ion-icon name="globe-outline"></ion-icon></div>
             <h3>For Any Subject</h3>
             <p>
               Languages, medicine, programming, history — any field that can be learned with flashcards.
@@ -445,7 +445,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Done</span>
+              <span className="about-roadmap-status"><ion-icon name="checkmark-circle" style={{ color: '#10B981' }}></ion-icon> Done</span>
               <h4>SM-2 Spaced Repetition</h4>
               <p>Science-based spaced repetition algorithm for flashcard study</p>
             </div>
@@ -453,7 +453,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Done</span>
+              <span className="about-roadmap-status"><ion-icon name="checkmark-circle" style={{ color: '#10B981' }}></ion-icon> Done</span>
               <h4>Smart Import &amp; Bulk Paste</h4>
               <p>TXT, CSV, DOCX, Google Docs and multi-line paste support</p>
             </div>
@@ -461,7 +461,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Done</span>
+              <span className="about-roadmap-status"><ion-icon name="checkmark-circle" style={{ color: '#10B981' }}></ion-icon> Done</span>
               <h4>Cloud Sync &amp; Auth</h4>
               <p>Sign in via Google/GitHub, sync across all devices</p>
             </div>
@@ -469,7 +469,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item about-roadmap-done">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">✅ Done</span>
+              <span className="about-roadmap-status"><ion-icon name="checkmark-circle" style={{ color: '#10B981' }}></ion-icon> Done</span>
               <h4>Built-in Dictionary</h4>
               <p>Look up English words with definitions, phonetics, pronunciation, and examples</p>
             </div>
@@ -477,7 +477,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item about-roadmap-progress">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">🚧 In Progress</span>
+              <span className="about-roadmap-status"><ion-icon name="construct-outline" style={{ color: '#F59E0B' }}></ion-icon> In Progress</span>
               <h4>FSRS Algorithm</h4>
               <p>
                 Upgrading from SM-2 to the more modern Free Spaced Repetition Scheduler — more accurate intervals based on machine learning
@@ -487,7 +487,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">📋 Planned</span>
+              <span className="about-roadmap-status"><ion-icon name="clipboard-outline" style={{ color: '#94a3b8' }}></ion-icon> Planned</span>
               <h4>AI-Powered Card Generation</h4>
               <p>Upload text or PDF — AI automatically generates flashcards</p>
             </div>
@@ -495,7 +495,7 @@ export default function LandingPage() {
           <div className="about-roadmap-item">
             <div className="about-roadmap-dot"></div>
             <div className="about-roadmap-content">
-              <span className="about-roadmap-status">📋 Planned</span>
+              <span className="about-roadmap-status"><ion-icon name="clipboard-outline" style={{ color: '#94a3b8' }}></ion-icon> Planned</span>
               <h4>Mobile App</h4>
               <p>Native app for iOS and Android — works offline</p>
             </div>
@@ -532,7 +532,7 @@ export default function LandingPage() {
       <footer className="about-footer">
         <div className="about-footer-inner">
           <div>
-            <span>⚡ AnkiFlow — Scientific Learning Platform</span>
+            <span><ion-icon name="flash" style={{ verticalAlign: 'middle' }}></ion-icon> AnkiFlow — Scientific Learning Platform</span>
             <div style={{ marginTop: "0.5rem", fontSize: "0.875rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
               <Link href="/privacy" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Privacy</Link>
               <Link href="/terms" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Terms</Link>

@@ -132,7 +132,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
       <aside className="teacher-sidebar">
         <div className="teacher-sidebar-header">
           <Link href="/teacher" className="teacher-logo">
-            <span className="teacher-logo-icon">⚡</span>
+            <span className="teacher-logo-icon"><ion-icon name="flash"></ion-icon></span>
             <span>AnkiFlow</span>
           </Link>
         </div>
@@ -388,7 +388,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                         const colors = ['#F59E0B', '#9CA3AF', '#CD7F32', '#7C5CFC', '#3B82F6', '#10B981', '#9B7FFF', '#EC4899'];
                         return (
                           <div className="t-bar-row" key={s.id}>
-                            <span className="t-bar-rank">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                            <span className="t-bar-rank">{`${i + 1}.`}</span>
                             <span className="t-bar-label">{s.profiles?.display_name || 'Unknown'}</span>
                             <div className="t-bar-track">
                               <div className="t-bar-fill" style={{ width: `${(xpVal / maxXP) * 100}%`, background: colors[i % colors.length] }}></div>

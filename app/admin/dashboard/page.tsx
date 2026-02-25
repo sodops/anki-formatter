@@ -234,7 +234,7 @@ export default function ModernAdminDashboard() {
           }}
         >
           <div className="admin-card" style={{ maxWidth: "480px", textAlign: "center" }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🚫</div>
+            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}><ion-icon name="ban-outline"></ion-icon></div>
             <h1 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "0.5rem" }}>
               Access Denied
             </h1>
@@ -259,7 +259,7 @@ export default function ModernAdminDashboard() {
         {/* Sidebar */}
         <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
           <div className="admin-sidebar-header">
-            <span className="admin-sidebar-logo">⚡</span>
+            <span className="admin-sidebar-logo"><ion-icon name="flash"></ion-icon></span>
             <span className="admin-sidebar-title">AnkiFlow Admin</span>
           </div>
 
@@ -633,7 +633,7 @@ export default function ModernAdminDashboard() {
                             color: dueCards === 0 ? "var(--admin-success)" : "var(--text-tertiary)",
                           }}
                         >
-                          {dueCards === 0 ? "✅ All caught up!" : "Cards waiting for review"}
+                          {dueCards === 0 ? "All caught up!" : "Cards waiting for review"}
                         </div>
                       </div>
 
@@ -1026,7 +1026,7 @@ export default function ModernAdminDashboard() {
                   }}
                 >
                   <div className="admin-card" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📚</div>
+                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}><ion-icon name="library-outline"></ion-icon></div>
                     <div style={{ fontSize: "2rem", fontWeight: 700 }}>
                       {stats?.decks.total || 0}
                     </div>
@@ -1035,7 +1035,7 @@ export default function ModernAdminDashboard() {
                     </div>
                   </div>
                   <div className="admin-card" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🃏</div>
+                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}><ion-icon name="albums-outline"></ion-icon></div>
                     <div style={{ fontSize: "2rem", fontWeight: 700 }}>
                       {stats?.cards.total || 0}
                     </div>
@@ -1044,7 +1044,7 @@ export default function ModernAdminDashboard() {
                     </div>
                   </div>
                   <div className="admin-card" style={{ padding: "1.5rem", textAlign: "center" }}>
-                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏰</div>
+                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}><ion-icon name="time-outline"></ion-icon></div>
                     <div
                       style={{
                         fontSize: "2rem",
@@ -1526,7 +1526,7 @@ export default function ModernAdminDashboard() {
                         {
                           label: "Cards Due",
                           value: dueCards.toString(),
-                          desc: dueCards === 0 ? "All caught up! 🎉" : "Cards waiting for review",
+                          desc: dueCards === 0 ? "All caught up!" : "Cards waiting for review",
                           color: dueCards === 0 ? "#10b981" : "#f59e0b",
                         },
                       ].map((metric) => (
@@ -1585,7 +1585,7 @@ export default function ModernAdminDashboard() {
                   </div>
                 ) : metricsData.length === 0 ? (
                   <div className="admin-card" style={{ textAlign: "center", padding: "4rem" }}>
-                    <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📭</div>
+                    <div style={{ fontSize: "3rem", marginBottom: "1rem" }}><ion-icon name="mail-open-outline"></ion-icon></div>
                     <h3
                       style={{
                         fontSize: "1.25rem",

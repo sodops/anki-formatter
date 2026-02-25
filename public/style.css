@@ -210,7 +210,48 @@ body {
   display: flex;
   flex-direction: column;
   padding: 16px 12px;
+  transition: width 0.25s ease;
+  overflow: hidden;
 }
+
+/* Sidebar collapse toggle */
+.sidebar-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+.sidebar-collapse-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Collapsed sidebar state */
+.sidebar.collapsed {
+  width: 60px;
+  padding: 16px 6px;
+}
+.sidebar.collapsed .brand span { display: none; }
+.sidebar.collapsed .sidebar-collapse-btn ion-icon { transform: rotate(180deg); }
+.sidebar.collapsed .sidebar-section h3 { display: none; }
+.sidebar.collapsed .deck-item .deck-name { display: none; }
+.sidebar.collapsed .deck-item .due-badge { display: none; }
+.sidebar.collapsed .new-deck-btn span,
+.sidebar.collapsed .new-deck-btn { font-size: 0; justify-content: center; }
+.sidebar.collapsed .new-deck-btn ion-icon { font-size: 18px; }
+.sidebar.collapsed .deck-toolbar { display: none; }
+.sidebar.collapsed .goal-text { display: none; }
+.sidebar.collapsed .goal-info { justify-content: center; }
+.sidebar.collapsed .status-indicator span:not(.dot) { display: none; }
 
 .brand {
   display: flex;
@@ -2016,8 +2057,7 @@ tr[draggable="true"]:active {
   position: relative;
   width: 100%;
   max-width: 640px;
-  min-height: 340px;
-  height: auto;
+  height: 400px;
   text-align: center;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
   transform-style: preserve-3d;
@@ -2044,7 +2084,7 @@ tr[draggable="true"]:active {
 .flashcard-front,
 .flashcard-back {
   width: 100%;
-  min-height: 340px;
+  height: 100%;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   display: flex;
@@ -5438,4 +5478,16 @@ noscript {
   .dict-word { font-size: 22px; }
   .dict-workspace { padding: 16px 12px; }
   .dict-word-card { padding: 16px; }
+}
+
+/* Dictionary light mode */
+[data-theme="light"] .dict-word-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .dict-error {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.12);
 }

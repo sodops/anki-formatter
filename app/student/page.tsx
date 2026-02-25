@@ -147,7 +147,7 @@ function StudentDashboard() {
         setXP(d);
       }
 
-      showToast(`🎉 Assignment completed! +${data.xp_awarded || 0} XP earned!`, 'success');
+      showToast(`Assignment completed! +${data.xp_awarded || 0} XP earned!`, 'success');
     } catch (err: any) {
       showToast(err.message, 'error');
     } finally {
@@ -394,7 +394,7 @@ function StudentDashboard() {
         <button className="s-hamburger" onClick={() => setSidebarOpen(true)}>
           <ion-icon name="menu-outline"></ion-icon>
         </button>
-        <span className="s-brand-icon">⚡</span>
+        <ion-icon name="flash" className="s-brand-icon"></ion-icon>
         <span className="s-brand-name">AnkiFlow</span>
         <span className="s-role-tag">Student</span>
       </div>
@@ -408,7 +408,7 @@ function StudentDashboard() {
           <button className="s-sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title="Toggle sidebar">
             <ion-icon name={sidebarCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'}></ion-icon>
           </button>
-          <span className="s-brand-icon">⚡</span>
+          <ion-icon name="flash" className="s-brand-icon"></ion-icon>
           <span className="s-brand-name">AnkiFlow</span>
           <span className="s-role-tag">Student</span>
         </div>
@@ -425,7 +425,7 @@ function StudentDashboard() {
             </div>
           </div>
           {xp.current_streak > 0 && (
-            <div className="s-streak-mini">🔥 {xp.current_streak}</div>
+            <div className="s-streak-mini"><ion-icon name="flame"></ion-icon> {xp.current_streak}</div>
           )}
         </div>
 
@@ -501,7 +501,7 @@ function StudentDashboard() {
             {activeTab === "dashboard" && (
               <div className="s-content">
                 <div className="s-page-header">
-                  <h1>Welcome back, {user.user_metadata?.full_name || user.email?.split("@")[0] || "Student"} 👋</h1>
+                  <h1>Welcome back, {user.user_metadata?.full_name || user.email?.split("@")[0] || "Student"}</h1>
                   <p className="s-subtitle">Here&apos;s your learning overview</p>
                 </div>
 
@@ -597,7 +597,7 @@ function StudentDashboard() {
                                       {isOverdue ? 'Overdue' : new Date(a.deadline).toLocaleDateString()}
                                     </span>
                                   )}
-                                  <span className="s-xp-tag">⚡ {a.xp_reward} XP</span>
+                                  <span className="s-xp-tag"><ion-icon name="flash" style={{ fontSize: 12 }}></ion-icon> {a.xp_reward} XP</span>
                                 </div>
                               </div>
                               <div className="s-assign-actions">
@@ -635,7 +635,7 @@ function StudentDashboard() {
 
                 {assignments.length === 0 && groups.length === 0 && (
                   <div className="s-empty-state">
-                    <div className="s-empty-icon">🎓</div>
+                    <div className="s-empty-icon"><ion-icon name="school-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>Welcome to AnkiFlow!</h3>
                     <p>Join a group with a code from your teacher to get started with assignments.</p>
                     <button className="s-btn s-btn-primary" onClick={() => setActiveTab("groups")}>
@@ -657,7 +657,7 @@ function StudentDashboard() {
 
                 {assignments.length === 0 ? (
                   <div className="s-empty-state">
-                    <div className="s-empty-icon">📋</div>
+                    <div className="s-empty-icon"><ion-icon name="clipboard-outline" style={{ fontSize: 48 }}></ion-icon></div>
                     <h3>No assignments yet</h3>
                     <p>Your assignments from teachers will appear here once you join a group.</p>
                   </div>
@@ -665,7 +665,7 @@ function StudentDashboard() {
                   <>
                     {overdueAssignments.length > 0 && (
                       <div className="s-section">
-                        <h2 className="s-section-title" style={{ color: '#f87171' }}>⚠️ Overdue ({overdueAssignments.length})</h2>
+                        <h2 className="s-section-title" style={{ color: '#f87171' }}><ion-icon name="alert-circle" style={{ marginRight: 6, verticalAlign: 'middle' }}></ion-icon>Overdue ({overdueAssignments.length})</h2>
                         <div className="s-assign-list">
                           {overdueAssignments.map(a => <AssignmentCard key={a.id} a={a} onComplete={handleCompleteAssignment} completingId={completingId} />)}
                         </div>
@@ -673,7 +673,7 @@ function StudentDashboard() {
                     )}
                     {activeAssignments.filter(a => !overdueAssignments.includes(a)).length > 0 && (
                       <div className="s-section">
-                        <h2 className="s-section-title">📝 To Do ({activeAssignments.filter(a => !overdueAssignments.includes(a)).length})</h2>
+                        <h2 className="s-section-title"><ion-icon name="list-outline" style={{ marginRight: 6, verticalAlign: 'middle' }}></ion-icon>To Do ({activeAssignments.filter(a => !overdueAssignments.includes(a)).length})</h2>
                         <div className="s-assign-list">
                           {activeAssignments.filter(a => !overdueAssignments.includes(a)).map(a => <AssignmentCard key={a.id} a={a} onComplete={handleCompleteAssignment} completingId={completingId} />)}
                         </div>
@@ -681,7 +681,7 @@ function StudentDashboard() {
                     )}
                     {completedAssignments.length > 0 && (
                       <div className="s-section">
-                        <h2 className="s-section-title">✅ Completed ({completedAssignments.length})</h2>
+                        <h2 className="s-section-title"><ion-icon name="checkmark-done" style={{ marginRight: 6, verticalAlign: 'middle', color: '#10B981' }}></ion-icon>Completed ({completedAssignments.length})</h2>
                         <div className="s-assign-list">
                           {completedAssignments.map(a => <AssignmentCard key={a.id} a={a} />)}
                         </div>
@@ -775,9 +775,9 @@ function StudentDashboard() {
                       <p className="s-profile-role">STUDENT · Level {level}</p>
                       {editNickname && <p className="s-profile-username">@{editNickname}</p>}
                       <div className="s-profile-badges">
-                        <span className="s-profile-badge">⚡ {xp.total_xp} XP</span>
-                        {xp.current_streak > 0 && <span className="s-profile-badge">🔥 {xp.current_streak} day streak</span>}
-                        <span className="s-profile-badge">✅ {completedAssignments.length} completed</span>
+                        <span className="s-profile-badge"><ion-icon name="flash" style={{ color: '#F59E0B' }}></ion-icon> {xp.total_xp} XP</span>
+                        {xp.current_streak > 0 && <span className="s-profile-badge"><ion-icon name="flame" style={{ color: '#EF4444' }}></ion-icon> {xp.current_streak} day streak</span>}
+                        <span className="s-profile-badge"><ion-icon name="checkmark-circle" style={{ color: '#10B981' }}></ion-icon> {completedAssignments.length} completed</span>
                       </div>
                     </div>
                   </div>
@@ -836,22 +836,22 @@ function StudentDashboard() {
                 {/* Key Stats Grid */}
                 <div className="s-stats-grid-4">
                   <div className="s-stat-card-mini">
-                    <div className="s-stat-icon" style={{ background: '#3B82F620', color: '#3B82F6' }}>📊</div>
+                    <div className="s-stat-icon" style={{ background: '#3B82F620', color: '#3B82F6' }}><ion-icon name="bar-chart"></ion-icon></div>
                     <div className="s-stat-value-sm">{assignments.length}</div>
                     <div className="s-stat-label-sm">Total Tasks</div>
                   </div>
                   <div className="s-stat-card-mini">
-                    <div className="s-stat-icon" style={{ background: '#10B98120', color: '#10B981' }}>✅</div>
+                    <div className="s-stat-icon" style={{ background: '#10B98120', color: '#10B981' }}><ion-icon name="checkmark-done"></ion-icon></div>
                     <div className="s-stat-value-sm">{completedAssignments.length}</div>
                     <div className="s-stat-label-sm">Completed</div>
                   </div>
                   <div className="s-stat-card-mini">
-                    <div className="s-stat-icon" style={{ background: '#F59E0B20', color: '#F59E0B' }}>🔥</div>
+                    <div className="s-stat-icon" style={{ background: '#F59E0B20', color: '#F59E0B' }}><ion-icon name="flame"></ion-icon></div>
                     <div className="s-stat-value-sm">{xp.current_streak}</div>
                     <div className="s-stat-label-sm">Day Streak</div>
                   </div>
                   <div className="s-stat-card-mini">
-                    <div className="s-stat-icon" style={{ background: '#9B7FFF20', color: '#9B7FFF' }}>🏆</div>
+                    <div className="s-stat-icon" style={{ background: '#9B7FFF20', color: '#9B7FFF' }}><ion-icon name="trophy"></ion-icon></div>
                     <div className="s-stat-value-sm">{xp.longest_streak}</div>
                     <div className="s-stat-label-sm">Best Streak</div>
                   </div>
@@ -860,7 +860,7 @@ function StudentDashboard() {
                 {/* Study Summary */}
                 {assignments.length > 0 && (
                   <div className="s-chart-card">
-                    <h3 className="s-chart-title">📈 Study Summary</h3>
+                    <h3 className="s-chart-title"><ion-icon name="trending-up" style={{ marginRight: 6, verticalAlign: 'middle' }}></ion-icon>Study Summary</h3>
                     {(() => {
                       const totalReviews = assignments.reduce((s, a) => s + (a.my_progress?.total_reviews || 0), 0);
                       const totalCards = assignments.reduce((s, a) => s + (a.my_progress?.cards_studied || 0), 0);
@@ -965,38 +965,38 @@ function StudentDashboard() {
 
                 {/* Achievements */}
                 <div className="s-section">
-                  <h2 className="s-section-title">🏅 Achievements</h2>
+                  <h2 className="s-section-title"><ion-icon name="ribbon" style={{ marginRight: 6, verticalAlign: 'middle', color: '#F59E0B' }}></ion-icon>Achievements</h2>
                   <div className="s-achievements-grid">
                     <div className={`s-achievement ${completedAssignments.length >= 1 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🎯</span>
+                      <span className="s-ach-icon"><ion-icon name="flag"></ion-icon></span>
                       <div><strong>First Task</strong><span>Complete your first assignment</span></div>
                     </div>
                     <div className={`s-achievement ${completedAssignments.length >= 5 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">📚</span>
+                      <span className="s-ach-icon"><ion-icon name="library"></ion-icon></span>
                       <div><strong>Scholar</strong><span>Complete 5 assignments</span></div>
                     </div>
                     <div className={`s-achievement ${xp.current_streak >= 3 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🔥</span>
+                      <span className="s-ach-icon"><ion-icon name="flame"></ion-icon></span>
                       <div><strong>On Fire</strong><span>3-day study streak</span></div>
                     </div>
                     <div className={`s-achievement ${xp.current_streak >= 7 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">⚡</span>
+                      <span className="s-ach-icon"><ion-icon name="flash"></ion-icon></span>
                       <div><strong>Week Warrior</strong><span>7-day study streak</span></div>
                     </div>
                     <div className={`s-achievement ${xp.total_xp >= 100 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">💯</span>
+                      <span className="s-ach-icon"><ion-icon name="speedometer"></ion-icon></span>
                       <div><strong>Century</strong><span>Earn 100 XP total</span></div>
                     </div>
                     <div className={`s-achievement ${xp.total_xp >= 500 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🌟</span>
+                      <span className="s-ach-icon"><ion-icon name="star"></ion-icon></span>
                       <div><strong>Star Student</strong><span>Earn 500 XP total</span></div>
                     </div>
                     <div className={`s-achievement ${groups.length >= 3 ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">👥</span>
+                      <span className="s-ach-icon"><ion-icon name="people"></ion-icon></span>
                       <div><strong>Social Learner</strong><span>Join 3 groups</span></div>
                     </div>
                     <div className={`s-achievement ${assignments.some(a => (a.my_progress?.accuracy || 0) === 100) ? 'unlocked' : 'locked'}`}>
-                      <span className="s-ach-icon">🏆</span>
+                      <span className="s-ach-icon"><ion-icon name="trophy"></ion-icon></span>
                       <div><strong>Perfect Score</strong><span>100% accuracy on an assignment</span></div>
                     </div>
                   </div>
@@ -1029,7 +1029,7 @@ function StudentDashboard() {
                     </div>
                   ) : pendingRequests.length === 0 ? (
                     <div style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
-                      <p>👋 No pending friend requests</p>
+                      <p>No pending friend requests</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1103,7 +1103,7 @@ function StudentDashboard() {
                   </h2>
                   {notifications.length === 0 ? (
                     <div className="s-empty-state">
-                      <div className="s-empty-icon">🔔</div>
+                      <div className="s-empty-icon"><ion-icon name="notifications-outline" style={{ fontSize: 48 }}></ion-icon></div>
                       <h3>No notifications</h3>
                       <p>You&apos;ll see updates from your teachers and groups here.</p>
                     </div>
@@ -1112,7 +1112,7 @@ function StudentDashboard() {
                       {notifications.map(n => (
                         <div key={n.id} className={`s-notif-item ${!n.is_read ? 'unread' : ''}`} onClick={() => !n.is_read && markOneRead(n.id)} style={{ cursor: !n.is_read ? 'pointer' : 'default' }}>
                           <div className="s-notif-icon">
-                            {n.type === 'connection_request' ? '👋' : n.type === 'connection_accepted' ? '🤝' : n.type === 'assignment_new' ? '📝' : n.type === 'assignment_graded' ? '⭐' : n.type === 'xp_earned' ? '⚡' : n.type === 'group_joined' ? '👥' : '🔔'}
+                            <ion-icon name={n.type === 'connection_request' ? 'hand-left' : n.type === 'connection_accepted' ? 'people' : n.type === 'assignment_new' ? 'document-text' : n.type === 'assignment_graded' ? 'star' : n.type === 'xp_earned' ? 'flash' : n.type === 'group_joined' ? 'people-circle' : 'notifications'}></ion-icon>
                           </div>
                           <div className="s-notif-body">
                             <div className="s-notif-title">{n.title}</div>
@@ -1358,7 +1358,7 @@ function StudentDashboard() {
         <div className="s-toast-overlay">
           <div className={`s-toast s-toast-${toast.type}`}>
             <span className="s-toast-icon">
-              {toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : 'ℹ️'}
+              <ion-icon name={toast.type === 'success' ? 'checkmark-circle' : toast.type === 'error' ? 'close-circle' : 'information-circle'}></ion-icon>
             </span>
             <span className="s-toast-msg">{toast.message}</span>
             <button className="s-toast-close" onClick={() => setToast(null)}>×</button>
@@ -1405,8 +1405,8 @@ function AssignmentCard({ a, onComplete, completingId }: { a: Assignment; onComp
                 {new Date(a.deadline).toLocaleDateString()}
               </span>
             )}
-            <span className="s-xp-tag">⚡ {a.xp_reward} XP</span>
-            <span className={`s-status ${prog?.status || 'not_started'}`}>{isCompleted ? '✅ Done' : prog?.status === 'in_progress' ? '🔄 In Progress' : '⬜ Not Started'}</span>
+            <span className="s-xp-tag"><ion-icon name="flash" style={{ fontSize: 12 }}></ion-icon> {a.xp_reward} XP</span>
+            <span className={`s-status ${prog?.status || 'not_started'}`}>{isCompleted ? 'Done' : prog?.status === 'in_progress' ? 'In Progress' : 'Not Started'}</span>
           </div>
         </div>
         <div className="s-assign-actions">
@@ -1440,7 +1440,7 @@ function AssignmentCard({ a, onComplete, completingId }: { a: Assignment; onComp
           </div>
           <div className="s-progress-extra">
             <span>{prog.total_reviews} reviews</span>
-            {prog.xp_earned > 0 && <span>⚡ {prog.xp_earned} XP earned</span>}
+            {prog.xp_earned > 0 && <span><ion-icon name="flash" style={{ fontSize: 12 }}></ion-icon> {prog.xp_earned} XP earned</span>}
           </div>
         </div>
       )}

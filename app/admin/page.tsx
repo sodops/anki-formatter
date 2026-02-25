@@ -13,7 +13,7 @@ export default function AdminRedirect() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚡</div>
+        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}><ion-icon name="flash"></ion-icon></div>
         <p>Redirecting to new admin panel...</p>
       </div>
     </div>

@@ -15,7 +15,7 @@ export function createKeyboardShortcutsModal() {
       ],
     },
     {
-      category: "📚 Deck boshqaruvi",
+      category: "Deck boshqaruvi",
       items: [
         { keys: ["Ctrl", "N"], description: "Yangi deck yaratish" },
         { keys: ["↑", "↓"], description: "Decklar orasida harakatlanish" },
@@ -24,7 +24,7 @@ export function createKeyboardShortcutsModal() {
       ],
     },
     {
-      category: "🎴 Card boshqaruvi",
+      category: "Card boshqaruvi",
       items: [
         { keys: ["Ctrl", "Enter"], description: "Yangi card qo'shish" },
         { keys: ["Ctrl", "E"], description: "Cardni tahrirlash" },
@@ -34,7 +34,7 @@ export function createKeyboardShortcutsModal() {
       ],
     },
     {
-      category: "📖 O'qish (Study Mode)",
+      category: "O'qish (Study Mode)",
       items: [
         { keys: ["Space"], description: "Javobni ko'rsatish" },
         { keys: ["1"], description: "Again (Yana)" },
@@ -46,7 +46,7 @@ export function createKeyboardShortcutsModal() {
       ],
     },
     {
-      category: "🎨 Ko'rinish",
+      category: "Ko'rinish",
       items: [
         { keys: ["Ctrl", "B"], description: "Sidebar toggle" },
         { keys: ["Ctrl", "T"], description: "Theme o'zgartirish" },
@@ -58,7 +58,7 @@ export function createKeyboardShortcutsModal() {
       ],
     },
     {
-      category: "🔧 Import/Export",
+      category: "Import/Export",
       items: [
         { keys: ["Ctrl", "O"], description: "Fayl import qilish" },
         { keys: ["Ctrl", "Shift", "E"], description: "Export to Anki" },

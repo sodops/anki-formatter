@@ -164,7 +164,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
   if (notFound || !profile) {
     return (
       <div className="teacher-loading">
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>👤</div>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}><ion-icon name="person-outline"></ion-icon></div>
         <h2 style={{ color: 'var(--text-primary, #1e293b)', margin: '0 0 8px' }}>Profile Not Found</h2>
         <p style={{ color: '#64748b', margin: '0 0 20px' }}>This user doesn&apos;t exist or hasn&apos;t set up their profile yet.</p>
         <Link href="/" className="teacher-btn teacher-btn-primary">
@@ -183,7 +183,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
           <span>Back</span>
         </Link>
         <span className="profile-topbar-brand">
-          <span>⚡</span> AnkiFlow
+          <span><ion-icon name="flash" style={{ verticalAlign: 'middle' }}></ion-icon></span> AnkiFlow
         </span>
       </header>
 
