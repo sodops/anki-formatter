@@ -95,17 +95,17 @@ export function createEmptyState(config) {
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: ${action.primary ? "0 2px 8px rgba(232, 163, 23, 0.3)" : "none"};
+        box-shadow: ${action.primary ? "0 2px 8px rgba(124, 92, 252, 0.3)" : "none"};
       `;
       button.onmouseover = () => {
         button.style.transform = "translateY(-2px)";
         button.style.boxShadow = action.primary
-          ? "0 4px 12px rgba(232, 163, 23, 0.4)"
+          ? "0 4px 12px rgba(124, 92, 252, 0.4)"
           : "0 2px 8px rgba(0, 0, 0, 0.1)";
       };
       button.onmouseout = () => {
         button.style.transform = "translateY(0)";
-        button.style.boxShadow = action.primary ? "0 2px 8px rgba(232, 163, 23, 0.3)" : "none";
+        button.style.boxShadow = action.primary ? "0 2px 8px rgba(124, 92, 252, 0.3)" : "none";
       };
       button.onclick = action.onClick;
       actionsContainer.appendChild(button);

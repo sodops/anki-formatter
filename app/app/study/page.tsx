@@ -767,8 +767,8 @@ export default function Home() {
           <h2>Choose Deck Color</h2>
           <div className="color-grid">
             {[
-              "#E8A317",
-              "#F0B840",
+              "#7C5CFC",
+              "#9B7FFF",
               "#EC4899",
               "#F43F5E",
               "#F97316",
@@ -778,7 +778,7 @@ export default function Home() {
               "#14B8A6",
               "#06B6D4",
               "#3B82F6",
-              "#f0b840",
+              "#9B7FFF",
             ].map((c, i) => (
               <button
                 key={i}

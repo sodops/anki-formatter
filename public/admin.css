@@ -1,7 +1,7 @@
 /* Modern Admin Panel Styles */
 :root {
-  --admin-primary: #e8a317;
-  --admin-primary-dark: #d4940e;
+  --admin-primary: #7C5CFC;
+  --admin-primary-dark: #6B4EE6;
   --admin-success: #10b981;
   --admin-warning: #f59e0b;
   --admin-danger: #ef4444;
@@ -177,7 +177,7 @@
 .admin-search-input:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(232, 163, 23, 0.1);
+  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1);
 }
 
 .admin-search-icon {
@@ -297,7 +297,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(232, 163, 23, 0.1);
+  background: rgba(124, 92, 252, 0.1);
   color: var(--admin-primary);
   font-size: 1.5rem;
 }
@@ -423,7 +423,7 @@
 .admin-btn-primary:hover {
   background: var(--admin-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(232, 163, 23, 0.2);
+  box-shadow: 0 4px 6px rgba(124, 92, 252, 0.2);
 }
 
 .admin-btn-secondary {
@@ -515,7 +515,7 @@
 }
 
 .admin-badge-primary {
-  background: rgba(232, 163, 23, 0.1);
+  background: rgba(124, 92, 252, 0.1);
   color: var(--admin-primary);
 }
 
@@ -569,7 +569,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(232, 163, 23, 0.1);
+  background: rgba(124, 92, 252, 0.1);
   color: var(--admin-primary);
 }
 

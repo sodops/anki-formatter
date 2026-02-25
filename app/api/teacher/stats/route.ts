@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const { data: groups } = await admin
       .from("groups")
       .select("id, name, color")
-      .eq("teacher_id", user.id);
+      .eq("owner_id", user.id);
 
     const groupIds = (groups || []).map(g => g.id);
 

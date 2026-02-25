@@ -22,7 +22,7 @@ export function createDeck(name) {
     try {
         const newDeck = store.dispatch('DECK_CREATE', {
             name: name.trim(),
-            color: '#e8a317'
+            color: '#7C5CFC'
         });
         
         // Auto-select the newly created deck
@@ -332,7 +332,7 @@ export function renderSidebar() {
         li.className = `deck-item ${deck.id === currentState.activeDeckId ? 'active' : ''}`;
         
         // Define styles
-        const color = deck.color || '#e8a317';
+        const color = deck.color || '#7C5CFC';
         const backgroundStyle = deck.gradient 
             ? `background: linear-gradient(135deg, ${color}22, ${color}44)` 
             : `background: ${color}15`; // 15 = low opacity hex
@@ -387,7 +387,7 @@ export function renderSidebar() {
             colorBtn.title = 'Change color';
             colorBtn.onclick = (e) => {
                 e.stopPropagation();
-                ui.colorPicker(deck.color || '#e8a317', deck.gradient).then(res => {
+                ui.colorPicker(deck.color || '#7C5CFC', deck.gradient).then(res => {
                     if (res) {
                         try {
                             store.dispatch('DECK_UPDATE', {

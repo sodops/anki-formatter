@@ -111,7 +111,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
     return (
       <div className="teacher-loading">
         <h2>Assignment not found</h2>
-        <Link href="/teacher" style={{ color: "#e8a317" }}>← Back</Link>
+        <Link href="/teacher" style={{ color: "#7C5CFC" }}>← Back</Link>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
           <div>
             <h1>{assignment.title}</h1>
             <div className="teacher-assignment-meta">
-              <span className="teacher-group-tag" style={{ background: assignment.groups?.color || "#e8a317" }}>
+              <span className="teacher-group-tag" style={{ background: assignment.groups?.color || "#7C5CFC" }}>
                 {assignment.groups?.name}
               </span>
               {deadline && (

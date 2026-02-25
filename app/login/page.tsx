@@ -185,8 +185,8 @@ export default function LoginPage() {
                     style={{
                       padding: '14px 12px',
                       borderRadius: '10px',
-                      border: `2px solid ${selectedRole === 'student' ? '#e8a317' : 'var(--border)'}`,
-                      background: selectedRole === 'student' ? 'rgba(232,163,23,0.08)' : 'var(--bg-secondary)',
+                      border: `2px solid ${selectedRole === 'student' ? '#7C5CFC' : 'var(--border)'}`,
+                      background: selectedRole === 'student' ? 'rgba(124,92,252,0.08)' : 'var(--bg-secondary)',
                       cursor: 'pointer',
                       display: 'flex',
                       flexDirection: 'column' as const,

@@ -553,7 +553,7 @@ export default function ModernAdminDashboard() {
                           Card States
                         </div>
                         {[
-                          { label: "New", value: cardStates.new, color: "#e8a317" },
+                          { label: "New", value: cardStates.new, color: "#7C5CFC" },
                           { label: "Learning", value: cardStates.learning, color: "#f59e0b" },
                           { label: "Review", value: cardStates.review, color: "#10b981" },
                           { label: "Relearning", value: cardStates.relearning, color: "#ef4444" },
@@ -809,7 +809,7 @@ export default function ModernAdminDashboard() {
                         width: "96px",
                         height: "96px",
                         borderRadius: "50%",
-                        background: "linear-gradient(135deg, var(--admin-primary), #f0b840)",
+                        background: "linear-gradient(135deg, var(--admin-primary), #9B7FFF)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -911,7 +911,7 @@ export default function ModernAdminDashboard() {
                       label: "Decks Created",
                       value: stats?.decks.total || 0,
                       icon: "albums",
-                      color: "#e8a317",
+                      color: "#7C5CFC",
                     },
                     {
                       label: "Cards Created",
@@ -1077,7 +1077,7 @@ export default function ModernAdminDashboard() {
                     }}
                   >
                     {[
-                      { label: "New", value: cardStates.new, color: "#e8a317", icon: "sparkles" },
+                      { label: "New", value: cardStates.new, color: "#7C5CFC", icon: "sparkles" },
                       {
                         label: "Learning",
                         value: cardStates.learning,
@@ -1232,7 +1232,7 @@ export default function ModernAdminDashboard() {
                                 cardStates.review +
                                 cardStates.relearning || 1;
                             const segments = [
-                              { value: cardStates.new, color: "#e8a317" },
+                              { value: cardStates.new, color: "#7C5CFC" },
                               { value: cardStates.learning, color: "#f59e0b" },
                               { value: cardStates.review, color: "#10b981" },
                               { value: cardStates.relearning, color: "#ef4444" },
@@ -1289,7 +1289,7 @@ export default function ModernAdminDashboard() {
                         }}
                       >
                         {[
-                          { label: "New", value: cardStates.new, color: "#e8a317" },
+                          { label: "New", value: cardStates.new, color: "#7C5CFC" },
                           { label: "Learning", value: cardStates.learning, color: "#f59e0b" },
                           { label: "Review", value: cardStates.review, color: "#10b981" },
                           { label: "Relearning", value: cardStates.relearning, color: "#ef4444" },
@@ -1338,7 +1338,7 @@ export default function ModernAdminDashboard() {
                           { label: "Again", value: todayGrades.again, color: "#ef4444" },
                           { label: "Hard", value: todayGrades.hard, color: "#f59e0b" },
                           { label: "Good", value: todayGrades.good, color: "#10b981" },
-                          { label: "Easy", value: todayGrades.easy, color: "#e8a317" },
+                          { label: "Easy", value: todayGrades.easy, color: "#7C5CFC" },
                         ];
                         return (
                           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -1430,8 +1430,8 @@ export default function ModernAdminDashboard() {
                       label: "Reviewed Today",
                       value: stats?.reviews.today || 0,
                       icon: "today",
-                      color: "#e8a317",
-                      bg: "rgba(232, 163, 23, 0.1)",
+                      color: "#7C5CFC",
+                      bg: "rgba(124, 92, 252, 0.1)",
                     },
                     {
                       label: "Web Vitals",

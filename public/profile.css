@@ -35,7 +35,7 @@
   align-items: center;
   gap: 6px;
   text-decoration: none;
-  color: #e8a317;
+  color: #7C5CFC;
   font-weight: 600;
   font-size: 14px;
 }
@@ -82,7 +82,7 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e8a317, #f0b840);
+  background: linear-gradient(135deg, #7C5CFC, #9B7FFF);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,7 +91,7 @@
   color: #fff;
   overflow: hidden;
   border: 4px solid var(--bg-primary, #f8f9fb);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.25);
 }
 [data-theme="dark"] .profile-avatar-xl {
   border-color: #0f0f14;
@@ -105,7 +105,7 @@
   position: absolute;
   bottom: -4px;
   right: -4px;
-  background: linear-gradient(135deg, #F59E0B, #EF4444);
+  background: linear-gradient(135deg, #7C5CFC, #EC4899);
   color: #fff;
   font-size: 11px;
   font-weight: 800;
@@ -131,7 +131,7 @@
 [data-theme="dark"] .profile-hero-info h1 { color: #f1f5f9; }
 .profile-username {
   font-size: 14px;
-  color: #e8a317;
+  color: #7C5CFC;
   font-weight: 500;
   display: block;
   margin-bottom: 6px;
@@ -177,10 +177,10 @@
 }
 .profile-btn ion-icon { font-size: 16px; }
 .profile-btn-connect {
-  background: #e8a317;
+  background: #7C5CFC;
   color: #fff;
 }
-.profile-btn-connect:hover { background: #d4940e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,163,23,0.3); }
+.profile-btn-connect:hover { background: #6B4EE6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,92,252,0.3); }
 .profile-btn-connect:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 .profile-btn-connected {
   background: #10B98120;
@@ -211,7 +211,7 @@
   color: #e5e7eb;
   border-color: #334155;
 }
-.profile-btn-edit:hover { border-color: #e8a317; color: #e8a317; }
+.profile-btn-edit:hover { border-color: #7C5CFC; color: #7C5CFC; }
 
 /* Stats Row */
 .profile-stats-row {
@@ -221,15 +221,18 @@
   margin-bottom: 24px;
 }
 .profile-stat {
-  background: var(--card-bg, #fff);
-  border: 1px solid var(--border, #e5e7eb);
+  background: rgba(22, 22, 30, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(124, 92, 252, 0.1);
   border-radius: 14px;
   padding: 16px 12px;
   text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 [data-theme="dark"] .profile-stat {
-  background: #16161e;
-  border-color: #2a2a3a;
+  background: rgba(22, 22, 30, 0.6);
+  border-color: rgba(124, 92, 252, 0.1);
 }
 .profile-stat-value {
   font-size: 22px;
@@ -248,15 +251,18 @@
 
 /* Sections */
 .profile-section {
-  background: var(--card-bg, #fff);
-  border: 1px solid var(--border, #e5e7eb);
+  background: rgba(22, 22, 30, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(124, 92, 252, 0.08);
   border-radius: 14px;
   padding: 20px;
   margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 [data-theme="dark"] .profile-section {
-  background: #16161e;
-  border-color: #2a2a3a;
+  background: rgba(22, 22, 30, 0.6);
+  border-color: rgba(124, 92, 252, 0.08);
 }
 .profile-section-title {
   font-size: 16px;
@@ -268,7 +274,7 @@
   gap: 8px;
 }
 [data-theme="dark"] .profile-section-title { color: #f1f5f9; }
-.profile-section-title ion-icon { font-size: 20px; color: #e8a317; }
+.profile-section-title ion-icon { font-size: 20px; color: #7C5CFC; }
 
 /* Achievements */
 .profile-achievements {
@@ -321,7 +327,7 @@
   background: #1a1a26;
   border-color: #2a2a3a;
 }
-.profile-group-chip-lg:hover { border-color: #e8a317; }
+.profile-group-chip-lg:hover { border-color: #7C5CFC; }
 .profile-group-dot {
   width: 10px;
   height: 10px;
@@ -338,9 +344,9 @@
 .profile-group-role {
   font-size: 11px;
   font-weight: 600;
-  color: #e8a317;
+  color: #7C5CFC;
   text-transform: capitalize;
-  background: #e8a31710;
+  background: #7C5CFC10;
   padding: 2px 8px;
   border-radius: 6px;
 }
@@ -370,7 +376,7 @@
 [data-theme="dark"] .profile-activity-type { color: #e5e7eb; }
 .profile-activity-xp {
   font-weight: 700;
-  color: #e8a317;
+  color: #7C5CFC;
   margin-right: 16px;
 }
 .profile-activity-date {

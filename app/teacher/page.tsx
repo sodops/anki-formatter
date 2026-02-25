@@ -52,7 +52,7 @@ interface Deck {
 }
 
 const COLORS = [
-  "#e8a317", "#f0b840", "#EC4899", "#EF4444",
+  "#7C5CFC", "#9B7FFF", "#EC4899", "#EF4444",
   "#F59E0B", "#10B981", "#06B6D4", "#3B82F6",
 ];
 
@@ -534,7 +534,7 @@ function TeacherDashboard() {
                 {/* Stats Row */}
                 <div className="t-stats-row">
                   <div className="t-stat-card">
-                    <div className="t-stat-icon" style={{ background: 'rgba(232,163,23,0.1)', color: '#e8a317' }}>
+                    <div className="t-stat-icon" style={{ background: 'rgba(124,92,252,0.1)', color: '#7C5CFC' }}>
                       <ion-icon name="people"></ion-icon>
                     </div>
                     <div>
@@ -634,7 +634,7 @@ function TeacherDashboard() {
                         return (
                           <Link href={`/teacher/assignments/${a.id}`} key={a.id} className={`t-assign-row ${isOverdue ? 'overdue' : ''}`}>
                             <div className="t-assign-row-left">
-                              <span className="t-assign-dot" style={{ background: a.group_color || '#e8a317' }}></span>
+                              <span className="t-assign-dot" style={{ background: a.group_color || '#7C5CFC' }}></span>
                               <div>
                                 <div className="t-assign-title">{a.title}</div>
                                 <div className="t-assign-meta">
@@ -763,7 +763,7 @@ function TeacherDashboard() {
                               <div className="t-assign-title-lg">{a.title}</div>
                               <div className="t-assign-meta">
                                 {a.group_name && (
-                                  <span className="t-group-chip" style={{ background: a.group_color || '#e8a317' }}>{a.group_name}</span>
+                                  <span className="t-group-chip" style={{ background: a.group_color || '#7C5CFC' }}>{a.group_name}</span>
                                 )}
                                 {a.deadline && (
                                   <span className={`t-assign-deadline ${isOverdue ? 'overdue' : ''}`}>
@@ -924,7 +924,7 @@ function TeacherDashboard() {
                     {/* Overall Summary */}
                     <div className="t-stats-row">
                       <div className="t-stat-card">
-                        <div className="t-stat-icon" style={{ background: '#e8a31720', color: '#e8a317' }}><ion-icon name="school"></ion-icon></div>
+                        <div className="t-stat-icon" style={{ background: '#7C5CFC20', color: '#7C5CFC' }}><ion-icon name="school"></ion-icon></div>
                         <div><div className="t-stat-value">{teacherStats.overall.total_students}</div><div className="t-stat-label">Total Students</div></div>
                       </div>
                       <div className="t-stat-card">
@@ -936,7 +936,7 @@ function TeacherDashboard() {
                         <div><div className="t-stat-value">{teacherStats.overall.avg_accuracy}%</div><div className="t-stat-label">Avg Accuracy</div></div>
                       </div>
                       <div className="t-stat-card">
-                        <div className="t-stat-icon" style={{ background: '#f0b84020', color: '#f0b840' }}><ion-icon name="layers"></ion-icon></div>
+                        <div className="t-stat-icon" style={{ background: '#9B7FFF20', color: '#9B7FFF' }}><ion-icon name="layers"></ion-icon></div>
                         <div><div className="t-stat-value">{teacherStats.overall.total_reviews}</div><div className="t-stat-label">Total Reviews</div></div>
                       </div>
                     </div>
@@ -1093,7 +1093,7 @@ function TeacherDashboard() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                           {inboxRequests.map(req => (
                             <div key={req.connection_id} className="t-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16 }}>
-                              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#e8a31720', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 600, color: '#e8a317', flexShrink: 0 }}>
+                              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#7C5CFC20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 600, color: '#7C5CFC', flexShrink: 0 }}>
                                 {req.user?.avatar_url ? (
                                   <img src={req.user.avatar_url} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
                                 ) : (
@@ -1167,7 +1167,7 @@ function TeacherDashboard() {
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {inboxNotifications.map(n => (
-                            <div key={n.id} onClick={() => !n.is_read && markNotifRead(n.id)} className="t-card" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, cursor: !n.is_read ? 'pointer' : 'default', opacity: n.is_read ? 0.6 : 1, borderLeft: !n.is_read ? '3px solid #e8a317' : '3px solid transparent' }}>
+                            <div key={n.id} onClick={() => !n.is_read && markNotifRead(n.id)} className="t-card" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, cursor: !n.is_read ? 'pointer' : 'default', opacity: n.is_read ? 0.6 : 1, borderLeft: !n.is_read ? '3px solid #7C5CFC' : '3px solid transparent' }}>
                               <div style={{ fontSize: 20, flexShrink: 0 }}>
                                 {n.type === 'connection_request' ? '👋' : n.type === 'connection_accepted' ? '🤝' : n.type === 'assignment_new' ? '📝' : n.type === 'assignment_graded' ? '⭐' : n.type === 'xp_earned' ? '⚡' : '🔔'}
                               </div>
@@ -1176,7 +1176,7 @@ function TeacherDashboard() {
                                 <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 2 }}>{n.message}</div>
                                 <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>{new Date(n.created_at).toLocaleDateString()} · {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                               </div>
-                              {!n.is_read && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8a317', flexShrink: 0, marginTop: 6 }}></div>}
+                              {!n.is_read && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#7C5CFC', flexShrink: 0, marginTop: 6 }}></div>}
                             </div>
                           ))}
                         </div>
@@ -1257,7 +1257,7 @@ function TeacherDashboard() {
                   <h2 className="t-section-title">Quick Stats</h2>
                   <div className="t-stats-row">
                     <div className="t-stat-card">
-                      <div className="t-stat-icon" style={{ background: '#e8a31720', color: '#e8a317' }}><ion-icon name="people"></ion-icon></div>
+                      <div className="t-stat-icon" style={{ background: '#7C5CFC20', color: '#7C5CFC' }}><ion-icon name="people"></ion-icon></div>
                       <div><div className="t-stat-value">{groups.length}</div><div className="t-stat-label">Groups</div></div>
                     </div>
                     <div className="t-stat-card">

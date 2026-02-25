@@ -30,7 +30,7 @@ body:has(.about-page) {
 .about-orb-1 {
   width: 600px;
   height: 600px;
-  background: #e8a317;
+  background: #7C5CFC;
   top: -200px;
   right: -100px;
   animation: aboutOrbFloat 20s ease-in-out infinite;
@@ -39,7 +39,7 @@ body:has(.about-page) {
 .about-orb-2 {
   width: 500px;
   height: 500px;
-  background: #f59e0b;
+  background: #9B7FFF;
   bottom: -100px;
   left: -200px;
   animation: aboutOrbFloat 25s ease-in-out infinite reverse;
@@ -48,7 +48,7 @@ body:has(.about-page) {
 .about-orb-3 {
   width: 400px;
   height: 400px;
-  background: #d4940e;
+  background: #6B4EE6;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -105,8 +105,8 @@ body:has(.about-page) {
 }
 
 .about-nav-cta {
-  background: var(--accent, #e8a317) !important;
-  color: #1a1a1a !important;
+  background: var(--accent, #7C5CFC) !important;
+  color: #fff !important;
   padding: 8px 20px;
   border-radius: 8px;
   font-weight: 600 !important;
@@ -131,12 +131,12 @@ body:has(.about-page) {
 .about-hero-badge {
   display: inline-block;
   padding: 6px 16px;
-  background: rgba(232, 163, 23, 0.12);
-  border: 1px solid rgba(232, 163, 23, 0.25);
+  background: rgba(124, 92, 252, 0.12);
+  border: 1px solid rgba(124, 92, 252, 0.25);
   border-radius: 100px;
   font-size: 13px;
   font-weight: 600;
-  color: #f0b840;
+  color: #9B7FFF;
   margin-bottom: 24px;
   letter-spacing: 0.5px;
 }
@@ -150,7 +150,7 @@ body:has(.about-page) {
 }
 
 .about-gradient-text {
-  background: linear-gradient(135deg, #e8a317, #f59e0b, #fbbf24);
+  background: linear-gradient(135deg, #7C5CFC, #9B7FFF, #C4B5FD);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -177,8 +177,8 @@ body:has(.about-page) {
   align-items: center;
   gap: 8px;
   padding: 14px 28px;
-  background: linear-gradient(135deg, #e8a317, #d4940e);
-  color: #1a1a1a;
+  background: linear-gradient(135deg, #7C5CFC, #6B4EE6);
+  color: #fff;
   border: none;
   border-radius: 12px;
   font-size: 16px;
@@ -186,12 +186,12 @@ body:has(.about-page) {
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(232, 163, 23, 0.4);
+  box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4);
 }
 
 .about-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(232, 163, 23, 0.5);
+  box-shadow: 0 8px 30px rgba(124, 92, 252, 0.5);
 }
 
 .about-btn-secondary {
@@ -210,7 +210,7 @@ body:has(.about-page) {
 
 .about-btn-secondary:hover {
   border-color: var(--accent);
-  background: rgba(232, 163, 23, 0.05);
+  background: rgba(124, 92, 252, 0.05);
 }
 
 .about-btn-large {
@@ -275,12 +275,12 @@ body:has(.about-page) {
 .about-section-badge {
   display: inline-block;
   padding: 4px 14px;
-  background: rgba(232, 163, 23, 0.1);
-  border: 1px solid rgba(232, 163, 23, 0.2);
+  background: rgba(124, 92, 252, 0.1);
+  border: 1px solid rgba(124, 92, 252, 0.2);
   border-radius: 100px;
   font-size: 12px;
   font-weight: 600;
-  color: #f0b840;
+  color: #9B7FFF;
   margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -296,7 +296,7 @@ body:has(.about-page) {
 
 .about-section-title em {
   font-style: normal;
-  background: linear-gradient(135deg, #e8a317, #f59e0b);
+  background: linear-gradient(135deg, #7C5CFC, #6B4EE6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -326,7 +326,7 @@ body:has(.about-page) {
 }
 
 .about-feature-card:hover {
-  border-color: rgba(232, 163, 23, 0.3);
+  border-color: rgba(124, 92, 252, 0.3);
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
@@ -349,11 +349,11 @@ body:has(.about-page) {
 }
 
 .about-feature-card code {
-  background: rgba(232, 163, 23, 0.1);
+  background: rgba(124, 92, 252, 0.1);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 13px;
-  color: #f0b840;
+  color: #9B7FFF;
 }
 
 /* ===== ALGORITHM SECTION ===== */
@@ -385,8 +385,8 @@ body:has(.about-page) {
 }
 
 .about-algo-solution {
-  border-color: rgba(232, 163, 23, 0.3);
-  background: linear-gradient(135deg, rgba(232, 163, 23, 0.05), rgba(245, 158, 11, 0.03));
+  border-color: rgba(124, 92, 252, 0.3);
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.05), rgba(245, 158, 11, 0.03));
 }
 
 /* Forgetting curve bars */
@@ -456,8 +456,8 @@ body:has(.about-page) {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e8a317, #d4940e);
-  color: #1a1a1a;
+  background: linear-gradient(135deg, #7C5CFC, #6B4EE6);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -559,7 +559,7 @@ body:has(.about-page) {
 }
 
 .about-benefit:hover {
-  border-color: rgba(232, 163, 23, 0.3);
+  border-color: rgba(124, 92, 252, 0.3);
 }
 
 .about-benefit-icon {
@@ -665,7 +665,7 @@ body:has(.about-page) {
   z-index: 1;
   text-align: center;
   padding: 80px 24px 100px;
-  background: linear-gradient(180deg, transparent, rgba(232, 163, 23, 0.05));
+  background: linear-gradient(180deg, transparent, rgba(124, 92, 252, 0.05));
 }
 
 .about-cta-section h2 {
@@ -714,23 +714,23 @@ body:has(.about-page) {
 }
 
 [data-theme="light"] .about-hero-badge {
-  background: rgba(232, 163, 23, 0.08);
-  border-color: rgba(232, 163, 23, 0.2);
-  color: #d4940e;
+  background: rgba(124, 92, 252, 0.08);
+  border-color: rgba(124, 92, 252, 0.2);
+  color: #6B4EE6;
 }
 
 [data-theme="light"] .about-section-badge {
-  background: rgba(232, 163, 23, 0.06);
-  border-color: rgba(232, 163, 23, 0.15);
-  color: #d4940e;
+  background: rgba(124, 92, 252, 0.06);
+  border-color: rgba(124, 92, 252, 0.15);
+  color: #6B4EE6;
 }
 
 [data-theme="light"] .about-feature-card code {
-  color: #d4940e;
+  color: #6B4EE6;
 }
 
 [data-theme="light"] .about-algo-solution {
-  background: linear-gradient(135deg, rgba(232, 163, 23, 0.04), rgba(245, 158, 11, 0.02));
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.04), rgba(245, 158, 11, 0.02));
 }
 
 /* ===== NAV PROFILE DROPDOWN ===== */
@@ -852,7 +852,7 @@ body:has(.about-page) {
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 28px;
-  border-top: 3px solid #e8a317;
+  border-top: 3px solid #7C5CFC;
 }
 
 .about-dict-header {
@@ -894,7 +894,7 @@ body:has(.about-page) {
 .about-dict-pos {
   font-size: 13px;
   font-weight: 600;
-  color: #e8a317;
+  color: #7C5CFC;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-style: italic;
@@ -911,7 +911,7 @@ body:has(.about-page) {
   color: var(--text-tertiary);
   font-style: italic;
   padding-left: 12px;
-  border-left: 2px solid rgba(232, 163, 23, 0.3);
+  border-left: 2px solid rgba(124, 92, 252, 0.3);
   margin-top: 4px;
 }
 
@@ -933,7 +933,7 @@ body:has(.about-page) {
 }
 
 .about-dict-feat:hover {
-  border-color: rgba(232, 163, 23, 0.3);
+  border-color: rgba(124, 92, 252, 0.3);
   transform: translateX(4px);
 }
 

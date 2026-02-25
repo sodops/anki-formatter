@@ -53,6 +53,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -189,12 +190,17 @@ export default function PublicProfilePage({ params }: { params: { username: stri
       <main className="profile-main">
         {/* Profile Hero */}
         <div className="profile-hero">
-          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#10B981' : '#e8a317'}, ${profile.role === 'teacher' ? '#3B82F6' : '#f0b840'})` }}></div>
+          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#10B981' : '#7C5CFC'}, ${profile.role === 'teacher' ? '#3B82F6' : '#9B7FFF'})` }}></div>
           <div className="profile-hero-content">
             <div className="profile-avatar-container">
               <div className="profile-avatar-xl">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.display_name} />
+                {profile.avatar_url && !avatarError ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.display_name}
+                    onError={() => setAvatarError(true)}
+                    referrerPolicy="no-referrer"
+                  />
                 ) : (
                   <span>{(profile.display_name || "?")[0].toUpperCase()}</span>
                 )}
@@ -205,7 +211,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
             <div className="profile-hero-info">
               <h1>{profile.display_name}</h1>
               {profile.username && <span className="profile-username">@{profile.username}</span>}
-              <span className="profile-role-tag" style={{ background: profile.role === 'teacher' ? '#10B98120' : '#e8a31720', color: profile.role === 'teacher' ? '#10B981' : '#e8a317' }}>
+              <span className="profile-role-tag" style={{ background: profile.role === 'teacher' ? '#10B98120' : '#7C5CFC20', color: profile.role === 'teacher' ? '#10B981' : '#7C5CFC' }}>
                 {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
               </span>
               {profile.bio && <p className="profile-bio">{profile.bio}</p>}
@@ -257,26 +263,41 @@ export default function PublicProfilePage({ params }: { params: { username: stri
 
         {/* Stats Cards */}
         <div className="profile-stats-row">
-          <div className="profile-stat">
-            <div className="profile-stat-value">{profile.total_xp}</div>
-            <div className="profile-stat-label">Total XP</div>
-          </div>
-          <div className="profile-stat">
-            <div className="profile-stat-value">{profile.current_streak}</div>
-            <div className="profile-stat-label">Day Streak</div>
-          </div>
-          <div className="profile-stat">
-            <div className="profile-stat-value">{profile.longest_streak}</div>
-            <div className="profile-stat-label">Best Streak</div>
-          </div>
-          <div className="profile-stat">
-            <div className="profile-stat-value">{profile.completed_assignments}</div>
-            <div className="profile-stat-label">Tasks Done</div>
-          </div>
-          <div className="profile-stat">
-            <div className="profile-stat-value">{profile.connections_count}</div>
-            <div className="profile-stat-label">Connections</div>
-          </div>
+          {profile.role === 'teacher' ? (
+            <>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{groups.length}</div>
+                <div className="profile-stat-label">Groups</div>
+              </div>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{profile.connections_count}</div>
+                <div className="profile-stat-label">Connections</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{profile.total_xp}</div>
+                <div className="profile-stat-label">Total XP</div>
+              </div>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{profile.current_streak}</div>
+                <div className="profile-stat-label">Day Streak</div>
+              </div>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{profile.longest_streak}</div>
+                <div className="profile-stat-label">Best Streak</div>
+              </div>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{profile.completed_assignments}</div>
+                <div className="profile-stat-label">Tasks Done</div>
+              </div>
+              <div className="profile-stat">
+                <div className="profile-stat-value">{profile.connections_count}</div>
+                <div className="profile-stat-label">Connections</div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Achievements */}

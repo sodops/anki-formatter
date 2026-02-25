@@ -60,7 +60,7 @@ function initAnkiFlow() {
         if (!currentState.decks || currentState.decks.length === 0) {
             const newDeck = store.dispatch('DECK_CREATE', { 
                 name: "My First Deck",
-                color: '#e8a317'
+                color: '#7C5CFC'
             });
             // Auto-select the new deck
             if (newDeck && newDeck.id) {
@@ -185,7 +185,7 @@ function initAnkiFlow() {
                 if (!s.decks || s.decks.length === 0) {
                     const newDeck = store.dispatch('DECK_CREATE', {
                         name: "My First Deck",
-                        color: '#e8a317'
+                        color: '#7C5CFC'
                     });
                     if (newDeck && newDeck.id) {
                         store.dispatch('DECK_SELECT', newDeck.id);
