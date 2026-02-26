@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface AssignmentDetail {
   id: string;
@@ -47,6 +48,17 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmModal({ message, onConfirm });
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -68,41 +80,61 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
   }, [authLoading, fetchData]);
 
   const handleFinishAssignment = async () => {
-    if (!confirm("Finish this assignment? It will be marked as inactive and students won't be able to study it anymore.")) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/assignments/${assignmentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: false }),
-      });
-      if (!res.ok) throw new Error("Failed to finish assignment");
-      fetchData();
-    } catch {
-      alert("Failed to finish assignment");
-    } finally {
-      setActionLoading(false);
-    }
+    showConfirm("Finish this assignment? It will be marked as inactive and students won't be able to study it anymore.", async () => {
+      setActionLoading(true);
+      try {
+        const res = await fetch(`/api/assignments/${assignmentId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ is_active: false }),
+        });
+        if (!res.ok) throw new Error("Failed to finish assignment");
+        showToast('success', 'Assignment finished');
+        fetchData();
+      } catch {
+        showToast('error', 'Failed to finish assignment');
+      } finally {
+        setActionLoading(false);
+      }
+    });
   };
 
   const handleDeleteAssignment = async () => {
-    if (!confirm("Delete this assignment permanently? All student progress will be lost. This cannot be undone.")) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/assignments/${assignmentId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
-      window.location.href = "/teacher";
-    } catch {
-      alert("Failed to delete assignment");
-      setActionLoading(false);
-    }
+    showConfirm("Delete this assignment permanently? All student progress will be lost. This cannot be undone.", async () => {
+      setActionLoading(true);
+      try {
+        const res = await fetch(`/api/assignments/${assignmentId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete");
+        window.location.href = "/teacher";
+      } catch {
+        showToast('error', 'Failed to delete assignment');
+        setActionLoading(false);
+      }
+    });
   };
 
   if (authLoading || loading) {
     return (
-      <div className="teacher-loading">
-        <div className="teacher-spinner"></div>
-        <p>Loading assignment...</p>
+      <div className="teacher-container" style={{ padding: '2rem' }}>
+        <Skeleton width={120} height="1rem" />
+        <div style={{ marginTop: '1.5rem' }}><Skeleton width="60%" height="2rem" /></div>
+        <div style={{ marginTop: '0.5rem' }}><Skeleton width="40%" height="1rem" /></div>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 12, padding: '1.5rem' }}>
+              <Skeleton width="50%" height="0.875rem" />
+              <div style={{ marginTop: '0.75rem' }}><Skeleton width="40%" height="1.5rem" /></div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: '2rem' }}><Skeleton width="30%" height="1.25rem" /></div>
+        {[1,2,3].map(i => (
+          <div key={i} style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Skeleton width={40} height={40} borderRadius="50%" />
+            <div style={{ flex: 1 }}><Skeleton width="50%" height="1rem" /><div style={{ marginTop: '0.5rem' }}><Skeleton width="30%" height="0.75rem" /></div></div>
+            <Skeleton width={60} height="1.5rem" borderRadius={12} />
+          </div>
+        ))}
       </div>
     );
   }
@@ -398,6 +430,30 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
           </div>
         )}
       </main>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 10001, pointerEvents: 'none' }}>
+          <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderRadius: 12, background: toast.type === 'error' ? '#FEE2E2' : toast.type === 'success' ? '#D1FAE5' : '#DBEAFE', color: toast.type === 'error' ? '#DC2626' : toast.type === 'success' ? '#059669' : '#2563EB', fontSize: 14, fontWeight: 500, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+            <ion-icon name={toast.type === 'success' ? 'checkmark-circle' : toast.type === 'error' ? 'close-circle' : 'information-circle'}></ion-icon>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10002 }} onClick={() => setConfirmModal(null)}>
+          <div style={{ background: 'var(--card-bg, #1a1a2e)', borderRadius: 16, padding: 24, maxWidth: 400, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 18, color: 'var(--text, #fff)' }}>Confirm</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary, #9ca3af)', lineHeight: 1.5 }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmModal(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'transparent', color: 'var(--text, #fff)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#EF4444', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

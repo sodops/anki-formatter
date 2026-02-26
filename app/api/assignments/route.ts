@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/assignments — List assignments
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
         .single();
       role = profile?.role || "student";
     } catch (profileError: any) {
-      console.warn("Profile query failed, defaulting to student role:", profileError?.message);
+      logger.warn("Profile query failed, defaulting to student role:", profileError?.message);
     }
 
     const { searchParams } = new URL(request.url);
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error: any) {
-    console.error("GET /api/assignments error:", error?.message || error);
+    logger.error("GET /api/assignments error:", error?.message || error);
     if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
       return NextResponse.json({ assignments: [], role: 'student' });
     }
@@ -260,7 +261,7 @@ export async function POST(request: NextRequest) {
 
     if (assignmentDecks.length > 0) {
       const { error: deckInsertError } = await admin.from("assignment_decks").insert(assignmentDecks);
-      if (deckInsertError) console.error("assignment_decks insert error:", deckInsertError.message);
+      if (deckInsertError) logger.error("assignment_decks insert error:", deckInsertError.message);
     }
 
     // Create student_progress for all students in the group
@@ -280,7 +281,7 @@ export async function POST(request: NextRequest) {
       }));
 
       const { error: progressError } = await admin.from("student_progress").insert(progressRecords);
-      if (progressError) console.error("student_progress insert error:", progressError.message);
+      if (progressError) logger.error("student_progress insert error:", progressError.message);
 
       // Notify all students
       const notifications = students.map(s => ({
@@ -292,12 +293,12 @@ export async function POST(request: NextRequest) {
       }));
 
       const { error: notifError } = await admin.from("notifications").insert(notifications);
-      if (notifError) console.error("notifications insert error:", notifError.message);
+      if (notifError) logger.error("notifications insert error:", notifError.message);
     }
 
     return NextResponse.json({ assignment }, { status: 201 });
   } catch (error: any) {
-    console.error("POST /api/assignments error:", error?.message || error);
+    logger.error("POST /api/assignments error:", error?.message || error);
     if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
       return NextResponse.json({ error: "Assignments feature is not yet configured. Please run the database migration." }, { status: 503 });
     }

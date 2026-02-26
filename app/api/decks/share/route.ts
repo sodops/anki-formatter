@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/decks/share — Share a deck with another user
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
       recipient: recipient.display_name || recipient.username,
     });
   } catch (error) {
-    console.error("POST /api/decks/share error:", error);
+    logger.error("POST /api/decks/share error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

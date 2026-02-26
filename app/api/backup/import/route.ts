@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { backupImportSchema } from "@/lib/validations";
+import { logger } from '@/lib/logger';
 
 const CHUNK_SIZE = 500;
 
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
     for (const chunk of chunkArray(decks, CHUNK_SIZE)) {
       const { error } = await supabase.from("decks").insert(chunk);
       if (error) {
-        console.error("[BACKUP IMPORT]", error);
+        logger.error("[BACKUP IMPORT]", error);
         return NextResponse.json({ error: "Failed to insert decks" }, { status: 500 });
       }
     }
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     for (const chunk of chunkArray(cards, CHUNK_SIZE)) {
       const { error } = await supabase.from("cards").insert(chunk);
       if (error) {
-        console.error("[BACKUP IMPORT]", error);
+        logger.error("[BACKUP IMPORT]", error);
         return NextResponse.json({ error: "Failed to insert cards" }, { status: 500 });
       }
     }
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       for (const chunk of chunkArray(reviewLogs, CHUNK_SIZE)) {
         const { error } = await supabase.from("review_logs").insert(chunk);
         if (error) {
-          console.error("[BACKUP IMPORT]", error);
+          logger.error("[BACKUP IMPORT]", error);
           return NextResponse.json({ error: "Failed to insert review logs" }, { status: 500 });
         }
       }
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    console.error("[BACKUP IMPORT]", err);
+    logger.error("[BACKUP IMPORT]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

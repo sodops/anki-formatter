@@ -97,6 +97,30 @@ function TeacherDashboard() {
   const [editNickname, setEditNickname] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  // Settings state (persisted to localStorage)
+  const [settings, setSettings] = useState({
+    dailyGoal: 20, newCardsPerDay: 20, maxReviews: 100,
+    cardFontSize: 32, tts: true, soundEffects: false,
+    studyReminders: true, assignmentUpdates: true, algorithm: 'sm-2'
+  });
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ankiflow-teacher-settings');
+      if (saved) setSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
+    } catch {}
+  }, []);
+
+  const updateSetting = (key: string, value: any) => {
+    setSettings(prev => {
+      const next = { ...prev, [key]: value };
+      try { localStorage.setItem('ankiflow-teacher-settings', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   const switchTab = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -208,11 +232,17 @@ function TeacherDashboard() {
   };
 
   const handleDeleteGroup = async (id: string) => {
-    if (!confirm("Delete this group? All assignments and progress will be lost.")) return;
-    try {
-      await fetch(`/api/groups/${id}`, { method: "DELETE" });
-      fetchData();
-    } catch {}
+    setConfirmModal({
+      message: "Delete this group? All assignments and progress will be lost.",
+      onConfirm: async () => {
+        try {
+          await fetch(`/api/groups/${id}`, { method: "DELETE" });
+          setSuccess("Group deleted");
+          setTimeout(() => setSuccess(""), 2000);
+          fetchData();
+        } catch {}
+      }
+    });
   };
 
   const fetchStats = async () => {
@@ -1364,21 +1394,21 @@ function TeacherDashboard() {
                         <div className="t-settings-label">Daily Goal</div>
                         <div className="t-settings-sublabel">Cards to study per day</div>
                       </div>
-                      <input type="number" className="t-settings-input" defaultValue={20} min={5} max={200} />
+                      <input type="number" className="t-settings-input" value={settings.dailyGoal} min={5} max={200} onChange={e => updateSetting('dailyGoal', Number(e.target.value))} />
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">New Cards / Day</div>
                         <div className="t-settings-sublabel">Max new cards introduced daily</div>
                       </div>
-                      <input type="number" className="t-settings-input" defaultValue={20} min={0} max={100} />
+                      <input type="number" className="t-settings-input" value={settings.newCardsPerDay} min={0} max={100} onChange={e => updateSetting('newCardsPerDay', Number(e.target.value))} />
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Max Reviews / Day</div>
                         <div className="t-settings-sublabel">Max review cards per session</div>
                       </div>
-                      <input type="number" className="t-settings-input" defaultValue={100} min={10} max={500} />
+                      <input type="number" className="t-settings-input" value={settings.maxReviews} min={10} max={500} onChange={e => updateSetting('maxReviews', Number(e.target.value))} />
                     </div>
                   </div>
                 </div>
@@ -1406,8 +1436,10 @@ function TeacherDashboard() {
                         <div className="t-settings-label">Card Font Size</div>
                         <div className="t-settings-sublabel">Adjust flashcard text size</div>
                       </div>
-                      <input type="range" defaultValue={32} min={16} max={64} style={{ width: 120 }} onChange={e => {
-                        document.documentElement.style.setProperty('--card-font-size', e.target.value + 'px');
+                      <input type="range" value={settings.cardFontSize} min={16} max={64} style={{ width: 120 }} onChange={e => {
+                        const val = Number(e.target.value);
+                        updateSetting('cardFontSize', val);
+                        document.documentElement.style.setProperty('--card-font-size', val + 'px');
                       }} />
                     </div>
                   </div>
@@ -1422,14 +1454,14 @@ function TeacherDashboard() {
                         <div className="t-settings-label">Text-to-Speech</div>
                         <div className="t-settings-sublabel">Auto-read cards aloud</div>
                       </div>
-                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
+                      <label className="t-toggle"><input type="checkbox" checked={settings.tts} onChange={e => updateSetting('tts', e.target.checked)} /><span className="t-toggle-slider"></span></label>
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Sound Effects</div>
                         <div className="t-settings-sublabel">Sounds on correct/wrong</div>
                       </div>
-                      <label className="t-toggle"><input type="checkbox" /><span className="t-toggle-slider"></span></label>
+                      <label className="t-toggle"><input type="checkbox" checked={settings.soundEffects} onChange={e => updateSetting('soundEffects', e.target.checked)} /><span className="t-toggle-slider"></span></label>
                     </div>
                   </div>
                 </div>
@@ -1443,14 +1475,14 @@ function TeacherDashboard() {
                         <div className="t-settings-label">Study Reminders</div>
                         <div className="t-settings-sublabel">Get notified when it&apos;s time to review</div>
                       </div>
-                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
+                      <label className="t-toggle"><input type="checkbox" checked={settings.studyReminders} onChange={e => updateSetting('studyReminders', e.target.checked)} /><span className="t-toggle-slider"></span></label>
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Assignment Updates</div>
                         <div className="t-settings-sublabel">Notify on student completions</div>
                       </div>
-                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
+                      <label className="t-toggle"><input type="checkbox" checked={settings.assignmentUpdates} onChange={e => updateSetting('assignmentUpdates', e.target.checked)} /><span className="t-toggle-slider"></span></label>
                     </div>
                   </div>
                 </div>
@@ -1464,7 +1496,7 @@ function TeacherDashboard() {
                         <div className="t-settings-label">Spaced Repetition</div>
                         <div className="t-settings-sublabel">Choose between SM-2 and FSRS</div>
                       </div>
-                      <select className="t-settings-select" defaultValue="sm-2">
+                      <select className="t-settings-select" value={settings.algorithm} onChange={e => updateSetting('algorithm', e.target.value)}>
                         <option value="sm-2">SM-2 (Classic)</option>
                         <option value="fsrs">FSRS (Modern)</option>
                       </select>
@@ -1501,6 +1533,20 @@ function TeacherDashboard() {
           </>
         )}
       </main>
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10002 }} onClick={() => setConfirmModal(null)}>
+          <div style={{ background: 'var(--card-bg, #1a1a2e)', borderRadius: 16, padding: 24, maxWidth: 400, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 18, color: 'var(--text, #fff)' }}>Confirm</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary, #9ca3af)', lineHeight: 1.5 }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmModal(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'transparent', color: 'var(--text, #fff)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#EF4444', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Bottom Nav */}
       <nav className="t-bottom-nav">

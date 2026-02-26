@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { analyticsSchema } from "@/lib/validations";
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/analytics — Store Web Vitals metrics
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     // Log to console in development
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Web Vitals] ${name}:`, {
+      logger.log(`[Web Vitals] ${name}:`, {
         value: Math.round(value),
         rating,
         delta: Math.round(delta || 0),
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    console.error("[ANALYTICS]", err);
+    logger.error("[ANALYTICS]", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

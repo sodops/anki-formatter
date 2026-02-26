@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/assignments/[id]/study — Get cards for assignment study session
@@ -80,7 +81,7 @@ export async function GET(
       total_cards: (cards || []).length,
     });
   } catch (error) {
-    console.error("GET /api/assignments/[id]/study error:", error);
+    logger.error("GET /api/assignments/[id]/study error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -199,7 +200,7 @@ export async function POST(
       session_xp: sessionXP,
     });
   } catch (error) {
-    console.error("POST /api/assignments/[id]/study error:", error);
+    logger.error("POST /api/assignments/[id]/study error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

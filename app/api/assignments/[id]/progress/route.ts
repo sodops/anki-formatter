@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * PATCH /api/assignments/[id]/progress — Update student progress on assignment
@@ -74,7 +75,7 @@ export async function PATCH(
 
     return NextResponse.json({ progress: updated });
   } catch (error) {
-    console.error("PATCH /api/assignments/[id]/progress error:", error);
+    logger.error("PATCH /api/assignments/[id]/progress error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

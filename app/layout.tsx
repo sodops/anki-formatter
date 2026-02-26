@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { Analytics } from "@vercel/analytics/react";
 
 export const viewport: Viewport = {
@@ -153,6 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ErrorBoundary>
           <AuthProvider>{children}</AuthProvider>
         </ErrorBoundary>
+        <PWAInstallPrompt />
         <Analytics />
       </body>
     </html>

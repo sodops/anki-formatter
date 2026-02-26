@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import { Skeleton, StudyCardSkeleton } from "@/components/ui/Skeleton";
 
 interface Card {
   id: string;
@@ -46,7 +47,13 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [xpAwarded, setXpAwarded] = useState(0);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const flipRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // Fetch assignment data
   const fetchData = useCallback(async () => {
@@ -193,7 +200,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
       setCompleted(true);
       setXpAwarded(data.xp_awarded || 0);
     } catch (err: any) {
-      alert(err.message);
+      showToast('error', err.message);
     } finally {
       setCompleting(false);
     }
@@ -232,9 +239,13 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
   // Loading
   if (authLoading || phase === "loading") {
     return (
-      <div className="as-loading">
-        <div className="as-spinner" />
-        <p>Loading assignment...</p>
+      <div style={{ padding: '2rem', maxWidth: 600, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <Skeleton width={80} height="1rem" />
+          <div style={{ flex: 1 }}><Skeleton width="100%" height="0.5rem" borderRadius={4} /></div>
+          <Skeleton width={40} height="1rem" />
+        </div>
+        <StudyCardSkeleton />
       </div>
     );
   }
@@ -408,6 +419,15 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
 
     return (
       <div className="as-container">
+        {/* Toast */}
+        {toast && (
+          <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 10001, pointerEvents: 'none' }}>
+            <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderRadius: 12, background: toast.type === 'error' ? '#FEE2E2' : '#D1FAE5', color: toast.type === 'error' ? '#DC2626' : '#059669', fontSize: 14, fontWeight: 500, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+              <ion-icon name={toast.type === 'error' ? 'close-circle' : 'checkmark-circle'}></ion-icon>
+              <span>{toast.message}</span>
+            </div>
+          </div>
+        )}
         <div className="as-summary">
           <div className="as-summary-card">
             <div className="as-summary-icon"><ion-icon name="trophy-outline" style={{ fontSize: 48 }}></ion-icon></div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/groups/join — Join a group by join code
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
       group: { id: group.id, name: group.name } 
     });
   } catch (error) {
-    console.error("POST /api/groups/join error:", error);
+    logger.error("POST /api/groups/join error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

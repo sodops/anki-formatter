@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -10,15 +11,15 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError) {
-      console.error("[/api/me] Auth error:", authError.message);
+      logger.error("[/api/me] Auth error:", authError.message);
     }
 
     if (!user) {
-      console.log("[/api/me] No authenticated user found");
+      logger.log("[/api/me] No authenticated user found");
       return NextResponse.json({ user: null, role: "student" });
     }
 
-    console.log("[/api/me] User found:", user.id, user.email);
+    logger.log("[/api/me] User found:", user.id, user.email);
 
     // Try admin client first (bypasses RLS), fall back to anon client
     let profile = null;
@@ -37,15 +38,15 @@ export async function GET() {
           .single();
         
         if (error) {
-          console.error("[/api/me] Admin profile query error:", error.message);
+          logger.error("[/api/me] Admin profile query error:", error.message);
         } else {
           profile = data;
         }
       } catch (err) {
-        console.error("[/api/me] Admin client failed:", err);
+        logger.error("[/api/me] Admin client failed:", err);
       }
     } else {
-      console.warn("[/api/me] SUPABASE_SERVICE_ROLE_KEY not set, trying anon client");
+      logger.warn("[/api/me] SUPABASE_SERVICE_ROLE_KEY not set, trying anon client");
       // Fallback: try with the anon key (may fail with RLS)
       const { data, error } = await supabase
         .from("profiles")
@@ -54,13 +55,13 @@ export async function GET() {
         .single();
       
       if (error) {
-        console.error("[/api/me] Anon profile query error:", error.message);
+        logger.error("[/api/me] Anon profile query error:", error.message);
       } else {
         profile = data;
       }
     }
 
-    console.log("[/api/me] Profile result:", { role: profile?.role, name: profile?.display_name });
+    logger.log("[/api/me] Profile result:", { role: profile?.role, name: profile?.display_name });
 
     return NextResponse.json({
       user: {
@@ -72,7 +73,7 @@ export async function GET() {
       profile: profile || null,
     });
   } catch (err) {
-    console.error("[/api/me] Unexpected error:", err);
+    logger.error("[/api/me] Unexpected error:", err);
     return NextResponse.json({ user: null, role: "student" }, { status: 500 });
   }
 }

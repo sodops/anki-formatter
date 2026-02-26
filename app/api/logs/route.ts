@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { logsSchema } from "@/lib/validations";
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -50,13 +51,13 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      console.error("Error logging to DB:", error);
+      logger.error("Error logging to DB:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Logging API Error:", error);
+    logger.error("Logging API Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

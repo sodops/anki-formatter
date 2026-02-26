@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (ownedError) {
-      console.error("[/api/groups] Owned groups error:", ownedError.message);
+      logger.error("[/api/groups] Owned groups error:", ownedError.message);
     }
 
     // Query joined groups (without counts first)
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       .eq("user_id", user.id);
 
     if (memberError) {
-      console.error("[/api/groups] Memberships error:", memberError.message);
+      logger.error("[/api/groups] Memberships error:", memberError.message);
     }
 
     // Get all group IDs for count queries
@@ -128,11 +129,11 @@ export async function GET(request: NextRequest) {
     });
 
     const groups = Array.from(groupMap.values());
-    console.log(`[/api/groups] user=${user.id}, role=${role}, owned=${ownedGroups?.length || 0}, joined=${memberships?.length || 0}, total=${groups.length}`);
+    logger.log(`[/api/groups] user=${user.id}, role=${role}, owned=${ownedGroups?.length || 0}, joined=${memberships?.length || 0}, total=${groups.length}`);
 
     return NextResponse.json({ groups, role });
   } catch (error: any) {
-    console.error("GET /api/groups error:", error?.message || error);
+    logger.error("GET /api/groups error:", error?.message || error);
     if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
       return NextResponse.json({ groups: [], role: 'student' });
     }
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (profileError) {
-      console.error("Profile query error:", profileError.message);
+      logger.error("Profile query error:", profileError.message);
       return NextResponse.json({ error: "Failed to verify role: " + profileError.message }, { status: 500 });
     }
 
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Group insert error:", error.message, error.code);
+      logger.error("Group insert error:", error.message, error.code);
       return NextResponse.json({ error: "Failed to create group: " + error.message }, { status: 500 });
     }
 
@@ -209,12 +210,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (memberError) {
-      console.error("Member insert error:", memberError.message);
+      logger.error("Member insert error:", memberError.message);
     }
 
     return NextResponse.json({ group }, { status: 201 });
   } catch (error: any) {
-    console.error("POST /api/groups error:", error?.message || error);
+    logger.error("POST /api/groups error:", error?.message || error);
     return NextResponse.json({ error: "Internal server error: " + (error?.message || "unknown") }, { status: 500 });
   }
 }

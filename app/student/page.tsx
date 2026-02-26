@@ -97,6 +97,28 @@ function StudentDashboard() {
   const [editPhone, setEditPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
 
+  // Settings state (persisted to localStorage)
+  const [settings, setSettings] = useState({
+    dailyGoal: 20, newCardsPerDay: 20, maxReviews: 100,
+    cardFontSize: 32, tts: true, soundEffects: false, algorithm: 'sm-2'
+  });
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ankiflow-student-settings');
+      if (saved) setSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
+    } catch {}
+  }, []);
+
+  const updateSetting = (key: string, value: any) => {
+    setSettings(prev => {
+      const next = { ...prev, [key]: value };
+      try { localStorage.setItem('ankiflow-student-settings', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   // Inbox / connections state
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [myConnections, setMyConnections] = useState<any[]>([]);
@@ -1211,21 +1233,21 @@ function StudentDashboard() {
                         <div className="t-settings-label">Daily Goal</div>
                         <div className="t-settings-sublabel">Cards to study per day</div>
                       </div>
-                      <input type="number" className="t-settings-input" defaultValue={20} min={5} max={200} />
+                      <input type="number" className="t-settings-input" value={settings.dailyGoal} min={5} max={200} onChange={e => updateSetting('dailyGoal', Number(e.target.value))} />
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">New Cards / Day</div>
                         <div className="t-settings-sublabel">Max new cards introduced</div>
                       </div>
-                      <input type="number" className="t-settings-input" defaultValue={20} min={0} max={100} />
+                      <input type="number" className="t-settings-input" value={settings.newCardsPerDay} min={0} max={100} onChange={e => updateSetting('newCardsPerDay', Number(e.target.value))} />
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Max Reviews / Day</div>
                         <div className="t-settings-sublabel">Max reviews per session</div>
                       </div>
-                      <input type="number" className="t-settings-input" defaultValue={100} min={10} max={500} />
+                      <input type="number" className="t-settings-input" value={settings.maxReviews} min={10} max={500} onChange={e => updateSetting('maxReviews', Number(e.target.value))} />
                     </div>
                   </div>
                 </div>
@@ -1253,7 +1275,8 @@ function StudentDashboard() {
                         <div className="t-settings-label">Card Font Size</div>
                         <div className="t-settings-sublabel">Adjust flashcard text</div>
                       </div>
-                      <input type="range" defaultValue={32} min={16} max={64} style={{ width: 120 }} onChange={e => {
+                      <input type="range" value={settings.cardFontSize} min={16} max={64} style={{ width: 120 }} onChange={e => {
+                        updateSetting('cardFontSize', Number(e.target.value));
                         document.documentElement.style.setProperty('--card-font-size', e.target.value + 'px');
                       }} />
                     </div>
@@ -1269,14 +1292,14 @@ function StudentDashboard() {
                         <div className="t-settings-label">Text-to-Speech</div>
                         <div className="t-settings-sublabel">Auto-read cards aloud</div>
                       </div>
-                      <label className="t-toggle"><input type="checkbox" defaultChecked /><span className="t-toggle-slider"></span></label>
+                      <label className="t-toggle"><input type="checkbox" checked={settings.tts} onChange={e => updateSetting('tts', e.target.checked)} /><span className="t-toggle-slider"></span></label>
                     </div>
                     <div className="t-settings-row">
                       <div>
                         <div className="t-settings-label">Sound Effects</div>
                         <div className="t-settings-sublabel">Sounds on correct/wrong</div>
                       </div>
-                      <label className="t-toggle"><input type="checkbox" /><span className="t-toggle-slider"></span></label>
+                      <label className="t-toggle"><input type="checkbox" checked={settings.soundEffects} onChange={e => updateSetting('soundEffects', e.target.checked)} /><span className="t-toggle-slider"></span></label>
                     </div>
                   </div>
                 </div>
@@ -1290,7 +1313,7 @@ function StudentDashboard() {
                         <div className="t-settings-label">Spaced Repetition</div>
                         <div className="t-settings-sublabel">SM-2 or FSRS algorithm</div>
                       </div>
-                      <select className="t-settings-select" defaultValue="sm-2">
+                      <select className="t-settings-select" value={settings.algorithm} onChange={e => updateSetting('algorithm', e.target.value)}>
                         <option value="sm-2">SM-2 (Classic)</option>
                         <option value="fsrs">FSRS (Modern)</option>
                       </select>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { translateSchema } from "@/lib/validations";
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
       targetLang: targetLang,
     });
   } catch (err: unknown) {
-    console.error("Translation Error:", err);
+    logger.error("Translation Error:", err);
     return NextResponse.json({ error: "Failed to translate" }, { status: 500 });
   }
 }

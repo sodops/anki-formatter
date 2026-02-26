@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { isAdminUser } from "@/lib/admin";
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     const hasErrors = decksRes.error || cardsRes.error || logsRes.error || vitalsRes.error;
     if (hasErrors) {
-      console.error("[ADMIN OVERVIEW]", decksRes.error || cardsRes.error || logsRes.error || vitalsRes.error);
+      logger.error("[ADMIN OVERVIEW]", decksRes.error || cardsRes.error || logsRes.error || vitalsRes.error);
     }
 
     return NextResponse.json({
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err: unknown) {
-    console.error("[ADMIN OVERVIEW]", err);
+    logger.error("[ADMIN OVERVIEW]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

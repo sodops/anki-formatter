@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
       ]);
 
     if (decksError || cardsError) {
-      console.error("[BACKUP EXPORT]", decksError || cardsError);
+      logger.error("[BACKUP EXPORT]", decksError || cardsError);
       return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
     }
 
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
         .select("*")
         .eq("user_id", user.id);
       if (logsError) {
-        console.error("[BACKUP EXPORT]", logsError);
+        logger.error("[BACKUP EXPORT]", logsError);
         return NextResponse.json({ error: "Failed to fetch review logs" }, { status: 500 });
       }
       reviewLogs = logs || [];
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(backup);
   } catch (err: unknown) {
-    console.error("[BACKUP EXPORT]", err);
+    logger.error("[BACKUP EXPORT]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

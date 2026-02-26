@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/xp — Get user's XP summary, streak, and recent events
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
       recent_events: recentEvents || [],
     });
   } catch (error: any) {
-    console.error("GET /api/xp error:", error?.message || error);
+    logger.error("GET /api/xp error:", error?.message || error);
     if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
       return NextResponse.json({ total_xp: 0, today_xp: 0, level: 1, xp_to_next: 100, current_streak: 0, longest_streak: 0, recent_events: [] });
     }
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
       level: Math.floor(newTotal / 100) + 1,
     });
   } catch (error: any) {
-    console.error("POST /api/xp error:", error?.message || error);
+    logger.error("POST /api/xp error:", error?.message || error);
     if (error?.code === '42P01' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
       return NextResponse.json({ error: "XP system is not yet configured." }, { status: 503 });
     }

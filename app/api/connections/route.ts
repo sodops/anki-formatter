@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
       sent_requests: sentRequests,
     });
   } catch (error) {
-    console.error("GET /api/connections error:", error);
+    logger.error("GET /api/connections error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: "pending", message: "Connection request sent" });
   } catch (error) {
-    console.error("POST /api/connections error:", error);
+    logger.error("POST /api/connections error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -242,7 +243,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ status: newStatus });
   } catch (error) {
-    console.error("PATCH /api/connections error:", error);
+    logger.error("PATCH /api/connections error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -289,7 +290,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/connections error:", error);
+    logger.error("DELETE /api/connections error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

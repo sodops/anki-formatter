@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/assignments/[id]/complete — Student manually completes an assignment
@@ -205,7 +206,7 @@ export async function POST(
       xp_breakdown: xpBreakdown,
     });
   } catch (error) {
-    console.error("POST /api/assignments/[id]/complete error:", error);
+    logger.error("POST /api/assignments/[id]/complete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

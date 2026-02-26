@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { syncPostSchema } from "@/lib/validations";
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/sync — Load user's state from cloud
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
     const { data: cards, error: cardsError } = await cardsQuery;
     if (cardsError) throw cardsError;
 
-    console.log(`[SYNC GET] user=${user.id}, found ${decks?.length || 0} decks, ${cards?.length || 0} cards`);
+    logger.log(`[SYNC GET] user=${user.id}, found ${decks?.length || 0} decks, ${cards?.length || 0} cards`);
 
     // 3. Fetch Settings & Daily Progress
     // We always fetch these for now as they are single rows and small.
@@ -160,7 +161,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (err: unknown) {
-    console.error("[SYNC GET]", err);
+    logger.error("[SYNC GET]", err);
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -204,7 +205,7 @@ export async function POST(request: NextRequest) {
     const raw = await request.json();
     const parsed = syncPostSchema.safeParse(raw);
     if (!parsed.success) {
-      console.error("[SYNC POST] Validation failed:", {
+      logger.error("[SYNC POST] Validation failed:", {
         errors: parsed.error.flatten().fieldErrors,
         received: JSON.stringify(raw, null, 2)
       });
@@ -275,7 +276,7 @@ export async function POST(request: NextRequest) {
             created_at: (d.createdAt as string) || new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
-          console.log(`[SYNC POST] ${type}:`, { 
+          logger.log(`[SYNC POST] ${type}:`, { 
             deckId: deckData.id, 
             name: deckData.name, 
             userId: deckData.user_id,
@@ -285,7 +286,7 @@ export async function POST(request: NextRequest) {
         } else if (type === "CARD_CREATE" || type === "CARD_UPDATE") {
           // Ensure deck_id is present for new cards
           if (!d.deckId && type === "CARD_CREATE") {
-            console.warn(`Skipping CARD_CREATE ${d.id}: Missing deckId`);
+            logger.warn(`Skipping CARD_CREATE ${d.id}: Missing deckId`);
             continue;
           }
 
@@ -419,13 +420,13 @@ export async function POST(request: NextRequest) {
     // Check for errors
     const errors = results.filter((r) => r.error).map((r) => r.error?.message);
     if (errors.length > 0) {
-      console.error("Sync Batch Errors:", errors);
+      logger.error("Sync Batch Errors:", errors);
       return NextResponse.json({ error: "Partial sync failure", details: errors }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, processed: changes?.length || 0 });
   } catch (err: unknown) {
-    console.error("[SYNC POST]", err);
+    logger.error("[SYNC POST]", err);
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

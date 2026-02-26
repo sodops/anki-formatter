@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from '@/lib/logger';
 
 // Free Dictionary API - no key needed
 const DICT_API = "https://api.dictionaryapi.dev/api/v2/entries/en";
@@ -91,7 +92,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error("Dictionary API error:", error);
+    logger.error("Dictionary API error:", error);
     return NextResponse.json(
       { error: "Failed to fetch dictionary data. Please try again." },
       { status: 500 }

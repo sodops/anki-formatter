@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +63,7 @@ export async function GET(
       .order("joined_at", { ascending: true });
 
     if (membersError) {
-      console.error("Members query error:", membersError);
+      logger.error("Members query error:", membersError);
     }
 
     // Fetch profiles for all members
@@ -130,7 +131,7 @@ export async function GET(
       isOwner,
     });
   } catch (error) {
-    console.error("GET /api/groups/[id] error:", error);
+    logger.error("GET /api/groups/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -180,7 +181,7 @@ export async function PATCH(
 
     return NextResponse.json({ group: updated });
   } catch (error) {
-    console.error("PATCH /api/groups/[id] error:", error);
+    logger.error("PATCH /api/groups/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -211,7 +212,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/groups/[id] error:", error);
+    logger.error("DELETE /api/groups/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

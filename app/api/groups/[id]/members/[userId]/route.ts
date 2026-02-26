@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from '@/lib/logger';
 
 /**
  * DELETE /api/groups/[id]/members/[userId] — Remove member or leave group
@@ -93,7 +94,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/groups/[id]/members/[userId] error:", error);
+    logger.error("DELETE /api/groups/[id]/members/[userId] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

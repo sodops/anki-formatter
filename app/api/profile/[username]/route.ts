@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -153,7 +154,7 @@ export async function GET(
       is_own_profile: viewerId === profile.id,
     });
   } catch (error) {
-    console.error("GET /api/profile/[username] error:", error);
+    logger.error("GET /api/profile/[username] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

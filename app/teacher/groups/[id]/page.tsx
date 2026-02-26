@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface GroupDetail {
   id: string;
@@ -61,6 +62,17 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"members" | "assignments" | "statistics">("members");
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmModal({ message, onConfirm });
+  };
 
   const fetchGroup = useCallback(async () => {
     try {
@@ -83,13 +95,17 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
   }, [authLoading, user, fetchGroup]);
 
   const removeMember = async (userId: string) => {
-    if (!confirm("Remove this member from the group?")) return;
-    try {
-      const res = await fetch(`/api/groups/${groupId}/members/${userId}`, { method: "DELETE" });
-      if (res.ok) fetchGroup();
-    } catch {
-      // error
-    }
+    showConfirm("Remove this member from the group?", async () => {
+      try {
+        const res = await fetch(`/api/groups/${groupId}/members/${userId}`, { method: "DELETE" });
+        if (res.ok) {
+          showToast('success', 'Member removed');
+          fetchGroup();
+        }
+      } catch {
+        showToast('error', 'Failed to remove member');
+      }
+    });
   };
 
   const copyJoinCode = () => {
@@ -100,9 +116,23 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
 
   if (authLoading || loading) {
     return (
-      <div className="teacher-loading">
-        <div className="teacher-spinner"></div>
-        <p>Loading group...</p>
+      <div className="teacher-container" style={{ padding: '2rem' }}>
+        <Skeleton width={120} height="1rem" />
+        <div style={{ marginTop: '1.5rem' }}><Skeleton width="50%" height="2rem" /></div>
+        <div style={{ marginTop: '0.5rem' }}><Skeleton width="35%" height="1rem" /></div>
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem' }}>
+          {[1,2,3].map(i => <Skeleton key={i} width={80} height="2rem" borderRadius={8} />)}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Skeleton width={40} height={40} borderRadius="50%" />
+                <div><Skeleton width={100} height="1rem" /><div style={{ marginTop: '0.5rem' }}><Skeleton width={60} height="0.75rem" /></div></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -503,6 +533,30 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
           </div>
         )}
       </main>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 10001, pointerEvents: 'none' }}>
+          <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderRadius: 12, background: toast.type === 'error' ? '#FEE2E2' : toast.type === 'success' ? '#D1FAE5' : '#DBEAFE', color: toast.type === 'error' ? '#DC2626' : toast.type === 'success' ? '#059669' : '#2563EB', fontSize: 14, fontWeight: 500, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
+            <ion-icon name={toast.type === 'success' ? 'checkmark-circle' : toast.type === 'error' ? 'close-circle' : 'information-circle'}></ion-icon>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10002 }} onClick={() => setConfirmModal(null)}>
+          <div style={{ background: 'var(--card-bg, #1a1a2e)', borderRadius: 16, padding: 24, maxWidth: 400, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 18, color: 'var(--text, #fff)' }}>Confirm</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary, #9ca3af)' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmModal(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'transparent', color: 'var(--text, #fff)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#EF4444', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

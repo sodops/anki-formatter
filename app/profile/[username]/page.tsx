@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface PublicProfile {
   id: string;
@@ -54,6 +55,17 @@ export default function PublicProfilePage({ params }: { params: { username: stri
   const [notFound, setNotFound] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmModal({ message, onConfirm });
+  };
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -96,7 +108,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
       if (!res.ok) throw new Error(data.error || "Failed");
       setConnectionStatus("pending");
     } catch (err: any) {
-      alert(err.message);
+      showToast('error', err.message);
     } finally {
       setConnecting(false);
     }
@@ -121,7 +133,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
         setConnectionId(null);
       }
     } catch (err: any) {
-      alert(err.message);
+      showToast('error', err.message);
     } finally {
       setConnecting(false);
     }
@@ -129,34 +141,52 @@ export default function PublicProfilePage({ params }: { params: { username: stri
 
   const handleDisconnect = async () => {
     if (!user || !profile) return;
-    if (!confirm("Remove this connection?")) return;
-    setConnecting(true);
-    try {
-      // Need to find the connection ID first
-      const listRes = await fetch("/api/connections");
-      if (!listRes.ok) throw new Error("Failed");
-      const listData = await listRes.json();
-      const conn = [...(listData.connections || []), ...(listData.sent_requests || [])].find(
-        (c: any) => c.user?.id === profile.id
-      );
-      if (conn) {
-        await fetch(`/api/connections?id=${conn.connection_id}`, { method: "DELETE" });
+    showConfirm("Remove this connection?", async () => {
+      setConnecting(true);
+      try {
+        const listRes = await fetch("/api/connections");
+        if (!listRes.ok) throw new Error("Failed");
+        const listData = await listRes.json();
+        const conn = [...(listData.connections || []), ...(listData.sent_requests || [])].find(
+          (c: any) => c.user?.id === profile.id
+        );
+        if (conn) {
+          await fetch(`/api/connections?id=${conn.connection_id}`, { method: "DELETE" });
+        }
+        setConnectionStatus(null);
+        showToast('success', 'Connection removed');
+      } catch (err: any) {
+        showToast('error', err.message);
+      } finally {
+        setConnecting(false);
       }
-      setConnectionStatus(null);
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setConnecting(false);
-    }
+    });
   };
 
   const level = profile ? Math.floor(profile.total_xp / 100) + 1 : 1;
 
   if (loading) {
     return (
-      <div className="teacher-loading">
-        <div className="teacher-spinner"></div>
-        <p>Loading profile...</p>
+      <div className="teacher-container" style={{ padding: '2rem', maxWidth: 720, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <Skeleton width={96} height={96} borderRadius="50%" className="" />
+          <div style={{ marginTop: '1rem' }}><Skeleton width="40%" height="1.5rem" />
+          </div>
+          <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+            <Skeleton width={60} height="1rem" /><Skeleton width={80} height="1rem" />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 12, padding: '1.25rem', textAlign: 'center' }}>
+              <Skeleton width="50%" height="1.5rem" />
+              <div style={{ marginTop: '0.5rem' }}><Skeleton width="70%" height="0.875rem" /></div>
+            </div>
+          ))}
+        </div>
+        <Skeleton width="30%" height="1.25rem" />
+        <div style={{ marginTop: '1rem' }}><Skeleton width="100%" height="3rem" /></div>
+        <div style={{ marginTop: '0.75rem' }}><Skeleton width="100%" height="3rem" /></div>
       </div>
     );
   }
@@ -359,6 +389,30 @@ export default function PublicProfilePage({ params }: { params: { username: stri
           <span>Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
         </div>
       </main>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 10001, pointerEvents: 'none' }}>
+          <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderRadius: 12, background: toast.type === 'error' ? '#FEE2E2' : toast.type === 'success' ? '#D1FAE5' : '#DBEAFE', color: toast.type === 'error' ? '#DC2626' : toast.type === 'success' ? '#059669' : '#2563EB', fontSize: 14, fontWeight: 500, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', animation: 'slideInRight 0.3s ease' }}>
+            <ion-icon name={toast.type === 'success' ? 'checkmark-circle' : toast.type === 'error' ? 'close-circle' : 'information-circle'}></ion-icon>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10002 }} onClick={() => setConfirmModal(null)}>
+          <div style={{ background: 'var(--card-bg, #1a1a2e)', borderRadius: 16, padding: 24, maxWidth: 400, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 18, color: 'var(--text, #fff)' }}>Confirm</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary, #9ca3af)' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmModal(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border, #2a2a3a)', background: 'transparent', color: 'var(--text, #fff)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { confirmModal.onConfirm(); setConfirmModal(null); }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#7C5CFC', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { isAdminUser } from "@/lib/admin";
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     const { data: metrics, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[ADMIN METRICS]", error);
+      logger.error("[ADMIN METRICS]", error);
       return NextResponse.json({ error: "Failed to fetch metrics" }, { status: 500 });
     }
 
@@ -110,7 +111,7 @@ export async function GET(request: NextRequest) {
       period: `${days} days`,
     });
   } catch (err: unknown) {
-    console.error("[ADMIN METRICS]", err);
+    logger.error("[ADMIN METRICS]", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

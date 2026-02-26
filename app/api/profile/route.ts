@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/profile — Get current user's profile
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("GET /api/profile error:", error);
+    logger.error("GET /api/profile error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -139,7 +140,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ profile: updated });
   } catch (error) {
-    console.error("PATCH /api/profile error:", error);
+    logger.error("PATCH /api/profile error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

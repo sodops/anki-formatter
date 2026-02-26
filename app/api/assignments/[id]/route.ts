@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/assignments/[id] — Get assignment detail with progress
@@ -92,7 +93,7 @@ export async function GET(
       });
     }
   } catch (error) {
-    console.error("GET /api/assignments/[id] error:", error);
+    logger.error("GET /api/assignments/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -134,7 +135,7 @@ export async function PATCH(
 
     return NextResponse.json({ assignment: updated });
   } catch (error) {
-    console.error("PATCH /api/assignments/[id] error:", error);
+    logger.error("PATCH /api/assignments/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -166,7 +167,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/assignments/[id] error:", error);
+    logger.error("DELETE /api/assignments/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
