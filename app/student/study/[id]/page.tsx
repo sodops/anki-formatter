@@ -367,7 +367,7 @@ export default function AssignmentStudyPage({ params }: { params: { id: string }
               </div>
               <div className="as-flashcard-back">
                 <div className="as-card-label">DEFINITION</div>
-                <div className="as-card-text">{card.definition}</div>
+                <div className="as-card-text">{card.definition || <span style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.85em' }}>No definition provided</span>}</div>
               </div>
             </div>
           </div>

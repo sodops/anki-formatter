@@ -446,7 +446,7 @@ function TeacherDashboard() {
       <div className={`t-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}></div>
 
       {/* Sidebar */}
-      <aside className={`t-sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`t-sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed && !sidebarOpen ? 'collapsed' : ''}`}>
         <div className="t-brand">
           <button className="t-sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title="Toggle sidebar">
             <ion-icon name={sidebarCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'}></ion-icon>

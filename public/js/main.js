@@ -987,7 +987,13 @@ function setupHamburgerMenu() {
     const collapseBtn = document.getElementById('sidebarCollapseBtn');
     
     function openSidebar() {
-        if (sidebar) sidebar.classList.add('open');
+        if (sidebar) {
+            sidebar.classList.add('open');
+            // On mobile, always show full sidebar (remove collapsed)
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('collapsed');
+            }
+        }
         if (overlay) overlay.classList.add('active');
     }
     

@@ -425,7 +425,7 @@ function StudentDashboard() {
       <div className={`s-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)}></div>
 
       {/* Sidebar */}
-      <aside className={`s-sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`s-sidebar ${sidebarOpen ? 'open' : ''} ${sidebarCollapsed && !sidebarOpen ? 'collapsed' : ''}`}>
         <div className="s-brand">
           <button className="s-sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title="Toggle sidebar">
             <ion-icon name={sidebarCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'}></ion-icon>
