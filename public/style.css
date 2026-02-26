@@ -281,6 +281,23 @@ body {
 .sidebar.collapsed .sidebar-trash-btn ion-icon { font-size: 16px; }
 .sidebar.collapsed .empty-trash-btn { display: none; }
 .sidebar.collapsed #sidebarFooter { text-align: center; }
+.sidebar.collapsed .daily-goal-widget {
+  padding: 8px 4px;
+}
+.sidebar.collapsed .goal-progress {
+  margin-bottom: 4px;
+}
+.sidebar.collapsed .streak-badge {
+  font-size: 0;
+  padding: 4px;
+  justify-content: center;
+}
+.sidebar.collapsed .streak-badge ion-icon {
+  font-size: 14px;
+}
+.sidebar.collapsed .sidebar-footer {
+  padding-top: 8px;
+}
 
 .brand {
   display: flex;
@@ -3576,6 +3593,11 @@ tr[draggable="true"]:active {
     display: flex;
   }
 
+  /* Hide desktop sidebar collapse button on mobile */
+  .sidebar-collapse-btn {
+    display: none;
+  }
+
   .sidebar-overlay {
     display: block;
   }
@@ -5172,19 +5194,20 @@ noscript {
 }
 /* Signup Mode Differentiation */
 .btn-signup {
-  background: #10b981 !important; /* Emerald-500 */
+  background: linear-gradient(135deg, #7C5CFC, #9B7FFF) !important;
 }
 
 .btn-signup:hover {
-  background: #059669 !important; /* Emerald-600 */
+  background: linear-gradient(135deg, #6B4EE0, #8A6EF0) !important;
+  box-shadow: 0 4px 20px rgba(124, 92, 252, 0.35);
 }
 
 .border-signup {
-  border-top-color: #10b981 !important;
+  border-top-color: #7C5CFC !important;
 }
 
 .text-signup {
-  color: #10b981 !important;
+  color: #7C5CFC !important;
 }
 
 /* ===========================
@@ -5429,6 +5452,13 @@ noscript {
 
 .dict-result {
   min-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dict-result::-webkit-scrollbar {
+  display: none;
 }
 
 .dict-empty {

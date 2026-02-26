@@ -87,8 +87,8 @@ export function createKeyboardShortcutsModal() {
 
   const content = document.createElement("div");
   content.style.cssText = `
-    background: var(--bg-primary, #ffffff);
-    border: 1px solid var(--border);
+    background: var(--bg-surface, #12121a);
+    border: 1px solid var(--border-default, rgba(255,255,255,0.08));
     border-radius: 16px;
     max-width: 800px;
     width: 100%;
@@ -103,7 +103,7 @@ export function createKeyboardShortcutsModal() {
   const header = document.createElement("div");
   header.style.cssText = `
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-default, rgba(255,255,255,0.08));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -111,10 +111,10 @@ export function createKeyboardShortcutsModal() {
 
   const title = document.createElement("div");
   title.innerHTML = `
-    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">
+    <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text-primary, #ededef);">
       ⌨️ Klaviatura Tugmalari
     </h2>
-    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: var(--text-secondary);">
+    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: var(--text-secondary, #a8a8b4);">
       Tez ishlash uchun barcha shortcut'lar
     </p>
   `;
@@ -137,12 +137,12 @@ export function createKeyboardShortcutsModal() {
     transition: all 0.2s;
   `;
   closeBtn.onmouseover = () => {
-    closeBtn.style.background = "var(--bg-tertiary)";
-    closeBtn.style.color = "var(--text-primary)";
+    closeBtn.style.background = "var(--bg-hover, #22222f)";
+    closeBtn.style.color = "var(--text-primary, #ededef)";
   };
   closeBtn.onmouseout = () => {
     closeBtn.style.background = "none";
-    closeBtn.style.color = "var(--text-secondary)";
+    closeBtn.style.color = "var(--text-secondary, #a8a8b4)";
   };
   closeBtn.onclick = () => modal.remove();
 
@@ -152,7 +152,7 @@ export function createKeyboardShortcutsModal() {
   const searchContainer = document.createElement("div");
   searchContainer.style.cssText = `
     padding: 0 1.5rem 1rem 1.5rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-default, rgba(255,255,255,0.08));
   `;
 
   const searchInput = document.createElement("input");
@@ -161,16 +161,16 @@ export function createKeyboardShortcutsModal() {
   searchInput.style.cssText = `
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-default, rgba(255,255,255,0.08));
     border-radius: 8px;
-    background: var(--bg-secondary, #f3f4f6);
-    color: var(--text-primary, #000000);
+    background: var(--bg-elevated, #1a1a25);
+    color: var(--text-primary, #ededef);
     font-size: 0.95rem;
     outline: none;
     transition: border-color 0.2s;
   `;
   searchInput.onfocus = () => (searchInput.style.borderColor = "var(--accent, #7C5CFC)");
-  searchInput.onblur = () => (searchInput.style.borderColor = "var(--border)");
+  searchInput.onblur = () => (searchInput.style.borderColor = "var(--border-default, rgba(255,255,255,0.08))");
 
   searchContainer.appendChild(searchInput);
 
@@ -202,7 +202,7 @@ export function createKeyboardShortcutsModal() {
       categoryTitle.style.cssText = `
         font-size: 1rem;
         font-weight: 700;
-        color: var(--text-primary, #000000);
+        color: var(--text-primary, #ededef);
         margin: 0 0 1rem 0;
       `;
       categorySection.appendChild(categoryTitle);
@@ -218,13 +218,13 @@ export function createKeyboardShortcutsModal() {
           margin-bottom: 0.5rem;
           transition: background 0.2s;
         `;
-        row.onmouseover = () => (row.style.background = "var(--bg-tertiary)");
+        row.onmouseover = () => (row.style.background = "var(--bg-hover, #22222f)");
         row.onmouseout = () => (row.style.background = "transparent");
 
         const description = document.createElement("span");
         description.textContent = item.description;
         description.style.cssText = `
-          color: var(--text-primary, #000000);
+          color: var(--text-primary, #ededef);
           font-size: 0.9rem;
         `;
 
@@ -238,15 +238,15 @@ export function createKeyboardShortcutsModal() {
           const keyBadge = document.createElement("kbd");
           keyBadge.textContent = key;
           keyBadge.style.cssText = `
-            background: var(--bg-secondary, #f3f4f6);
-            border: 1px solid var(--border);
+            background: var(--bg-elevated, #1a1a25);
+            border: 1px solid var(--border-default, rgba(255,255,255,0.08));
             border-radius: 4px;
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
             font-weight: 600;
-            color: var(--text-primary, #000000);
+            color: var(--text-primary, #ededef);
             font-family: monospace;
-            box-shadow: 0 2px 0 var(--border);
+            box-shadow: 0 2px 0 var(--border-default, rgba(255,255,255,0.08));
           `;
           keysContainer.appendChild(keyBadge);
         });

@@ -125,7 +125,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
           {[1,2,3,4].map(i => (
-            <div key={i} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 12 }}>
+            <div key={i} style={{ padding: '1.25rem', background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <Skeleton width={40} height={40} borderRadius="50%" />
                 <div><Skeleton width={100} height="1rem" /><div style={{ marginTop: '0.5rem' }}><Skeleton width={60} height="0.75rem" /></div></div>

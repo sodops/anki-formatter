@@ -96,13 +96,16 @@ export default function Home() {
         .register('/sw.js')
         .then((registration) => {
           console.log('Service Worker registered:', registration);
-          // Listen for updates
+          // Listen for updates — only show banner for genuinely new versions
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated') {
-                  // New version available — show subtle update notice
+                if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+                  // Only show if there was a previous SW (actual update, not first install)
+                  const dismissedVersion = sessionStorage.getItem('sw-update-dismissed');
+                  if (dismissedVersion === 'shown') return;
+                  sessionStorage.setItem('sw-update-dismissed', 'shown');
                   const toast = document.createElement('div');
                   toast.className = 'sw-update-toast';
                   toast.innerHTML = '<ion-icon name="cloud-download-outline"></ion-icon> New version available <button onclick="location.reload()">Update</button>';

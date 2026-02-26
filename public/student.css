@@ -447,6 +447,8 @@
   font-weight: 700;
   color: var(--text-primary, #1e293b);
   margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--s-border);
 }
 .s-section-header .s-section-title {
   margin-bottom: 0;

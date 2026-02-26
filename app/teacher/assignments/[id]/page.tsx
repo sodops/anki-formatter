@@ -121,7 +121,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
         <div style={{ marginTop: '0.5rem' }}><Skeleton width="40%" height="1rem" /></div>
         <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
           {[1,2,3].map(i => (
-            <div key={i} style={{ flex: 1, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 12, padding: '1.5rem' }}>
+            <div key={i} style={{ flex: 1, background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12, padding: '1.5rem' }}>
               <Skeleton width="50%" height="0.875rem" />
               <div style={{ marginTop: '0.75rem' }}><Skeleton width="40%" height="1.5rem" /></div>
             </div>
@@ -129,7 +129,7 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
         </div>
         <div style={{ marginTop: '2rem' }}><Skeleton width="30%" height="1.25rem" /></div>
         {[1,2,3].map(i => (
-          <div key={i} style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div key={i} style={{ marginTop: '1rem', padding: '1rem', background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <Skeleton width={40} height={40} borderRadius="50%" />
             <div style={{ flex: 1 }}><Skeleton width="50%" height="1rem" /><div style={{ marginTop: '0.5rem' }}><Skeleton width="30%" height="0.75rem" /></div></div>
             <Skeleton width={60} height="1.5rem" borderRadius={12} />

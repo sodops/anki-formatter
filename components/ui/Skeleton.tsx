@@ -24,8 +24,8 @@ export function Skeleton({
     height,
     borderRadius,
     background: animate
-      ? "linear-gradient(90deg, var(--bg-tertiary, #e5e7eb) 25%, var(--bg-secondary, #f3f4f6) 50%, var(--bg-tertiary, #e5e7eb) 75%)"
-      : "var(--bg-tertiary, #e5e7eb)",
+      ? "linear-gradient(90deg, var(--bg-hover, #22222f) 25%, var(--bg-elevated, #1a1a25) 50%, var(--bg-hover, #22222f) 75%)"
+      : "var(--bg-hover, #22222f)",
     backgroundSize: animate ? "200% 100%" : "100% 100%",
     animation: animate ? "skeleton-loading 1.5s ease-in-out infinite" : "none",
   };

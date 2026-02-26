@@ -42,7 +42,7 @@ interface XPEvent {
 
 export default function PublicProfilePage({ params }: { params: { username: string } }) {
   const username = params.username;
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [groups, setGroups] = useState<GroupInfo[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -208,7 +208,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
     <div className="profile-page">
       {/* Header / Navigation */}
       <header className="profile-topbar">
-        <Link href={user ? (isOwnProfile ? '/student' : '/') : '/'} className="profile-back-btn">
+        <Link href={user ? (role === 'teacher' ? '/teacher' : '/student') : '/'} className="profile-back-btn">
           <ion-icon name="arrow-back-outline"></ion-icon>
           <span>Back</span>
         </Link>
@@ -220,7 +220,7 @@ export default function PublicProfilePage({ params }: { params: { username: stri
       <main className="profile-main">
         {/* Profile Hero */}
         <div className="profile-hero">
-          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#10B981' : '#7C5CFC'}, ${profile.role === 'teacher' ? '#3B82F6' : '#9B7FFF'})` }}></div>
+          <div className="profile-hero-bg" style={{ background: `linear-gradient(135deg, ${profile.role === 'teacher' ? '#7C5CFC' : '#7C5CFC'}, ${profile.role === 'teacher' ? '#9B7FFF' : '#9B7FFF'})` }}></div>
           <div className="profile-hero-content">
             <div className="profile-avatar-container">
               <div className="profile-avatar-xl">
