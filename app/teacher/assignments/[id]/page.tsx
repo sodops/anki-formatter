@@ -115,26 +115,78 @@ export default function AssignmentDetailPage({ params }: { params: { id: string 
 
   if (authLoading || loading) {
     return (
-      <div className="teacher-container" style={{ padding: '2rem' }}>
-        <Skeleton width={120} height="1rem" />
-        <div style={{ marginTop: '1.5rem' }}><Skeleton width="60%" height="2rem" /></div>
-        <div style={{ marginTop: '0.5rem' }}><Skeleton width="40%" height="1rem" /></div>
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-          {[1,2,3].map(i => (
-            <div key={i} style={{ flex: 1, background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12, padding: '1.5rem' }}>
-              <Skeleton width="50%" height="0.875rem" />
-              <div style={{ marginTop: '0.75rem' }}><Skeleton width="40%" height="1.5rem" /></div>
-            </div>
-          ))}
+      <div className="teacher-container">
+        <div className="teacher-mobile-back">
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary, #94a3b8)', fontSize: '14px' }}>
+            <Skeleton width={20} height={20} borderRadius="50%" />
+            <Skeleton width={120} height="0.875rem" />
+          </span>
         </div>
-        <div style={{ marginTop: '2rem' }}><Skeleton width="30%" height="1.25rem" /></div>
-        {[1,2,3].map(i => (
-          <div key={i} style={{ marginTop: '1rem', padding: '1rem', background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <Skeleton width={40} height={40} borderRadius="50%" />
-            <div style={{ flex: 1 }}><Skeleton width="50%" height="1rem" /><div style={{ marginTop: '0.5rem' }}><Skeleton width="30%" height="0.75rem" /></div></div>
-            <Skeleton width={60} height="1.5rem" borderRadius={12} />
+
+        <aside className="teacher-sidebar">
+          <div className="teacher-sidebar-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
+              <Skeleton width={28} height={28} borderRadius={8} />
+              <Skeleton width={80} height="1rem" />
+            </div>
           </div>
-        ))}
+          <nav className="teacher-nav" style={{ padding: '12px' }}>
+            <Skeleton width="100%" height="2.25rem" borderRadius={8} />
+            <div style={{ marginTop: '8px' }}><Skeleton width="100%" height="2.25rem" borderRadius={8} /></div>
+          </nav>
+        </aside>
+
+        <main className="teacher-main" style={{ padding: '2rem' }}>
+          {/* Back link skeleton */}
+          <Skeleton width={100} height="0.875rem" />
+
+          {/* Title area */}
+          <div style={{ marginTop: '1.5rem' }}><Skeleton width="55%" height="1.75rem" /></div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '0.75rem', alignItems: 'center' }}>
+            <Skeleton width={80} height="1.5rem" borderRadius={12} />
+            <Skeleton width={140} height="1rem" />
+            <Skeleton width={70} height="1.5rem" borderRadius={12} />
+          </div>
+
+          {/* Deck chips */}
+          <div style={{ display: 'flex', gap: '8px', marginTop: '1.25rem' }}>
+            <Skeleton width={120} height="1.75rem" borderRadius={8} />
+            <Skeleton width={100} height="1.75rem" borderRadius={8} />
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} style={{ background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12, padding: '1.25rem', textAlign: 'center' }}>
+                <Skeleton width="60%" height="1.5rem" borderRadius={6} />
+                <div style={{ marginTop: '0.5rem' }}><Skeleton width="80%" height="0.75rem" /></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Student progress section */}
+          <div style={{ marginTop: '2rem' }}><Skeleton width="40%" height="1.25rem" /></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+            {[1,2,3].map(i => (
+              <div key={i} style={{ padding: '1.25rem', background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Skeleton width={36} height={36} borderRadius="50%" />
+                    <Skeleton width={100} height="1rem" />
+                  </div>
+                  <Skeleton width={70} height="1.5rem" borderRadius={12} />
+                </div>
+                <Skeleton width="100%" height="6px" borderRadius={3} />
+                <div style={{ display: 'flex', gap: '2rem', marginTop: '12px' }}>
+                  <Skeleton width={50} height="0.75rem" />
+                  <Skeleton width={50} height="0.75rem" />
+                  <Skeleton width={50} height="0.75rem" />
+                  <Skeleton width={50} height="0.75rem" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }

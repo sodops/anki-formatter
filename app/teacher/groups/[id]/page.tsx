@@ -61,7 +61,7 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"members" | "assignments" | "statistics">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "assignments" | "statistics" | "activity" | "info">("members");
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
@@ -111,28 +111,97 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
   const copyJoinCode = () => {
     if (group?.join_code) {
       navigator.clipboard.writeText(group.join_code);
+      showToast('success', 'Join code copied!');
     }
+  };
+
+  const copyJoinLink = () => {
+    if (group?.join_code && typeof window !== 'undefined') {
+      const link = `${window.location.origin}/login?join=${group.join_code}`;
+      navigator.clipboard.writeText(link);
+      showToast('success', 'Invite link copied!');
+    }
+  };
+
+  const getRecentActivity = () => {
+    if (!assignments.length || !members.length) return [];
+    const activities: { student: string; action: string; assignment: string; date: string; icon: string; color: string }[] = [];
+    for (const a of assignments) {
+      for (const p of (a.progress || [])) {
+        const student = members.find(m => m.user_id === p.student_id);
+        const name = student?.profiles?.display_name || 'Unknown';
+        if (p.completed_at) {
+          activities.push({ student: name, action: 'completed', assignment: a.title, date: p.completed_at, icon: 'checkmark-circle', color: '#10B981' });
+        } else if (p.last_studied_at) {
+          activities.push({ student: name, action: 'studied', assignment: a.title, date: p.last_studied_at, icon: 'book-outline', color: '#7C5CFC' });
+        }
+      }
+    }
+    return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
   };
 
   if (authLoading || loading) {
     return (
-      <div className="teacher-container" style={{ padding: '2rem' }}>
-        <Skeleton width={120} height="1rem" />
-        <div style={{ marginTop: '1.5rem' }}><Skeleton width="50%" height="2rem" /></div>
-        <div style={{ marginTop: '0.5rem' }}><Skeleton width="35%" height="1rem" /></div>
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem' }}>
-          {[1,2,3].map(i => <Skeleton key={i} width={80} height="2rem" borderRadius={8} />)}
+      <div className="teacher-container">
+        <div className="teacher-mobile-back">
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary, #94a3b8)', fontSize: '14px' }}>
+            <Skeleton width={20} height={20} borderRadius="50%" />
+            <Skeleton width={120} height="0.875rem" />
+          </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
-          {[1,2,3,4].map(i => (
-            <div key={i} style={{ padding: '1.25rem', background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Skeleton width={40} height={40} borderRadius="50%" />
-                <div><Skeleton width={100} height="1rem" /><div style={{ marginTop: '0.5rem' }}><Skeleton width={60} height="0.75rem" /></div></div>
-              </div>
+
+        <aside className="teacher-sidebar">
+          <div className="teacher-sidebar-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
+              <Skeleton width={28} height={28} borderRadius={8} />
+              <Skeleton width={80} height="1rem" />
             </div>
-          ))}
-        </div>
+          </div>
+          <nav className="teacher-nav" style={{ padding: '12px' }}>
+            <Skeleton width="100%" height="2.25rem" borderRadius={8} />
+            <div style={{ marginTop: '8px' }}><Skeleton width="100%" height="2.25rem" borderRadius={8} /></div>
+            <div style={{ marginTop: '8px' }}><Skeleton width="100%" height="2.25rem" borderRadius={8} /></div>
+            <div style={{ marginTop: '8px' }}><Skeleton width="100%" height="2.25rem" borderRadius={8} /></div>
+          </nav>
+        </aside>
+
+        <main className="teacher-main" style={{ padding: '2rem' }}>
+          {/* Group name + description */}
+          <div style={{ marginBottom: '1.5rem', paddingLeft: '16px', borderLeft: '4px solid var(--border, #333)' }}>
+            <Skeleton width="45%" height="1.75rem" />
+            <div style={{ marginTop: '0.5rem' }}><Skeleton width="60%" height="0.875rem" /></div>
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12, padding: '1.25rem', textAlign: 'center' }}>
+                <Skeleton width="50%" height="1.5rem" borderRadius={6} />
+                <div style={{ marginTop: '0.5rem' }}><Skeleton width="70%" height="0.75rem" /></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tabs skeleton */}
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {[1,2,3].map(i => <Skeleton key={i} width={80} height="2rem" borderRadius={8} />)}
+          </div>
+
+          {/* Member cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ padding: '1.25rem', background: 'var(--card-bg, var(--bg-elevated, #1a1a25))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <Skeleton width={40} height={40} borderRadius="50%" />
+                  <div style={{ flex: 1 }}>
+                    <Skeleton width={100} height="1rem" />
+                    <div style={{ marginTop: '0.5rem' }}><Skeleton width={60} height="0.75rem" /></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -186,6 +255,14 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
             <ion-icon name="stats-chart-outline"></ion-icon>
             <span>Statistics</span>
           </button>
+          <button className={`teacher-nav-item ${activeTab === "activity" ? "active" : ""}`} onClick={() => setActiveTab("activity")}>
+            <ion-icon name="pulse-outline"></ion-icon>
+            <span>Activity</span>
+          </button>
+          <button className={`teacher-nav-item ${activeTab === "info" ? "active" : ""}`} onClick={() => setActiveTab("info")}>
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Group Info</span>
+          </button>
         </nav>
       </aside>
 
@@ -203,6 +280,19 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
               <ion-icon name="copy-outline"></ion-icon> Copy
             </button>
           </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <button className="teacher-btn teacher-btn-outline teacher-btn-sm" onClick={copyJoinLink}>
+            <ion-icon name="link-outline"></ion-icon> Share Invite Link
+          </button>
+          <Link href={`/teacher?tab=create&group=${groupId}`} className="teacher-btn teacher-btn-primary teacher-btn-sm">
+            <ion-icon name="add-outline"></ion-icon> New Assignment
+          </Link>
+          <button className="teacher-btn teacher-btn-outline teacher-btn-sm" onClick={copyJoinCode}>
+            <ion-icon name="key-outline"></ion-icon> Copy Code
+          </button>
         </div>
 
         {/* Quick Stats */}
@@ -530,6 +620,90 @@ export default function GroupDetailPage({ params }: { params: { id: string } }) 
                 )}
               </>
             )}
+          </div>
+        )}
+        {/* Activity Tab */}
+        {activeTab === "activity" && (() => {
+          const activities = getRecentActivity();
+          return (
+            <div className="teacher-section">
+              <h2>Recent Activity</h2>
+              {activities.length === 0 ? (
+                <div className="teacher-empty-inline">
+                  <p>No activity yet. Activity will appear as students study assignments.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {activities.map((a, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 10 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${a.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <ion-icon name={a.icon} style={{ fontSize: 16, color: a.color }}></ion-icon>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary, #1e293b)' }}>
+                          <strong>{a.student}</strong> {a.action} <span style={{ color: '#7C5CFC' }}>{a.assignment}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                          {new Date(a.date).toLocaleDateString()} · {new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Info Tab */}
+        {activeTab === "info" && (
+          <div className="teacher-section">
+            <h2>Group Information</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
+              <div style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Group Name</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary, #1e293b)' }}>{group.name}</div>
+              </div>
+              <div style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Created</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary, #1e293b)' }}>{new Date(group.created_at).toLocaleDateString()}</div>
+              </div>
+              <div style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Max Members</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary, #1e293b)' }}>{group.max_members}</div>
+              </div>
+              <div style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Status</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: group.is_active ? '#10B981' : '#EF4444' }}>{group.is_active ? 'Active' : 'Inactive'}</div>
+              </div>
+              <div style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Join Code</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#7C5CFC', letterSpacing: 2, fontFamily: 'monospace' }}>{group.join_code}</div>
+              </div>
+              <div style={{ background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Color</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 20, height: 20, borderRadius: 6, background: group.color }}></div>
+                  <span style={{ fontSize: 14, color: 'var(--text-primary, #1e293b)' }}>{group.color}</span>
+                </div>
+              </div>
+            </div>
+
+            {group.description && (
+              <div style={{ marginTop: 18, background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: '18px' }}>
+                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 6 }}>Description</div>
+                <div style={{ fontSize: 14, color: 'var(--text-primary, #1e293b)', lineHeight: 1.6 }}>{group.description}</div>
+              </div>
+            )}
+
+            <div style={{ marginTop: 18, display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button className="teacher-btn teacher-btn-outline teacher-btn-sm" onClick={copyJoinLink}>
+                <ion-icon name="link-outline"></ion-icon> Share Invite Link
+              </button>
+              <button className="teacher-btn teacher-btn-outline teacher-btn-sm" onClick={copyJoinCode}>
+                <ion-icon name="key-outline"></ion-icon> Copy Join Code
+              </button>
+            </div>
           </div>
         )}
       </main>

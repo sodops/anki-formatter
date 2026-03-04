@@ -263,7 +263,7 @@ body:has(.login-page) {
 /* Main */
 .t-main {
   flex: 1;
-  overflow-y: auto;
+  min-width: 0;
   position: relative;
 }
 

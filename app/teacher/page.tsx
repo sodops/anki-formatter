@@ -161,7 +161,16 @@ function TeacherDashboard() {
         const sd = await syncRes.json();
         const allDecks = sd.state?.decks || sd.data?.decks || sd.decks || [];
         console.log("[Teacher] Sync response:", { type: sd.type, deckCount: allDecks.length, decks: allDecks.slice(0, 3) });
-        setDecks(allDecks.map((d: any) => ({ id: d.id, name: d.name, cards_count: d.cards?.length || d.cards_count || 0 })));
+        // Deduplicate by deck ID and filter out empty/deleted decks
+        const seen = new Set<string>();
+        const uniqueDecks: Deck[] = [];
+        for (const d of allDecks) {
+          if (d.id && !seen.has(d.id) && !d.isDeleted) {
+            seen.add(d.id);
+            uniqueDecks.push({ id: d.id, name: d.name, cards_count: d.cards?.length || d.cards_count || 0 });
+          }
+        }
+        setDecks(uniqueDecks);
       } else {
         console.error("[Teacher] Sync failed:", syncRes.status, await syncRes.text());
       }
