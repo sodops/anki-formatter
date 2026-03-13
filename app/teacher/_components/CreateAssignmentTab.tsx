@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Deck, Group } from "./types";
+import { Deck, Group, TeacherTab } from "./types";
 
 interface CreateAssignmentTabProps {
   groups: Group[];
@@ -18,7 +18,7 @@ interface CreateAssignmentTabProps {
   setAssignDecks: React.Dispatch<React.SetStateAction<string[]>>;
   handleCreateAssignment: (e: React.FormEvent) => Promise<void>;
   submitting: boolean;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: TeacherTab) => void;
 }
 
 export default function CreateAssignmentTab({

@@ -1,3 +1,5 @@
+import { TeacherTab } from "./types";
+
 interface ProfileTabProps {
   user: any;
   role: string | null;
@@ -13,7 +15,7 @@ interface ProfileTabProps {
   teacherStats: any;
   statsLoading: boolean;
   fetchStats: () => Promise<void>;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: TeacherTab) => void;
 }
 
 export default function ProfileTab({

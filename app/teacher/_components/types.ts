@@ -46,3 +46,14 @@ export const COLORS = [
   "#06B6D4",
   "#3B82F6",
 ];
+
+export type TeacherTab =
+  | "overview"
+  | "groups"
+  | "assignments"
+  | "statistics"
+  | "create-group"
+  | "create-assignment"
+  | "inbox"
+  | "profile"
+  | "settings";

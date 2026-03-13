@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Assignment } from "./types";
+import { Assignment, TeacherTab } from "./types";
 
 interface AssignmentsTabProps {
   assignments: Assignment[];
   activeAssignments: number;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: TeacherTab) => void;
 }
 
 export default function AssignmentsTab({

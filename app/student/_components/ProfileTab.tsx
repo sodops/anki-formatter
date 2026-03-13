@@ -1,4 +1,4 @@
-import { Assignment, Group, XPData } from "./types";
+import { Assignment, Group, StudentTab, XPData } from "./types";
 
 interface ProfileTabProps {
   user: any;
@@ -15,7 +15,7 @@ interface ProfileTabProps {
   groups: Group[];
   completedAssignments: Assignment[];
   overdueAssignments: Assignment[];
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: StudentTab) => void;
 }
 
 export default function ProfileTab({

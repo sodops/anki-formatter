@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
-import { Assignment, Group, Notification, XPData } from "./_components/types";
+import { Assignment, Group, Notification, StudentTab, XPData } from "./_components/types";
 import DashboardTab from "./_components/DashboardTab";
 import AssignmentsTab from "./_components/AssignmentsTab";
 import GroupsTab from "./_components/GroupsTab";
@@ -38,9 +38,7 @@ function StudentDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<
-    "dashboard" | "assignments" | "groups" | "inbox" | "profile" | "settings"
-  >("dashboard");
+  const [activeTab, setActiveTab] = useState<StudentTab>("dashboard");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [xp, setXP] = useState<XPData>({
@@ -380,8 +378,15 @@ function StudentDashboard() {
   // Read query params on mount
   useEffect(() => {
     const tab = searchParams.get("tab");
-    const validTabs = ["dashboard", "assignments", "groups", "inbox", "profile", "settings"];
-    if (tab && validTabs.includes(tab)) setActiveTab(tab as any);
+    const validTabs: StudentTab[] = [
+      "dashboard",
+      "assignments",
+      "groups",
+      "inbox",
+      "profile",
+      "settings",
+    ];
+    if (tab && validTabs.includes(tab as StudentTab)) setActiveTab(tab as StudentTab);
   }, [searchParams]);
 
   if (loading) {

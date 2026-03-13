@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
-import { Assignment, Deck, Group, COLORS } from "./_components/types";
+import { Assignment, Deck, Group, COLORS, TeacherTab } from "./_components/types";
 import OverviewTab from "./_components/OverviewTab";
 import GroupsTab from "./_components/GroupsTab";
 import AssignmentsTab from "./_components/AssignmentsTab";
@@ -42,17 +42,7 @@ function TeacherDashboard() {
   const { user, loading, role, signOut } = useAuth();
   const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<
-    | "overview"
-    | "groups"
-    | "assignments"
-    | "statistics"
-    | "create-group"
-    | "create-assignment"
-    | "inbox"
-    | "profile"
-    | "settings"
-  >("overview");
+  const [activeTab, setActiveTab] = useState<TeacherTab>("overview");
   const [groups, setGroups] = useState<Group[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);

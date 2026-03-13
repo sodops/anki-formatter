@@ -1,4 +1,4 @@
-import { Assignment, Group, XPData } from "./types";
+import { Assignment, Group, StudentTab, XPData } from "./types";
 
 interface DashboardTabProps {
   user: any;
@@ -8,7 +8,7 @@ interface DashboardTabProps {
   assignments: Assignment[];
   groups: Group[];
   xp: XPData;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: StudentTab) => void;
   handleCompleteAssignment: (assignmentId: string, title: string) => Promise<void>;
   completingId: string | null;
 }

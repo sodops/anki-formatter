@@ -52,3 +52,11 @@ export interface Notification {
   created_at: string;
   data?: Record<string, unknown>;
 }
+
+export type StudentTab =
+  | "dashboard"
+  | "assignments"
+  | "groups"
+  | "inbox"
+  | "profile"
+  | "settings";
