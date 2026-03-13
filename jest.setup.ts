@@ -32,9 +32,3 @@ if (typeof Response === 'undefined' || !Response.json) {
     get status() {
       return this.init?.status || 200;
     }
-  } as any;
-}
-
-if (typeof Headers === 'undefined') {
-  global.Headers = class Headers {} as any;
-}
