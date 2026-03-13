@@ -53,10 +53,4 @@ export interface Notification {
   data?: Record<string, unknown>;
 }
 
-export type StudentTab =
-  | "dashboard"
-  | "assignments"
-  | "groups"
-  | "inbox"
-  | "profile"
-  | "settings";
+export type StudentTab = "dashboard" | "assignments" | "groups" | "inbox" | "profile" | "settings";
