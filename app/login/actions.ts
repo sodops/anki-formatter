@@ -45,6 +45,15 @@ function normalizeAuthError(error: unknown): string {
   return raw || "Authentication failed. Please try again.";
 }
 
+function isNextRedirectError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const digest = (error as { digest?: unknown }).digest;
+  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT");
+}
+
 // Helper to get client identifier for rate limiting
 async function getClientId(): Promise<string> {
   const headersList = await headers();
@@ -102,6 +111,9 @@ export async function login(formData: FormData) {
 
     redirect("/student");
   } catch (error) {
+    if (isNextRedirectError(error)) {
+      throw error;
+    }
     return { error: normalizeAuthError(error) };
   }
 }
