@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const { data: groups } = await admin
       .from("groups")
       .select("id, name, color")
-      .eq("teacher_id", user.id);
+      .eq("owner_id", user.id);
 
     const groupIds = (groups || []).map(g => g.id);
 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     // Get all assignments for teacher's groups
     const { data: assignments } = await admin
       .from("assignments")
-      .select("id, title, group_id, xp_reward, status, created_at")
+      .select("id, title, group_id, xp_reward, is_active, created_at")
       .in("group_id", groupIds);
 
     const assignmentIds = (assignments || []).map(a => a.id);
@@ -75,6 +75,45 @@ export async function GET(request: NextRequest) {
       .in("group_id", groupIds)
       .neq("user_id", user.id);
 
+    const assignmentsByGroup = new Map<string, Array<{ id: string }>>();
+    for (const assignment of assignments || []) {
+      const list = assignmentsByGroup.get(assignment.group_id) || [];
+      list.push({ id: assignment.id });
+      assignmentsByGroup.set(assignment.group_id, list);
+    }
+
+    const membersByGroup = new Map<string, Array<{ user_id: string; group_id: string; joined_at: string }>>();
+    const groupIdsByStudent = new Map<string, string[]>();
+    for (const member of members || []) {
+      const groupList = membersByGroup.get(member.group_id) || [];
+      groupList.push(member);
+      membersByGroup.set(member.group_id, groupList);
+
+      const studentGroupList = groupIdsByStudent.get(member.user_id) || [];
+      studentGroupList.push(member.group_id);
+      groupIdsByStudent.set(member.user_id, studentGroupList);
+    }
+
+    const assignmentGroupById = new Map<string, string>();
+    for (const assignment of assignments || []) {
+      assignmentGroupById.set(assignment.id, assignment.group_id);
+    }
+
+    const progressByGroup = new Map<string, Array<any>>();
+    const progressByStudent = new Map<string, Array<any>>();
+    for (const progressRow of allProgress || []) {
+      const groupIdForProgress = assignmentGroupById.get(progressRow.assignment_id);
+      if (groupIdForProgress) {
+        const groupProgressList = progressByGroup.get(groupIdForProgress) || [];
+        groupProgressList.push(progressRow);
+        progressByGroup.set(groupIdForProgress, groupProgressList);
+      }
+
+      const studentProgressList = progressByStudent.get(progressRow.student_id) || [];
+      studentProgressList.push(progressRow);
+      progressByStudent.set(progressRow.student_id, studentProgressList);
+    }
+
     // Get student profiles
     const studentIds = [...new Set((members || []).map(m => m.user_id))];
     let studentProfiles: Record<string, any> = {};
@@ -91,10 +130,9 @@ export async function GET(request: NextRequest) {
 
     // Calculate per-group stats
     const groupStats = (groups || []).map(g => {
-      const groupMembers = (members || []).filter(m => m.group_id === g.id);
-      const groupAssignments = (assignments || []).filter(a => a.group_id === g.id);
-      const groupAssignmentIds = groupAssignments.map(a => a.id);
-      const groupProgress = (allProgress || []).filter(p => groupAssignmentIds.includes(p.assignment_id));
+      const groupMembers = membersByGroup.get(g.id) || [];
+      const groupAssignments = assignmentsByGroup.get(g.id) || [];
+      const groupProgress = progressByGroup.get(g.id) || [];
 
       const completedCount = groupProgress.filter(p => p.status === "completed").length;
       const totalProgressEntries = groupProgress.length || 1;
@@ -120,7 +158,7 @@ export async function GET(request: NextRequest) {
     // Calculate per-student stats
     const studentStats = studentIds.map(sid => {
       const profile = studentProfiles[sid];
-      const studentProgress = (allProgress || []).filter(p => p.student_id === sid);
+      const studentProgress = progressByStudent.get(sid) || [];
       const completedTasks = studentProgress.filter(p => p.status === "completed").length;
       const totalTasks = studentProgress.length;
       const avgAccuracy = studentProgress.length > 0
@@ -129,7 +167,7 @@ export async function GET(request: NextRequest) {
       const totalXPEarned = studentProgress.reduce((s, p) => s + (p.xp_earned || 0), 0);
       const totalReviews = studentProgress.reduce((s, p) => s + (p.total_reviews || 0), 0);
       const totalTime = studentProgress.reduce((s, p) => s + (p.time_spent_seconds || 0), 0);
-      const studentGroups = (members || []).filter(m => m.user_id === sid).map(m => m.group_id);
+      const studentGroups = groupIdsByStudent.get(sid) || [];
 
       return {
         id: sid,

@@ -27,36 +27,31 @@ export async function GET(request: NextRequest) {
     // Use admin client for all DB queries (bypasses RLS)
     const admin = createAdminClient();
 
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const [
+      { data: profile },
+      { data: ownedGroups, error: ownedError },
+      { data: memberships, error: memberError },
+    ] = await Promise.all([
+      admin.from("profiles").select("role").eq("id", user.id).single(),
+      admin
+        .from("groups")
+        .select("*")
+        .eq("owner_id", user.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false }),
+      admin
+        .from("group_members")
+        .select(`
+          group_id,
+          joined_at,
+          groups (
+            id, name, description, color, join_code, owner_id, created_at, is_active
+          )
+        `)
+        .eq("user_id", user.id),
+    ]);
+
     const role = profile?.role || "student";
-
-    // Query owned groups (without counts first)
-    const { data: ownedGroups, error: ownedError } = await admin
-      .from("groups")
-      .select("*")
-      .eq("owner_id", user.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
-
-    if (ownedError) {
-      console.error("[/api/groups] Owned groups error:", ownedError.message);
-    }
-
-    // Query joined groups (without counts first)
-    const { data: memberships, error: memberError } = await admin
-      .from("group_members")
-      .select(`
-        group_id,
-        joined_at,
-        groups (
-          id, name, description, color, join_code, owner_id, created_at, is_active
-        )
-      `)
-      .eq("user_id", user.id);
 
     if (memberError) {
       console.error("[/api/groups] Memberships error:", memberError.message);
@@ -66,7 +61,7 @@ export async function GET(request: NextRequest) {
     const allGroupIds = new Set<string>();
     (ownedGroups || []).forEach(g => allGroupIds.add(g.id));
     (memberships || []).forEach(m => {
-      const g = m.groups as any;
+      const g = m.groups as { id?: string } | null;
       if (g?.id) allGroupIds.add(g.id);
     });
 
@@ -78,32 +73,26 @@ export async function GET(request: NextRequest) {
       const groupIdsArray = Array.from(allGroupIds);
       
       // Get member counts
-      const { data: memberCountsData } = await admin
-        .from("group_members")
-        .select("group_id")
-        .in("group_id", groupIdsArray);
-      
+      const [{ data: memberCountsData }, { data: assignmentCountsData }] = await Promise.all([
+        admin.from("group_members").select("group_id").in("group_id", groupIdsArray),
+        admin.from("assignments").select("group_id").in("group_id", groupIdsArray),
+      ]);
+
       // Count members per group
-      (memberCountsData || []).forEach((mc: any) => {
+      (memberCountsData || []).forEach((mc: { group_id: string }) => {
         const count = memberCounts.get(mc.group_id) || 0;
         memberCounts.set(mc.group_id, count + 1);
       });
 
-      // Get assignment counts  
-      const { data: assignmentCountsData } = await admin
-        .from("assignments")
-        .select("group_id")
-        .in("group_id", groupIdsArray);
-      
       // Count assignments per group
-      (assignmentCountsData || []).forEach((ac: any) => {
+      (assignmentCountsData || []).forEach((ac: { group_id: string }) => {
         const count = assignmentCounts.get(ac.group_id) || 0;
         assignmentCounts.set(ac.group_id, count + 1);
       });
     }
 
     // Deduplicate and add counts
-    const groupMap = new Map<string, any>();
+    const groupMap = new Map<string, Record<string, unknown>>();
 
     (ownedGroups || []).forEach(g => {
       groupMap.set(g.id, {
@@ -115,7 +104,11 @@ export async function GET(request: NextRequest) {
     });
 
     (memberships || []).forEach(m => {
-      const g = m.groups as any;
+      const g = m.groups as {
+        id?: string;
+        owner_id?: string;
+        is_active?: boolean;
+      } | null;
       if (g && g.id && !groupMap.has(g.id) && g.is_active !== false) {
         groupMap.set(g.id, {
           ...g,
@@ -128,7 +121,6 @@ export async function GET(request: NextRequest) {
     });
 
     const groups = Array.from(groupMap.values());
-    console.log(`[/api/groups] user=${user.id}, role=${role}, owned=${ownedGroups?.length || 0}, joined=${memberships?.length || 0}, total=${groups.length}`);
 
     return NextResponse.json({ groups, role });
   } catch (error: any) {

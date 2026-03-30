@@ -239,15 +239,21 @@ export async function POST(request: NextRequest) {
       .in("id", deck_ids)
       .eq("user_id", user.id);
 
-    // Count cards per deck
+    // Count cards per deck in one query to avoid N+1 calls.
     const deckCards: Record<string, number> = {};
+    const { data: deckCardRows } = await admin
+      .from("cards")
+      .select("deck_id")
+      .in("deck_id", deck_ids)
+      .eq("is_deleted", false);
+
     for (const deckId of deck_ids) {
-      const { count } = await admin
-        .from("cards")
-        .select("id", { count: "exact", head: true })
-        .eq("deck_id", deckId)
-        .eq("is_deleted", false);
-      deckCards[deckId] = count || 0;
+      deckCards[deckId] = 0;
+    }
+
+    for (const row of deckCardRows || []) {
+      const key = row.deck_id as string;
+      deckCards[key] = (deckCards[key] || 0) + 1;
     }
 
     // Create assignment_decks entries
