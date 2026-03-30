@@ -4,8 +4,49 @@
  */
 
 import { NextResponse } from "next/server";
+import { env } from "@/lib/env";
+import { ZodError } from "zod";
 
 export type ErrorLevel = "error" | "warn" | "info";
+
+export type ErrorCategory = 
+  | "validation"      // Input validation failed
+  | "auth"            // Authentication/authorization error
+  | "database"        // Database operation failed
+  | "network"         // Network/external service error
+  | "rate_limit"      // Rate limit exceeded
+  | "not_found"       // Resource not found
+  | "conflict"        // Resource conflict (e.g., duplicate)
+  | "server"          // Generic server error
+  | "unknown";        // Unknown/unclassified
+
+/**
+ * Typed API error class for structured error handling
+ */
+export class ApiError extends Error {
+  constructor(
+    public message: string,
+    public status: number,
+    public category: ErrorCategory = "server",
+    public details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+
+  toJSON() {
+    return {
+      error: this.message,
+      ...(env.isDevelopment && {
+        debug: {
+          category: this.category,
+          details: this.details,
+          stack: this.stack,
+        },
+      }),
+    };
+  }
+}
 
 interface ErrorLogEntry {
   level: ErrorLevel;
@@ -14,6 +55,25 @@ interface ErrorLogEntry {
   context?: Record<string, unknown>;
   timestamp: string;
   stack?: string;
+}
+
+/**
+ * Format Zod validation errors into a user-friendly structure
+ */
+export function formatZodErrors(error: ZodError): Record<string, string[]> {
+  const formatted: Record<string, string[]> = {};
+  
+  for (const issue of error.issues) {
+    const path = issue.path.join(".");
+    const message = issue.message;
+    
+    if (!formatted[path]) {
+      formatted[path] = [];
+    }
+    formatted[path].push(message);
+  }
+  
+  return formatted;
 }
 
 /**
@@ -56,6 +116,81 @@ const ERROR_MESSAGES: Record<string, string> = {
   "Internal server error": "A server error occurred. Please try again later.",
   "Something went wrong": "An unexpected error occurred. Please try again.",
 };
+
+/**
+ * Determine error category from error object
+ */
+export function categorizeError(error: unknown): ErrorCategory {
+  if (error instanceof ApiError) {
+    return error.category;
+  }
+
+  const errorStr = String(error);
+  const errorMsg = error instanceof Error ? error.message : errorStr;
+  const lowerMsg = errorMsg.toLowerCase();
+
+  // Check error patterns
+  if (
+    lowerMsg.includes("unauthorized") ||
+    lowerMsg.includes("authentication") ||
+    lowerMsg.includes("invalid login") ||
+    lowerMsg.includes("credentials")
+  ) {
+    return "auth";
+  }
+
+  if (
+    lowerMsg.includes("forbidden") ||
+    lowerMsg.includes("permission") ||
+    lowerMsg.includes("access denied")
+  ) {
+    return "auth";
+  }
+
+  if (
+    lowerMsg.includes("rate limit") ||
+    lowerMsg.includes("too many requests")
+  ) {
+    return "rate_limit";
+  }
+
+  if (
+    lowerMsg.includes("duplicate") ||
+    lowerMsg.includes("conflict") ||
+    lowerMsg.includes("already exists")
+  ) {
+    return "conflict";
+  }
+
+  if (
+    lowerMsg.includes("not found") ||
+    lowerMsg.includes("no such") ||
+    lowerMsg.includes("does not exist")
+  ) {
+    return "not_found";
+  }
+
+  if (
+    lowerMsg.includes("database") ||
+    lowerMsg.includes("postgres") ||
+    lowerMsg.includes("constraint") ||
+    lowerMsg.includes("foreign key") ||
+    lowerMsg.includes("null value")
+  ) {
+    return "database";
+  }
+
+  if (
+    lowerMsg.includes("network") ||
+    lowerMsg.includes("fetch") ||
+    lowerMsg.includes("timeout") ||
+    lowerMsg.includes("connection")
+  ) {
+    return "network";
+  }
+
+  return "unknown";
+}
 
 /**
  * Get user-friendly error message in Uzbek
@@ -102,7 +237,7 @@ export async function logError(entry: Omit<ErrorLogEntry, "timestamp">): Promise
   };
   
   // Log to console in development
-  if (process.env.NODE_ENV === "development") {
+  if (env.isDevelopment) {
     console.error(`[${logEntry.level.toUpperCase()}]`, logEntry.message, {
       error: logEntry.error,
       context: logEntry.context,
@@ -160,7 +295,7 @@ export function createErrorResponse(
   return NextResponse.json(
     { 
       error: message,
-      ...(process.env.NODE_ENV === "development" && { 
+      ...(env.isDevelopment && { 
         debug: error instanceof Error ? error.message : String(error) 
       })
     },
@@ -188,12 +323,29 @@ export function withErrorHandler<T>(
 
 /**
  * Validation error helper
+ * Accepts either individual field errors or a ZodError
  */
-export function createValidationError(field: string, message: string): NextResponse {
+export function createValidationError(
+  fieldOrError: string | ZodError,
+  message?: string
+): NextResponse {
+  let errors: Record<string, string[]>;
+  let userMessage = "Validation failed. Please check your input.";
+
+  if (fieldOrError instanceof ZodError) {
+    errors = formatZodErrors(fieldOrError);
+    userMessage = "Invalid input. Please check the highlighted fields.";
+  } else if (typeof fieldOrError === "string" && message) {
+    errors = { [fieldOrError]: [message] };
+    userMessage = `${fieldOrError}: ${message}`;
+  } else {
+    errors = {};
+  }
+
   return NextResponse.json(
-    { 
-      error: `${field}: ${message}`,
-      field,
+    {
+      error: userMessage,
+      errors: Object.keys(errors).length > 0 ? errors : undefined,
     },
     { status: 400 }
   );

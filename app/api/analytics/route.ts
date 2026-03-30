@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getClientIP } from "@/lib/rate-limit";
 import { analyticsSchema } from "@/lib/validations";
+import { env } from "@/lib/env";
 
 /**
  * POST /api/analytics — Store Web Vitals metrics
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Log to console in development
-    if (process.env.NODE_ENV === "development") {
+    if (env.isDevelopment) {
       console.log(`[Web Vitals] ${name}:`, {
         value: Math.round(value),
         rating,

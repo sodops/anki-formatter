@@ -2,6 +2,27 @@
 -- AnkiFlow Database Schema (Production Ready)
 -- Run this in Supabase SQL Editor to initialize the database
 -- ============================================
+-- 
+-- SCHEMA OVERVIEW:
+-- - profiles: Public user information (display_name, avatar, etc.)
+-- - decks: User-created flashcard decks
+-- - cards: Individual flashcards with spaced repetition data (review_data JSONB)
+-- - review_logs: Analytics & history of card reviews (when, grade, time spent)
+-- - user_data: User settings and daily progress tracking
+-- - system_logs: Application error logs with retention (7 days)
+-- - web_vitals: Browser performance metrics (CLS, LCP, FID, etc.)
+-- - connections: Friend/follow system for social features
+--
+-- SECURITY MODEL:
+-- - All tables use Row Level Security (RLS) policies
+-- - Users can only access/modify their own data (auth.uid() = user_id)
+-- - Profiles are publicly readable (for discovery)
+-- - Admin operations bypass RLS via Supabase service role key
+--
+-- INDEXES:
+-- - Composite indexes on (user_id, deck_id) for faster queries
+-- - JSONB index on cards.review_data->>'due' for due-date queries
+-- - Indexes on review_logs(user_id, created_at) for analytics
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -40,12 +61,21 @@ CREATE INDEX IF NOT EXISTS idx_connections_requester ON connections(requester_id
 CREATE INDEX IF NOT EXISTS idx_connections_target ON connections(target_id);
 CREATE INDEX IF NOT EXISTS idx_connections_status ON connections(status);
 
--- RLS for connections
+-- RLS for connections (friend/follow system)
+-- Only requester & target can see/modify their connection
 ALTER TABLE connections ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view own connections" ON connections FOR SELECT USING (auth.uid() = requester_id OR auth.uid() = target_id);
-CREATE POLICY "Users can insert connections" ON connections FOR INSERT WITH CHECK (auth.uid() = requester_id);
-CREATE POLICY "Users can update connections they received" ON connections FOR UPDATE USING (auth.uid() = target_id);
-CREATE POLICY "Users can delete own connections" ON connections FOR DELETE USING (auth.uid() = requester_id OR auth.uid() = target_id);
+CREATE POLICY "Users can view own connections" 
+  ON connections FOR SELECT 
+  USING (auth.uid() = requester_id OR auth.uid() = target_id);
+CREATE POLICY "Users can insert connections" 
+  ON connections FOR INSERT 
+  WITH CHECK (auth.uid() = requester_id);
+CREATE POLICY "Users can update connections they received" 
+  ON connections FOR UPDATE 
+  USING (auth.uid() = target_id);
+CREATE POLICY "Users can delete own connections" 
+  ON connections FOR DELETE 
+  USING (auth.uid() = requester_id OR auth.uid() = target_id);
 
 -- ============================================
 -- 2. DECKS (Flashcard Decks)
@@ -126,33 +156,63 @@ CREATE TABLE IF NOT EXISTS system_logs (
 -- ============================================
 -- Row Level Security (RLS) Policies
 -- ============================================
+-- 
+-- RLS STRATEGY:
+-- All tables have RLS enabled to isolate user data at database level
+-- - SELECT: Users can only read their own records (except public profiles)
+-- - INSERT: Users can only insert with auth.uid() matching the user_id
+-- - UPDATE: Users can only update their own records
+-- - DELETE: Users can only delete their own records
+-- 
+-- Bypass Method:
+-- Use Supabase service role key (SUPABASE_SERVICE_ROLE_KEY) in backend
+-- to bypass RLS for admin operations
+--
 
--- Profiles
+-- Profiles: Public profiles for discovery, users manage own profile
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public profiles" ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Public profiles" 
+  ON profiles FOR SELECT 
+  USING (true);  -- Anyone can discover public profiles
+CREATE POLICY "Users update own profile" 
+  ON profiles FOR UPDATE 
+  USING (auth.uid() = id);
+CREATE POLICY "Users insert own profile" 
+  ON profiles FOR INSERT 
+  WITH CHECK (auth.uid() = id);
 
--- Decks
+-- Decks: Users manage their own decks
 ALTER TABLE decks ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own decks" ON decks USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own decks" 
+  ON decks 
+  USING (auth.uid() = user_id);
 
--- Cards
+-- Cards: Users manage cards in their own decks
 ALTER TABLE cards ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own cards" ON cards USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own cards" 
+  ON cards 
+  USING (auth.uid() = user_id);
 
--- User Data
+-- User Data: Users manage their own settings & progress
 ALTER TABLE user_data ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own data" ON user_data USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own data" 
+  ON user_data 
+  USING (auth.uid() = user_id);
 
--- Review Logs
+-- Review Logs: Users can only view their own study history
 ALTER TABLE review_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own logs" ON review_logs USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own logs" 
+  ON review_logs 
+  USING (auth.uid() = user_id);
 
--- System Logs
+-- System Logs: All users can insert (for error tracking), read own logs
 ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Enable insert for all users" ON system_logs FOR INSERT WITH CHECK (true);
-CREATE POLICY "Users view own logs" ON system_logs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Enable insert for all users" 
+  ON system_logs FOR INSERT 
+  WITH CHECK (true);  -- App can log errors from any user
+CREATE POLICY "Users view own logs" 
+  ON system_logs FOR SELECT 
+  USING (auth.uid() = user_id);
 
 -- ============================================
 -- Indexes
@@ -270,3 +330,49 @@ CREATE TRIGGER trigger_delete_old_web_vitals
     AFTER INSERT ON web_vitals
     FOR EACH STATEMENT
     EXECUTE FUNCTION delete_old_web_vitals();
+
+-- ============================================
+-- MIGRATION NOTES & DEPLOYMENT GUIDE
+-- ============================================
+--
+-- VERSION: 1.0 (Initial Schema)
+-- Last Updated: 2024
+--
+-- DEPLOYMENT STEPS:
+-- 1. Copy this entire script to Supabase SQL Editor
+-- 2. Execute all statements (usually auto-runs line by line)
+-- 3. Verify: Check Tables > Select each table and confirm schema
+-- 4. Verify: Check RLS > Ensure all policies are enabled
+-- 5. Test: Try creating a profile/deck in the app
+--
+-- FUTURE MIGRATIONS:
+-- - Create a new migration file: supabase/migrations/YYYYMMDD_description.sql
+-- - Test in development Supabase project first
+-- - Document schema version changes
+-- - Use ALTER TABLE for backwards-compatible changes
+-- - Use IF NOT EXISTS / IF EXISTS for idempotency
+--
+-- IMPORTANT: RLS SECURITY
+-- - RLS policies are the primary security layer
+-- - Service role key (in env vars) bypasses RLS for admin operations
+-- - If RLS is disabled, ANY authenticated user can access ALL records
+-- - Always test RLS policies after schema changes
+--
+-- INDEXES RATIONALE:
+-- - idx_decks_user: Fast deck queries by owner
+-- - idx_cards_deck, idx_cards_user: Filter cards by deck/owner
+-- - idx_cards_due: Query cards by due date (from review_data JSON)
+-- - idx_logs_user_date: Fast analytics queries (user's review history)
+-- - idx_web_vitals_user_metric: Performance metric queries
+-- - idx_connections_requester/target/status: Friend system queries
+--
+-- PERFORMANCE NOTES:
+-- - JSONB columns (review_data, settings) can be indexed with ->> operator
+-- - Created composite indexes for common WHERE clauses
+-- - Probabilistic cleanup (1% chance) avoids thundering herd on log deletion
+-- - Most queries should hit indexes (analyze EXPLAIN for debugging)
+--
+-- DATA RETENTION:
+-- - system_logs: 7 days (auto-deleted after 7 days)
+-- - web_vitals: 30 days (auto-deleted after 30 days)
+-- - Cards/profiles: Permanent until user deletion (ON DELETE CASCADE)

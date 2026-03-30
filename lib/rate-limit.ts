@@ -6,6 +6,7 @@
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { env } from "@/lib/env";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -24,17 +25,15 @@ interface RateLimitResult {
 
 // ─── Upstash Redis (production) ─────────────────────────────────────
 
-const isRedisConfigured = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
+const { isConfigured: isRedisConfigured, url: redisUrl, token: redisToken } = env.redis;
 
 let redis: Redis | null = null;
 const rateLimiters = new Map<string, Ratelimit>();
 
-if (isRedisConfigured) {
+if (isRedisConfigured && redisUrl && redisToken) {
   redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: redisUrl,
+    token: redisToken,
   });
 }
 

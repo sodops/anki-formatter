@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 export async function GET() {
   try {
@@ -22,14 +22,8 @@ export async function GET() {
 
     // Try admin client first (bypasses RLS), fall back to anon client
     let profile = null;
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (url && serviceKey) {
-      try {
-        const admin = createSupabaseClient(url, serviceKey, {
-          auth: { autoRefreshToken: false, persistSession: false },
-        });
+    try {
+      const admin = createAdminClient();
         const { data, error } = await admin
           .from("profiles")
           .select("role, display_name, avatar_url, total_xp, current_streak")

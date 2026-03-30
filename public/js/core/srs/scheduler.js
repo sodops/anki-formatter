@@ -2,6 +2,39 @@
  * SRS Scheduler Module
  * Implements SM-2 algorithm for spaced repetition
  * Enhanced with learning steps for vocabulary memorization
+ * 
+ * @typedef {Object} ReviewData
+ * @property {number} interval - Days until next review
+ * @property {number} easeFactor - SM-2 difficulty multiplier (1.3-5.0)
+ * @property {number} repetitions - Total successful reviews
+ * @property {number} step - Current learning step (0+)
+ * @property {boolean} isLearning - True if in learning/relearning phase
+ * @property {string} [nextReview] - ISO timestamp of next review due date
+ * @property {string} [lastReview] - ISO timestamp of last review
+ * @property {Array<Object>} reviewHistory - Array of past review records
+ * 
+ * @typedef {Object} Card
+ * @property {string} id - Unique card identifier
+ * @property {string} question - Front of card (question/prompt)
+ * @property {string} answer - Back of card (answer/response)
+ * @property {ReviewData} [reviewData] - Spaced repetition schedule data
+ * 
+ * @typedef {Object} ScheduleResult
+ * @property {string} nextReview - ISO timestamp of next review due date
+ * @property {number} interval - Days until next review
+ * @property {number} easeFactor - SM-2 multiplier for future intervals
+ * @property {number} repetitions - Total successful reviews
+ * @property {number} step - Current learning step
+ * @property {boolean} isLearning - True if in learning phase
+ * @property {Array<Object>} reviewHistory - Updated review history
+ * 
+ * @typedef {Object} UserSettings
+ * @property {number} intervalMod - Interval multiplier (0.5-2.0, stored as %)
+ * @property {number[]} learningSteps - Minutes between learning steps [1, 10]
+ * @property {number} newCards - Max new cards per session
+ * @property {number} maxReviews - Max reviews per session
+ * @property {string} algorithm - 'sm-2' or 'fsrs'
+ * @property {Object} fsrsParams - Parameters for FSRS algorithm
  */
 
 import { store } from '../store.js';
@@ -9,7 +42,7 @@ import { FSRS, Rating, createEmptyCard, generatorParameters } from '../../utils/
 
 /**
  * Get user settings from localStorage
- * @returns {Object} Settings with defaults
+ * @returns {UserSettings} Settings with defaults
  */
 function getSettings() {
     try {
@@ -47,7 +80,11 @@ function parseLearningSteps(stepsStr) {
 
 /**
  * Calculate next review schedule
- * Wrapper that delegates to selected algorithm
+ * Wrapper that delegates to selected algorithm (SM-2 or FSRS)
+ * 
+ * @param {Card} card - Card object with optional reviewData
+ * @param {number} quality - User's quality of response (0=again, 2=hard, 3=good, 5=easy)
+ * @returns {ScheduleResult} Updated schedule data with nextReview, interval, etc.
  */
 export function calculateNextReview(card, quality) {
     const settings = getSettings();
@@ -293,9 +330,17 @@ function calculateNextReviewSM2(card, quality, settings) {
 
 /**
  * Get cards that are due for review
- * @param {Object} deck - Deck object with cards array
- * @param {Object} options - Optional limits { newCardsLimit, reviewsLimit }
- * @returns {Array} Cards that are due for review (or new cards)
+ * Orders by: learning cards (urgent), due review cards, new cards
+ * 
+ * @param {Object} deck - Deck object with cards array and optional settings
+ * @param {Card[]} deck.cards - Array of card objects
+ * @param {Object} [deck.settings] - Optional deck-specific settings
+ * @param {number} [deck.settings.newCardsPerDay] - Override for new cards limit
+ * @param {number} [deck.settings.maxReviewsPerDay] - Override for reviews limit
+ * @param {Object} [options] - Optional limits
+ * @param {number} [options.newCardsLimit] - Max new cards to return (0=unlimited)
+ * @param {number} [options.reviewsLimit] - Max review cards to return (0=unlimited)
+ * @returns {Card[]} Cards due for review, ordered by priority (learning → due → new)
  */
 export function getDueCards(deck, options = {}) {
     if (!deck || !deck.cards) return [];
@@ -355,10 +400,12 @@ export function getDueCards(deck, options = {}) {
 }
 
 /**
- * Update card's review data after rating
- * @param {Object} card - Card object
- * @param {number} quality - Quality rating (0-5)
- * @returns {Object} Updated card
+ * Update card's review data after user rates it
+ * Mutates card's reviewData with new schedule
+ * 
+ * @param {Card} card - Card object to update
+ * @param {number} quality - Quality rating: 0=again, 2=hard, 3=good, 5=easy
+ * @returns {Card} New card object with updated reviewData
  */
 export function updateCardAfterReview(card, quality) {
     const newReviewData = calculateNextReview(card, quality);
@@ -371,10 +418,11 @@ export function updateCardAfterReview(card, quality) {
 
 /**
  * Get interval display string for a given quality rating
- * Used to show "Again (1m)" on buttons
- * @param {Object} card - Card with reviewData
- * @param {number} quality - Quality rating (0-5)
- * @returns {string} Human-readable interval (e.g., "1m", "10m", "1d", "6d")
+ * Used to show "Again (1m)" on buttons to preview next review timing
+ * 
+ * @param {Card} card - Card with optional reviewData
+ * @param {number} quality - Quality rating: 0=again, 2=hard, 3=good, 5=easy
+ * @returns {string} Human-readable interval (e.g., "1m", "10m", "1d", "6d", "2mo")
  */
 export function getIntervalPreview(card, quality) {
     // Delegate to calculateNextReview to avoid duplicating SM-2 logic
@@ -406,8 +454,10 @@ export function getIntervalPreview(card, quality) {
 }
 
 /**
- * Initialize review data for a new card
- * @returns {Object} Initial review data
+ * Initialize review data for a new card (never reviewed before)
+ * Returns default ReviewData object ready for first review
+ * 
+ * @returns {ReviewData} Initial review data with SM-2 defaults
  */
 export function initializeReviewData() {
     return {
@@ -424,8 +474,14 @@ export function initializeReviewData() {
 
 /**
  * Get statistics for a deck's review status
- * @param {Object} deck - Deck object
- * @returns {Object} { newCards, dueCards, learningCards }
+ * Counts new, due, and learning cards to show in dashboard
+ * 
+ * @param {Object} deck - Deck object with cards array
+ * @param {Card[]} deck.cards - Array of card objects
+ * @returns {Object} Statistics object
+ * @returns {number} .newCards - Number of new cards (never reviewed)
+ * @returns {number} .dueCards - Number of cards due for review (past nextReview)
+ * @returns {number} .learningCards - Number of cards in learning/relearning phase
  */
 export function getDeckReviewStats(deck) {
     if (!deck || !deck.cards) {

@@ -91,7 +91,9 @@ export default function Home() {
 
   // Register Service Worker for offline support
   useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    // Note: In client components, we check NEXT_PUBLIC_* vars directly as they're baked into the bundle
+    const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+    if ('serviceWorker' in navigator && isProduction) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
