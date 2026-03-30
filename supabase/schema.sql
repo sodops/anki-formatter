@@ -19,10 +19,16 @@
 -- - Profiles are publicly readable (for discovery)
 -- - Admin operations bypass RLS via Supabase service role key
 --
--- INDEXES:
--- - Composite indexes on (user_id, deck_id) for faster queries
--- - JSONB index on cards.review_data->>'due' for due-date queries
--- - Indexes on review_logs(user_id, created_at) for analytics
+-- INDEXES (Performance Optimization):
+-- - Composite (user_id, deck_id): Fast deck queries per user
+-- - JSONB cards.review_data->>'due': Fast due-date queries for SRS
+-- - review_logs(user_id, created_at): User activity & analytics
+-- - profiles(username): Public profile lookups
+-- - connections(status): Find pending connection requests
+-- 
+-- PERFORMANCE NOTES:
+-- All indexes are created IF NOT EXISTS to allow re-running script safely.
+-- Check index usage: SELECT * FROM pg_stat_user_indexes;
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -92,8 +98,25 @@ CREATE TABLE IF NOT EXISTS decks (
 );
 
 -- ============================================
--- 3. CARDS (Flashcards)
+-- 3. CARDS (Flashcards with SRS Data)
 -- ============================================
+-- Each card contains a term/definition pair and SM-2/FSRS algorithm state
+-- review_data: JSONB storing spaced repetition algorithm state
+--   - state: 'new', 'learning', 'learned', 'relearning'
+--   - step: Current learning step (0=new, 1+=learning)
+--   - due: ISO timestamp of next review due date (null=not scheduled)
+--   - interval: Days until next review
+--   - ease: SM-2 ease factor (1.3-5.0) affects difficulty multiplier
+--   - lapses: Count of times card was failed after passing
+-- 
+-- RELATIONSHIPS:
+--   - deck_id: Parent deck (deleted if deck is deleted)
+--   - user_id: Owner user (denormalized for faster queries)
+--   - Created/updated timestamps for sync tracking
+-- 
+-- INDEXES: (user_id, deck_id) for efficient deck queries
+--          review_data->>'due' for finding due cards (spaced repetition)
+--
 CREATE TABLE IF NOT EXISTS cards (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     deck_id UUID REFERENCES decks(id) ON DELETE CASCADE NOT NULL,
@@ -127,8 +150,20 @@ CREATE TABLE IF NOT EXISTS user_data (
 );
 
 -- ============================================
--- 5. REVIEW LOGS (Analytics)
+-- 5. REVIEW LOGS (Study Analytics)
 -- ============================================
+-- Records each time a user reviews a card (answers a question)
+-- Used for: analytics, study patterns, performance tracking
+-- 
+-- grade: 1=Again, 2=Hard, 3=Good, 4=Easy (SM-2 grades)
+-- elapsed_time: Milliseconds spent on this review
+-- review_state: Previous state before this review ('new', 'learning', 'learned')
+-- 
+-- INDEXES: (user_id, created_at) for user activity queries
+--          (deck_id, created_at) for deck performance analytics
+-- 
+-- RETENTION: Can be archived after 90 days if database size is critical
+--
 CREATE TABLE IF NOT EXISTS review_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     card_id UUID REFERENCES cards(id) ON DELETE CASCADE NOT NULL,
@@ -141,8 +176,22 @@ CREATE TABLE IF NOT EXISTS review_logs (
 );
 
 -- ============================================
--- 6. SYSTEM LOGS (Error Tracking)
+-- 6. SYSTEM LOGS (Error & Event Tracking)
 -- ============================================
+-- Application logs for debugging and monitoring
+-- Used for: error tracking, performance monitoring, user behavior analysis
+-- 
+-- level: Log level (INFO, WARN, ERROR, DEBUG)
+-- data: JSONB context (error stack, API response, etc.)
+-- user_agent: Browser user agent for debugging compatibility issues
+-- user_id: Optional (null for unauthenticated errors)
+-- 
+-- RETENTION: Auto-delete after 30 days via Supabase retention policy
+--            Set via table maintenance to control storage costs
+--
+-- INDEXES: (created_at DESC) for querying recent logs
+--          (level) for filtering by severity
+--
 CREATE TABLE IF NOT EXISTS system_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -157,16 +206,32 @@ CREATE TABLE IF NOT EXISTS system_logs (
 -- Row Level Security (RLS) Policies
 -- ============================================
 -- 
--- RLS STRATEGY:
--- All tables have RLS enabled to isolate user data at database level
--- - SELECT: Users can only read their own records (except public profiles)
--- - INSERT: Users can only insert with auth.uid() matching the user_id
--- - UPDATE: Users can only update their own records
--- - DELETE: Users can only delete their own records
+-- SECURITY MODEL:
+-- All tables have RLS enabled to enforce data isolation at database level.
+-- This means Supabase can only return data owned by the authenticated user.
 -- 
--- Bypass Method:
--- Use Supabase service role key (SUPABASE_SERVICE_ROLE_KEY) in backend
--- to bypass RLS for admin operations
+-- POLICY TYPES:
+-- 1. auth.uid() = user_id: Standard ownership check (most tables)
+--    - Users can only see/edit/delete their own data
+--    - Examples: decks, cards, user_data, review_logs
+-- 
+-- 2. Public read (profiles): Allow public discovery
+--    - Anyone can view public profiles for social features
+--    - Users can still modify only their own profile
+-- 
+-- 3. Relationship-based (connections): 
+--    - Requester & target can both view the connection
+--    - Only target can accept/reject
+--    - Either party can delete
+-- 
+-- BYPASS METHOD (Backend Only):
+-- Use SUPABASE_SERVICE_ROLE_KEY in backend API routes to bypass RLS.
+-- This allows admin operations without impersonation.
+-- NEVER expose service role key to frontend.
+-- 
+-- TESTING RLS:
+-- Enable/disable in Supabase dashboard to verify frontend handles both cases
+-- Verify policies in SQL editor: SELECT * FROM pg_policies;
 --
 
 -- Profiles: Public profiles for discovery, users manage own profile

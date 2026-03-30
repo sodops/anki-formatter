@@ -1,23 +1,66 @@
 /**
- * Offline indicator and sync status manager
- * Shows connection status and pending changes
+ * Offline Indicator and Sync Status Manager
+ * Displays user-facing UI for connection status and pending cloud sync operations
+ * 
+ * @typedef {'idle'|'syncing'|'success'|'error'} SyncStatus
+ * @typedef {'success'|'error'|'warning'|'info'} ToastType
+ * 
+ * Features:
+ * - Shows/hides indicator based on online status and pending changes
+ * - Auto-syncs when connection restored
+ * - Displays modal with detailed sync status on click
+ * - Shows toast notifications for state transitions
+ * - Listens to global sync events (ankiflow:sync-start, ankiflow:sync-success, etc.)
+ * 
+ * Events Emitted:
+ * - ankiflow:sync-start - When sync begins
+ * - ankiflow:sync-success - When sync completes
+ * - ankiflow:sync-error - When sync fails
+ * - ankiflow:change-pending - When pending changes count updates
+ * 
+ * @example
+ * // Update pending changes
+ * offlineManager.setPendingChanges(5);
+ * 
+ * // Update sync status
+ * offlineManager.setSyncStatus('syncing');
  */
-
 class OfflineManager {
+  /**
+   * Initialize offline manager
+   * @constructor
+   */
   constructor() {
+    /** @type {boolean} - True if device has internet connection */
     this.isOnline = navigator.onLine;
+    
+    /** @type {number} - Count of unsaved local changes */
     this.pendingChanges = 0;
+    
+    /** @type {HTMLElement|null} - DOM element for status indicator */
     this.indicator = null;
+    
+    /** @type {SyncStatus} - Current sync operation status */
     this.syncStatus = "idle"; // idle, syncing, success, error
+    
     this.init();
   }
 
+  /**
+   * Initialize the offline manager
+   * Creates DOM indicator and sets up event listeners
+   */
   init() {
     this.createIndicator();
     this.setupEventListeners();
     this.updateIndicator();
   }
 
+  /**
+   * Create and inject indicator DOM element into page
+   * Shows fixed position indicator in bottom-right corner
+   * @private
+   */
   createIndicator() {
     this.indicator = document.createElement("div");
     this.indicator.id = "offline-indicator";
@@ -46,6 +89,10 @@ class OfflineManager {
     document.body.appendChild(this.indicator);
   }
 
+  /**
+   * Attach listeners for online/offline events and sync updates
+   * @private
+   */
   setupEventListeners() {
     window.addEventListener("online", () => {
       this.isOnline = true;
@@ -272,6 +319,11 @@ class OfflineManager {
     }
   }
 
+  /**
+   * Trigger a cloud sync operation
+   * Calls global sync function if available, no-op otherwise
+   * @public
+   */
   triggerSync() {
     // Trigger sync via global function if available
     if (window.__ankiflow_triggerSync) {
@@ -281,6 +333,12 @@ class OfflineManager {
     }
   }
 
+  /**
+   * Show toast notification at top-right
+   * @param {string} message - Message text to display
+   * @param {ToastType} [type='info'] - Toast type (determines color)
+   * @public
+   */
   showToast(message, type = "info") {
     const toast = document.createElement("div");
     const colors = {
@@ -335,11 +393,21 @@ class OfflineManager {
     }
   }
 
+  /**
+   * Update pending changes count and refresh indicator
+   * @param {number} count - New pending changes count
+   * @public
+   */
   setPendingChanges(count) {
     this.pendingChanges = count;
     this.updateIndicator();
   }
 
+  /**
+   * Update sync status and refresh indicator
+   * @param {SyncStatus} status - New sync status
+   * @public
+   */
   setSyncStatus(status) {
     this.syncStatus = status;
     this.updateIndicator();

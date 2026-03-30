@@ -3,6 +3,41 @@
  * Single source of truth for application state
  * Redux-inspired pattern with validation
  * Cloud sync via /api/sync when authenticated
+ * 
+ * @typedef {Object} Deck
+ * @property {string} id - Unique deck identifier
+ * @property {string} name - Deck display name
+ * @property {string} [description] - Optional deck description
+ * @property {number} [cardCount] - Total cards in deck
+ * @property {boolean} [is_deleted] - Soft-delete flag
+ * @property {string} [created_at] - ISO timestamp of creation
+ * @property {string} [updated_at] - ISO timestamp of last update
+ * 
+ * @typedef {Object} AppState
+ * @property {Deck[]} decks - All available decks
+ * @property {string|null} activeDeckId - Currently selected deck ID
+ * @property {string} searchQuery - Current search/filter text
+ * @property {string} activeView - Active view mode ('library', 'study', etc.)
+ * @property {boolean} showTrash - Whether trash view is visible
+ * @property {'auto'|'light'|'dark'} theme - Color theme preference
+ * @property {Object[]} trash - Deleted items pending permanent removal
+ * @property {Object[]} history - Undo/redo history stack
+ * 
+ * @typedef {Object} SyncEvent
+ * @property {string} type - Event type ('add_deck', 'update_deck', 'delete_deck', etc.)
+ * @property {Object} data - Event payload with change details
+ * @property {number} timestamp - When the change occurred (ms)
+ * 
+ * @typedef {Object} CloudUser
+ * @property {string} id - User UUID from auth
+ * @property {string} email - User email
+ * @property {string} [display_name] - User display name
+ * 
+ * ARCHITECTURE NOTES:
+ * - Cloud is the SINGLE SOURCE OF TRUTH for authenticated users
+ * - localStorage is used as a cache for instant UI rendering while cloud loads
+ * - All state mutations are tracked for undo/redo and cloud sync
+ * - Sync queue stores pending changes while offline
  */
 
 // Default state structure
@@ -17,24 +52,70 @@ const DEFAULT_STATE = {
     history: []
 };
 
-// Store instance
+/**
+ * Store - Central state management for the application
+ * 
+ * Responsibilities:
+ * - Maintains application state (decks, active view, etc.)
+ * - Provides mutation methods (setState, dispatch)
+ * - Manages undo/redo history
+ * - Handles cloud sync for authenticated users
+ * - Notifies listeners of state changes
+ * 
+ * @example
+ * // Get current state
+ * const state = store.getState();
+ * 
+ * // Update state
+ * store.setState({ activeDeckId: 'deck-123' });
+ * 
+ * // Subscribe to changes
+ * store.subscribe(() => {
+ *   console.log('State updated:', store.getState());
+ * });
+ */
 class Store {
+    /**
+     * Initialize store with default state and listeners
+     * @constructor
+     */
     constructor() {
+        /** @type {AppState} */
         this.state = { ...DEFAULT_STATE };
+        
+        /** @type {Function[]} */
         this.listeners = [];
+        
+        /** @type {AppState[]} */
         this.history = [];
+        
+        /** @type {number} */
         this.historyIndex = -1;
+        
+        /** @type {number} */
         this.maxHistory = 15; // Reduced from 50 to save memory on large decks
 
         // Cloud sync state
+        /** @type {NodeJS.Timeout|null} */
         this._syncTimer = null;
+        
+        /** @type {number} */
         this._syncDelay = 1000; // Faster debounce for granular sync
+        
+        /** @type {boolean} */
         this._isSyncing = false;
+        
+        /** @type {boolean} */
         this._isLoadingCloud = false;
+        
+        /** @type {CloudUser|null} */
         this._authUser = null;
+        
+        /** @type {string|null} */
         this._accessToken = null;
         
         // Sync Queue for incremental updates
+        /** @type {SyncEvent[]} */
         this._syncQueue = []; 
 
         // Listen for auth events from React AuthProvider
