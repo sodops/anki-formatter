@@ -66,7 +66,10 @@ export async function POST(request: NextRequest) {
       .select("id", { count: "exact", head: true })
       .eq("group_id", group.id);
 
-    if (count && count >= group.max_members) {
+    const maxMembers = typeof group.max_members === "number" && group.max_members > 0 ? group.max_members : 50;
+    const memberCount = typeof count === "number" ? count : 0;
+
+    if (memberCount >= maxMembers) {
       return NextResponse.json({ error: "This group is full" }, { status: 400 });
     }
 
@@ -86,7 +89,12 @@ export async function POST(request: NextRequest) {
         role: profile?.role === "teacher" ? "teacher" : "student",
       });
 
-    if (joinError) throw joinError;
+    if (joinError) {
+      if ((joinError as { code?: string }).code === "23505") {
+        return NextResponse.json({ error: "You are already a member of this group" }, { status: 400 });
+      }
+      throw joinError;
+    }
 
     // Create pending progress for all active assignments
     const { data: assignments } = await admin

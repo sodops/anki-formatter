@@ -89,7 +89,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
     const { event_type, xp_amount, source_id, metadata } = body;
+    const headerKey = request.headers.get("x-idempotency-key")?.trim();
+    const metadataKey =
+      metadata && typeof metadata === "object" && typeof metadata.idempotency_key === "string"
+        ? metadata.idempotency_key.trim()
+        : undefined;
+    const idempotencyKey = headerKey || metadataKey;
 
     const validTypes = ["review", "assignment_complete", "streak_bonus", "perfect_score", "daily_goal", "first_review"];
     if (!validTypes.includes(event_type)) {
@@ -100,6 +110,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid XP amount" }, { status: 400 });
     }
 
+    if (idempotencyKey && idempotencyKey.length > 100) {
+      return NextResponse.json({ error: "Idempotency key is too long" }, { status: 400 });
+    }
+
+    if (idempotencyKey) {
+      let query = supabase
+        .from("xp_events")
+        .select("xp_amount")
+        .eq("user_id", user.id)
+        .contains("metadata", { idempotency_key: idempotencyKey })
+        .limit(1);
+
+      if (source_id) {
+        query = query.eq("source_id", source_id);
+      }
+
+      const { data: existingEvent } = await query.maybeSingle();
+      if (existingEvent) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("total_xp")
+          .eq("id", user.id)
+          .single();
+
+        const totalXP = profile?.total_xp || 0;
+        return NextResponse.json({
+          idempotent: true,
+          total_xp: totalXP,
+          xp_awarded: 0,
+          level: Math.floor(totalXP / 100) + 1,
+        });
+      }
+    }
+
+    const eventMetadata = {
+      ...(metadata && typeof metadata === "object" ? metadata : {}),
+      ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
+    };
+
     // Insert XP event
     const { error: xpError } = await supabase
       .from("xp_events")
@@ -108,7 +157,7 @@ export async function POST(request: NextRequest) {
         event_type,
         xp_amount,
         source_id: source_id || null,
-        metadata: metadata || {},
+        metadata: eventMetadata,
       });
 
     if (xpError) throw xpError;

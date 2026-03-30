@@ -45,16 +45,10 @@ export async function POST(
       );
     }
 
-    // Already completed
-    if (progress.status === "completed") {
-      return NextResponse.json(
-        { error: "Assignment already completed", progress },
-        { status: 400 }
-      );
-    }
+    const wasCompleted = progress.status === "completed";
 
     // Must have studied at least once
-    if (progress.cards_studied === 0 || progress.status === "pending") {
+    if (!wasCompleted && (progress.cards_studied === 0 || progress.status === "pending")) {
       return NextResponse.json(
         { error: "You need to study at least once before completing" },
         { status: 400 }
@@ -71,23 +65,28 @@ export async function POST(
       .eq("id", assignmentId)
       .single();
 
-    let totalXpAwarded = 0;
     const xpBreakdown: { type: string; amount: number }[] = [];
+    let xpAddedThisRequest = 0;
+    let totalXpAwarded = Number(progress.xp_earned || 0);
     const accuracy = progress.accuracy || 0;
     const maxXP = assignment?.xp_reward || 10;
 
     if (assignment) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("total_xp, current_streak, longest_streak, last_activity_date")
+        .eq("id", user.id)
+        .single();
+
       // 1. Base XP — proportional to accuracy
       // Formula: baseXP = maxXP * (accuracy / 100)
       // Minimum 10% of maxXP if they studied
       const accuracyMultiplier = Math.max(0.1, accuracy / 100);
       const baseXP = Math.round(maxXP * accuracyMultiplier);
-      totalXpAwarded += baseXP;
       xpBreakdown.push({ type: "assignment_complete", amount: baseXP });
 
       // 2. Perfect score bonus (+20 XP for 100% accuracy)
       if (accuracy === 100) {
-        totalXpAwarded += 20;
         xpBreakdown.push({ type: "perfect_score", amount: 20 });
       }
 
@@ -96,32 +95,8 @@ export async function POST(
       const cardsMastered = progress.cards_mastered || 0;
       if (cardsTotal > 0 && cardsMastered >= cardsTotal) {
         const masteryBonus = Math.round(maxXP * 0.1); // 10% bonus
-        totalXpAwarded += masteryBonus;
         xpBreakdown.push({ type: "full_mastery", amount: masteryBonus });
       }
-
-      // Insert XP events
-      for (const xpItem of xpBreakdown) {
-        await admin.from("xp_events").insert({
-          user_id: user.id,
-          event_type: xpItem.type,
-          xp_amount: xpItem.amount,
-          source_id: assignmentId,
-          metadata: {
-            title: assignment.title,
-            accuracy,
-            cards_mastered: progress.cards_mastered || 0,
-            cards_total: progress.cards_total || 0,
-          },
-        });
-      }
-
-      // Update profile total XP + streak
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("total_xp, current_streak, longest_streak, last_activity_date")
-        .eq("id", user.id)
-        .single();
 
       if (profile) {
         const today = new Date().toISOString().split("T")[0];
@@ -140,22 +115,59 @@ export async function POST(
 
         // Daily streak bonus (+10 XP if streak increased)
         if (lastDate !== today && newStreak > 0) {
-          const streakBonus = 10;
-          totalXpAwarded += streakBonus;
-          xpBreakdown.push({ type: "streak_bonus", amount: streakBonus });
-          await admin.from("xp_events").insert({
-            user_id: user.id,
-            event_type: "streak_bonus",
-            xp_amount: streakBonus,
-            source_id: assignmentId,
-            metadata: { streak: newStreak },
-          });
+          xpBreakdown.push({ type: "streak_bonus", amount: 10 });
         }
+
+        const xpTypes = xpBreakdown.map((x) => x.type);
+        const { data: existingEvents } = await admin
+          .from("xp_events")
+          .select("event_type, xp_amount")
+          .eq("user_id", user.id)
+          .eq("source_id", assignmentId)
+          .in("event_type", xpTypes);
+
+        const existingByType = new Map<string, number>();
+        for (const event of existingEvents || []) {
+          if (!existingByType.has(event.event_type)) {
+            existingByType.set(event.event_type, Number(event.xp_amount || 0));
+          }
+        }
+
+        for (const xpItem of xpBreakdown) {
+          if (existingByType.has(xpItem.type)) {
+            continue;
+          }
+
+          const metadata =
+            xpItem.type === "streak_bonus"
+              ? { streak: newStreak }
+              : {
+                  title: assignment.title,
+                  accuracy,
+                  cards_mastered: progress.cards_mastered || 0,
+                  cards_total: progress.cards_total || 0,
+                };
+
+          const { error: insertError } = await admin.from("xp_events").insert({
+            user_id: user.id,
+            event_type: xpItem.type,
+            xp_amount: xpItem.amount,
+            source_id: assignmentId,
+            metadata,
+          });
+
+          if (!insertError) {
+            xpAddedThisRequest += xpItem.amount;
+          }
+        }
+
+        const alreadyAwarded = Array.from(existingByType.values()).reduce((sum, value) => sum + value, 0);
+        totalXpAwarded = alreadyAwarded + xpAddedThisRequest;
 
         await admin
           .from("profiles")
           .update({
-            total_xp: (profile.total_xp || 0) + totalXpAwarded,
+            total_xp: (profile.total_xp || 0) + xpAddedThisRequest,
             current_streak: newStreak,
             longest_streak: Math.max(profile.longest_streak || 0, newStreak),
             last_activity_date: today,
@@ -170,16 +182,18 @@ export async function POST(
         .eq("id", user.id)
         .single();
 
-      try {
-        await admin.from("notifications").insert({
-          user_id: assignment.teacher_id,
-          type: "assignment_graded",
-          title: "Assignment Completed",
-          message: `${studentProfile?.display_name || "A student"} completed "${assignment.title}" with ${Math.round(accuracy)}% accuracy and earned ${totalXpAwarded} XP`,
-          data: { assignment_id: assignmentId, student_id: user.id },
-        });
-      } catch {
-        // notification insert failure is non-critical
+      if (!wasCompleted) {
+        try {
+          await admin.from("notifications").insert({
+            user_id: assignment.teacher_id,
+            type: "assignment_graded",
+            title: "Assignment Completed",
+            message: `${studentProfile?.display_name || "A student"} completed "${assignment.title}" with ${Math.round(accuracy)}% accuracy and earned ${totalXpAwarded} XP`,
+            data: { assignment_id: assignmentId, student_id: user.id },
+          });
+        } catch {
+          // notification insert failure is non-critical
+        }
       }
     }
 
@@ -188,7 +202,7 @@ export async function POST(
       .from("student_progress")
       .update({
         status: "completed",
-        completed_at: now,
+        completed_at: progress.completed_at || now,
         xp_earned: totalXpAwarded,
       })
       .eq("assignment_id", assignmentId)
@@ -200,8 +214,10 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
+      idempotent: wasCompleted || xpAddedThisRequest === 0,
       progress: updated,
-      xp_awarded: totalXpAwarded,
+      xp_awarded: xpAddedThisRequest,
+      xp_total_for_assignment: totalXpAwarded,
       xp_breakdown: xpBreakdown,
     });
   } catch (error) {

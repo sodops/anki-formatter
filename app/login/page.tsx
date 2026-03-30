@@ -7,6 +7,33 @@ import Link from "next/link";
 
 type AuthMode = "signin" | "signup" | "forgot";
 
+function normalizeAuthMessage(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err || "");
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("fetch failed") ||
+    lower.includes("networkerror")
+  ) {
+    return "Unable to reach authentication service right now. Please try again shortly.";
+  }
+
+  if (lower.includes("dns_probe_finished_nxdomain") || lower.includes("enotfound")) {
+    return "Authentication service DNS is temporarily unavailable. Please try again shortly.";
+  }
+
+  if (lower.includes("auth_failed")) {
+    return "Authentication failed. Please retry sign in.";
+  }
+
+  if (!message) {
+    return "Authentication failed. Please try again.";
+  }
+
+  return message.length > 160 ? "Authentication failed. Please try again." : message;
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState<AuthMode>("signin");
   const [error, setError] = useState<string | null>(null);
@@ -25,10 +52,9 @@ export default function LoginPage() {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      if (error) setError(error.message);
+      if (error) setError(normalizeAuthMessage(error.message));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "OAuth failed";
-      setError(message);
+      setError(normalizeAuthMessage(err));
     }
   };
 
@@ -43,22 +69,26 @@ export default function LoginPage() {
     }
 
     startTransition(async () => {
-      let result;
+      try {
+        let result;
 
-      if (mode === "signin") {
-        result = await login(formData);
-      } else if (mode === "signup") {
-        result = await signup(formData);
-      } else if (mode === "forgot") {
-        result = await resetPassword(formData);
-      }
+        if (mode === "signin") {
+          result = await login(formData);
+        } else if (mode === "signup") {
+          result = await signup(formData);
+        } else if (mode === "forgot") {
+          result = await resetPassword(formData);
+        }
 
-      if (result?.error) {
-        setError(result.error);
-      } else if (result && "success" in result && result.success) {
-        setMessage(result.success);
-        // If signin was successful, the server action would have redirected already.
-        // If we are here, it's likely signup or forgot password success.
+        if (result?.error) {
+          setError(normalizeAuthMessage(result.error));
+        } else if (result && "success" in result && result.success) {
+          setMessage(result.success);
+          // If signin was successful, the server action would have redirected already.
+          // If we are here, it's likely signup or forgot password success.
+        }
+      } catch (err) {
+        setError(normalizeAuthMessage(err));
       }
     });
   };
@@ -176,50 +206,28 @@ export default function LoginPage() {
 
             {/* Role Selector (Only for Signup) */}
             {mode === "signup" && (
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>I am a</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="login-role-selector">
+                <label className="login-role-label">I am a</label>
+                <div className="login-role-grid">
                   <button
                     type="button"
-                    onClick={() => setSelectedRole('student')}
-                    style={{
-                      padding: '14px 12px',
-                      borderRadius: '10px',
-                      border: `2px solid ${selectedRole === 'student' ? '#6366F1' : 'var(--border)'}`,
-                      background: selectedRole === 'student' ? 'rgba(99,102,241,0.08)' : 'var(--bg-secondary)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column' as const,
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s',
-                      color: 'var(--text-primary)',
-                    }}
+                    onClick={() => setSelectedRole("student")}
+                    className={`login-role-btn login-role-btn-student ${selectedRole === "student" ? "is-selected" : ""}`}
+                    aria-pressed={selectedRole === "student"}
                   >
-                    <span style={{ fontSize: '24px' }}>🎓</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Student</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Learn & study</span>
+                    <span className="login-role-emoji">🎓</span>
+                    <span className="login-role-title">Student</span>
+                    <span className="login-role-subtitle">Learn and study</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSelectedRole('teacher')}
-                    style={{
-                      padding: '14px 12px',
-                      borderRadius: '10px',
-                      border: `2px solid ${selectedRole === 'teacher' ? '#10B981' : 'var(--border)'}`,
-                      background: selectedRole === 'teacher' ? 'rgba(16,185,129,0.08)' : 'var(--bg-secondary)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column' as const,
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s',
-                      color: 'var(--text-primary)',
-                    }}
+                    onClick={() => setSelectedRole("teacher")}
+                    className={`login-role-btn login-role-btn-teacher ${selectedRole === "teacher" ? "is-selected" : ""}`}
+                    aria-pressed={selectedRole === "teacher"}
                   >
-                    <span style={{ fontSize: '24px' }}>👨‍🏫</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Teacher</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Create & assign</span>
+                    <span className="login-role-emoji">👨‍🏫</span>
+                    <span className="login-role-title">Teacher</span>
+                    <span className="login-role-subtitle">Create and assign</span>
                   </button>
                 </div>
               </div>
@@ -242,13 +250,7 @@ export default function LoginPage() {
 
               {mode !== "forgot" && (
                 <div className="login-field">
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "baseline",
-                    }}
-                  >
+                  <div className="login-password-row">
                     <label htmlFor="password">Password</label>
                     {mode === "signin" && (
                       <button
@@ -259,14 +261,6 @@ export default function LoginPage() {
                           setMessage(null);
                         }}
                         className="login-forgot-link"
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--text-tertiary)",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
                       >
                         Forgot?
                       </button>
